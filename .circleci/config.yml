@@ -7,14 +7,14 @@ workflows:
   build:
     jobs:
       - architect/go-build:
-        name: build-g8s-admission-controller
-        context: architect
-        binary: admission-controller
-        filters:
-          branches:
-            only: master
-          tags:
-            only: /^v.*/
+          name: build-g8s-admission-controller
+          context: architect
+          binary: admission-controller
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^v.*/
 
       - architect/push-to-docker:
           name: push-g8s-admission-controller-to-quay
