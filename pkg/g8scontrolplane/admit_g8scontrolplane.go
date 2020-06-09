@@ -15,7 +15,6 @@ import (
 	"github.com/giantswarm/micrologger"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/admission/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	restclient "k8s.io/client-go/rest"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
@@ -32,9 +31,9 @@ type AdmitterConfig struct {
 	ValidAvailabilityZones string
 }
 
-var (
-	g8sControlPlaneResource = metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "g8scontrolplane"}
-)
+// var (
+//  g8sControlPlaneResource = metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "g8scontrolplane"}
+// )
 
 func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
 	var k8sClient *k8sclient.Clients
