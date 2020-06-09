@@ -31,7 +31,10 @@ func main() {
 
 func healthCheck(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte("ok"))
+	_, err := writer.Write([]byte("ok"))
+	if err != nil {
+		log.Fatalf("Healthcheck Error: %v", err)
+	}
 }
 
 func serve(cfg *config.Config, handler http.Handler) {
@@ -46,13 +49,16 @@ func serve(cfg *config.Config, handler http.Handler) {
 	signal.Notify(sig, syscall.SIGTERM)
 	go func() {
 		<-sig
-		server.Shutdown(context.Background())
+		err := server.Shutdown(context.Background())
+		if err != nil {
+			log.Fatalf("Shutdown Error: %v", err)
+		}
 	}()
 
 	err := server.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
 	if err != nil {
 		if err != http.ErrServerClosed {
-			log.Fatal(err)
+			log.Fatalf("Listen Error: %v", err)
 		}
 	}
 }
