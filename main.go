@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/giantswarm/admission-controller/config"
-	"github.com/giantswarm/admission-controller/pkg/admission"
-	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
+	"github.com/giantswarm/g8s-admission-controller/config"
+	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
+	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
 	log "github.com/sirupsen/logrus"
 )
 

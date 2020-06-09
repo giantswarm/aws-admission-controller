@@ -8,7 +8,7 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/ghodss/yaml"
-	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 	"github.com/stretchr/testify/require"
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"

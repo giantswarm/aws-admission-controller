@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
+	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 

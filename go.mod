@@ -1,4 +1,4 @@
-module github.com/giantswarm/admission-controller
+module github.com/giantswarm/g8s-admission-controller
 
 go 1.14
 
