@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "resource.default.name" . }}
+  namespace: {{ include "resource.default.namespace" . }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      {{- include "labels.selector" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        releaseRevision: {{ .Release.Revision | quote }}
+      labels:
+        {{- include "labels.common" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: {{ include "name" . }}-certificates
+          secret:
+            secretName: {{ include "resource.default.name"  . }}-certificates
+      serviceAccountName: {{ include "resource.default.name"  . }}
+      containers:
+        - name: {{ include "name" . }}
+          image: "{{ .Values.Installation.V1.Registry.Domain }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          env:
+            - name: DEFAULT_AWS_AZS
+              value: {{ join "," .Values.Installation.V1.Provider.AWS.AvailabilityZones }}
+          args:
+            - ./g8s-admission-controller
+            - --tls-cert-file=/certs/ca.crt
+            - --tls-key-file=/certs/tls.key
+            - --availability-zones=$DEFAULT_AWS_AZS
+          volumeMounts:
+          - name: {{ include "name" . }}-certificates
+            mountPath: "/certs"
+          ports:
+          - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 150Mi
+            limits:
+              cpu: 250m
+              memory: 250Mi

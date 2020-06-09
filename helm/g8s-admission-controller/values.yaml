@@ -1,0 +1,7 @@
+image:
+  name: "giantswarm/aws-operator"
+  tag: "[[ .Version ]]"
+
+project:
+  branch: "[[ .Branch ]]"
+  commit: "[[ .SHA ]]"

@@ -1,0 +1,27 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "resource.default.name" . }}
+  namespace: {{ include "resource.default.namespace" . }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ include "resource.default.namespace" . }}/{{ include "resource.default.name" . }}-certificates
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+webhooks:
+  - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /g8scontrolplane
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - "g8scontrolplanes"
+        apiVersions:
+          - "v1alpha2"
+        operations:
+          - CREATE
+          - UPDATE
