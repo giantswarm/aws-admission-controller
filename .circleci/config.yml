@@ -9,7 +9,7 @@ workflows:
       - architect/go-build:
           name: build-g8s-admission-controller
           context: architect
-          binary: admission-controller
+          binary: g8s-admission-controller
           filters:
             branches:
               only: master
