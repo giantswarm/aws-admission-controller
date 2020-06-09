@@ -22,7 +22,7 @@ func createG8sControlPlaneAdmitter(config []byte) (admission.Admitter, error) {
 	return NewAdmitter(conf)
 }
 
-func TestJobAdmission(t *testing.T) {
+func TestG8sControlPlaneAdmission(t *testing.T) {
 	runner := &testrunner.Runner{
 		CreateAdmitter: createG8sControlPlaneAdmitter,
 		Resource:       g8sControlPlaneResource,
