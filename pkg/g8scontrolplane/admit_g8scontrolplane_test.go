@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/ghodss/yaml"
-	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
-	"github.com/giantswarm/g8s-admission-controller/pkg/testrunner"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
+	"github.com/giantswarm/g8s-admission-controller/pkg/testrunner"
 )
 
 func createG8sControlPlaneAdmitter(config []byte) (admission.Admitter, error) {

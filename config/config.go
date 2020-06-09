@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
 )
 
 const (

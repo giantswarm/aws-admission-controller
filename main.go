@@ -7,10 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/giantswarm/g8s-admission-controller/config"
 	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {

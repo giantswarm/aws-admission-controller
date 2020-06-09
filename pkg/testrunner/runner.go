@@ -8,12 +8,13 @@ import (
 
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/ghodss/yaml"
-	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 	"github.com/stretchr/testify/require"
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 )
 
 type Runner struct {

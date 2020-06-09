@@ -10,7 +10,6 @@ import (
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/backoff"
-	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -20,6 +19,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	restclient "k8s.io/client-go/rest"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
+
+	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
 )
 
 type Admitter struct {
