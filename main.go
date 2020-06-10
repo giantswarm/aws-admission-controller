@@ -30,6 +30,8 @@ func main() {
 }
 
 func healthCheck(writer http.ResponseWriter, request *http.Request) {
+	log.Infof("HealthCheck")
+	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)
 	_, err := writer.Write([]byte("ok"))
 	if err != nil {
