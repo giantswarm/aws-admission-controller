@@ -41,18 +41,20 @@ spec:
             mountPath: "/certs"
           ports:
           - containerPort: 8080
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
-          #   initialDelaySeconds: 30
-          #   timeoutSeconds: 10
-          # readinessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
-          #   initialDelaySeconds: 30
-          #   timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              scheme: HTTPS
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              scheme: HTTPS
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 10
           resources:
             requests:
               cpu: 50m
