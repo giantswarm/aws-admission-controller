@@ -69,5 +69,7 @@ workflows:
           requires:
             - push-g8s-admission-controller-to-control-plane-app-catalog
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
