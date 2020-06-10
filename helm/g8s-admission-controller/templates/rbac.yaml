@@ -38,6 +38,7 @@ metadata:
     {{- include "labels.common" . | nindent 4 }}
 rules:
   - apiGroups:
+      - policy
       - extensions
     resources:
       - podsecuritypolicies
