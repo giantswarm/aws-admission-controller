@@ -1,5 +1,5 @@
 image:
-  name: "giantswarm/aws-operator"
+  name: "giantswarm/g8s-admission-controller"
   tag: "[[ .Version ]]"
 
 project:
