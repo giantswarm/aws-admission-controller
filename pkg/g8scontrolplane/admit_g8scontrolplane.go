@@ -63,10 +63,15 @@ func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
 		}
 	}
 
+	var availabilityZones []string
+	availabilityZones = strings.Split(cfg.ValidAvailabilityZones, ",")
+
 	admitter := &Admitter{
 		k8sClient:              k8sClient,
-		validAvailabilityZones: strings.Split(cfg.ValidAvailabilityZones, ","),
+		validAvailabilityZones: availabilityZones,
 	}
+
+	log.Infof("Valid Availavility Zones %v", availabilityZones)
 
 	return admitter, nil
 }
