@@ -36,11 +36,11 @@ func FakeK8sClient() k8sclient.Interface {
 			panic(err)
 		}
 		_ = fakek8s.AddToScheme(scheme)
-		client :=  fakek8s.NewSimpleClientset()
+		client := fakek8s.NewSimpleClientset()
 
 		k8sClient = &fakeK8sClient{
 			ctrlClient: fake.NewFakeClientWithScheme(scheme),
-			k8sClient: client,
+			k8sClient:  client,
 		}
 	}
 

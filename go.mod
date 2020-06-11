@@ -12,6 +12,7 @@ require (
 	github.com/giantswarm/micrologger v0.3.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
+	golang.org/x/tools v0.0.0-20200611134948-54cf04ef09c8 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.17.2
 	k8s.io/apiextensions-apiserver v0.17.2
