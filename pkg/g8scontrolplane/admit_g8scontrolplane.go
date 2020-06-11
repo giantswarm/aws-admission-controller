@@ -23,7 +23,7 @@ import (
 )
 
 type Admitter struct {
-	k8sClient              *k8sclient.Clients
+	k8sClient              k8sclient.Interface
 	validAvailabilityZones []string
 }
 
@@ -36,7 +36,7 @@ type AdmitterConfig struct {
 // )
 
 func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
-	var k8sClient *k8sclient.Clients
+	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
 		if err != nil {
