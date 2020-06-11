@@ -38,6 +38,22 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 			expectAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 		},
+		{
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentAvailabilityZone: []string{"cn-north-1a"},
+			expectAvailabilityZones: []string{"cn-north-1a", "cn-north-1b", "cn-north-1a"},
+			validAvailabilityZones:  []string{"cn-north-1a", "eu-central-1b"},
+		},
+		{
+			name: "case 2",
+			ctx:  context.Background(),
+
+			currentAvailabilityZone: []string{"cn-south-1a"},
+			expectAvailabilityZones: []string{"cn-south-1a", "eu-south-1a", "cn-south-1a"},
+			validAvailabilityZones:  []string{"cn-south-1a"},
+		},
 	}
 
 	for i, tc := range testCases {
@@ -86,7 +102,11 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 			}
 
 			// check if updated AZ's are in expected AZ's
-			for _, az := range updatedAZs {
+			// if only two valid AZ's, ignore last AZ because it's randomly picked
+			for i, az := range updatedAZs {
+				if len(tc.validAvailabilityZones) == 2 && i == 2 {
+					return
+				}
 				if !updatedAZinExpectedAZs(az, tc.expectAvailabilityZones) {
 					t.Fatalf("expected AZ %s is missing in updated AZ list %v", az, updatedAZs)
 				}
