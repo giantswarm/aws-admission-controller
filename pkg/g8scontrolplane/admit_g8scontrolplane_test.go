@@ -45,7 +45,7 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 
 			currentAvailabilityZone: []string{"cn-north-1a"},
 			expectAvailabilityZones: []string{"cn-north-1a", "cn-north-1b", "cn-north-1a"},
-			validAvailabilityZones:  []string{"cn-north-1a", "eu-central-1b"},
+			validAvailabilityZones:  []string{"cn-north-1a", "cn-north-1b"},
 		},
 		{
 			name: "case 2",
