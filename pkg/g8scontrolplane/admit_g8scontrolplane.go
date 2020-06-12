@@ -23,7 +23,7 @@ import (
 )
 
 type Admitter struct {
-	k8sClient              *k8sclient.Clients
+	k8sClient              k8sclient.Interface
 	validAvailabilityZones []string
 }
 
@@ -36,7 +36,7 @@ type AdmitterConfig struct {
 // )
 
 func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
-	var k8sClient *k8sclient.Clients
+	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
 		if err != nil {
@@ -132,16 +132,42 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 }
 
 func getHAavailabilityZones(firstAZ string, azs []string) []string {
-	var tempAZs []string
 	var randomAZs []string
-	for _, az := range azs {
-		if firstAZ != az {
-			tempAZs = append(tempAZs, az)
+	// Having 3 AZ's or more shuffle 3 HA masters in different AZ's
+	if len(azs) >= 3 {
+		var tempAZs []string
+		for _, az := range azs {
+			if firstAZ != az {
+				tempAZs = append(tempAZs, az)
+			}
 		}
-	}
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(tempAZs), func(i, j int) { tempAZs[i], tempAZs[j] = tempAZs[j], tempAZs[i] })
-	randomAZs = append(randomAZs, firstAZ, tempAZs[0], tempAZs[1])
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(tempAZs), func(i, j int) { tempAZs[i], tempAZs[j] = tempAZs[j], tempAZs[i] })
+		randomAZs = append(randomAZs, firstAZ, tempAZs[0], tempAZs[1])
+		log.Infof("%d AZ's available, selected AZ's: %v", len(azs), randomAZs)
 
-	return randomAZs
+		return randomAZs
+
+		// Having only 2 AZ available we shuffle 3 HA masters in 2 AZ's
+	} else if len(azs) == 2 {
+		var tempAZ string
+		for _, az := range azs {
+			if firstAZ != az {
+				tempAZ = az
+			}
+		}
+		rand.Seed(time.Now().UnixNano())
+		rand.Shuffle(len(azs), func(i, j int) { azs[i], azs[j] = azs[j], azs[i] })
+		randomAZs = append(randomAZs, firstAZ, tempAZ, azs[0])
+		log.Infof("Only %d AZ's available, random AZ's will be %v", len(azs), randomAZs)
+
+		return randomAZs
+
+		// Having only 1 AZ available we add 3 HA masters to this AZ
+	} else {
+		randomAZs = append(randomAZs, firstAZ, firstAZ, firstAZ)
+		log.Infof("Only %d AZ's available, using the same AZ %v", len(azs), randomAZs)
+
+		return randomAZs
+	}
 }
