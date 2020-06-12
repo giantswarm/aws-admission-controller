@@ -32,7 +32,7 @@ spec:
             - name: DEFAULT_AWS_AZS
               value: {{ join "," .Values.Installation.V1.Provider.AWS.AvailabilityZones }}
           args:
-            - ./g8s-admission-controller
+            - ./admission-controller
             - --tls-cert-file=/certs/ca.crt
             - --tls-key-file=/certs/tls.key
             - --availability-zones=$(DEFAULT_AWS_AZS)

@@ -9,9 +9,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/giantswarm/g8s-admission-controller/config"
-	"github.com/giantswarm/g8s-admission-controller/pkg/admission"
-	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
+	"github.com/giantswarm/admission-controller/config"
+	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
 func main() {

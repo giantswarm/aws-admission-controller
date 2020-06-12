@@ -7,9 +7,9 @@ workflows:
   build:
     jobs:
       - architect/go-build:
-          name: build-g8s-admission-controller
+          name: build-admission-controller
           context: architect
-          binary: g8s-admission-controller
+          binary: admission-controller
           filters:
             branches:
               only: master
@@ -17,13 +17,13 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-docker:
-          name: push-g8s-admission-controller-to-quay
+          name: push-admission-controller-to-quay
           context: architect
-          image: "quay.io/giantswarm/g8s-admission-controller"
+          image: "quay.io/giantswarm/admission-controller"
           username_envar: "QUAY_USERNAME"
           password_envar: "QUAY_PASSWORD"
           requires:
-            - build-g8s-admission-controller
+            - build-admission-controller
           # Needed to trigger job also on git tag.
           filters:
             branches:
@@ -32,13 +32,13 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-docker:
-          name: push-g8s-admission-controller-to-aliyun
+          name: push-admission-controller-to-aliyun
           context: architect
-          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/g8s-admission-controller"
+          image: "registry-intl.cn-shanghai.aliyuncs.com/giantswarm/admission-controller"
           username_envar: "ALIYUN_USERNAME"
           password_envar: "ALIYUN_PASSWORD"
           requires:
-            - build-g8s-admission-controller
+            - build-admission-controller
           # Needed to trigger job only on git tag.
           filters:
             branches:
@@ -47,13 +47,13 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-app-catalog:
-          name: push-g8s-admission-controller-to-control-plane-app-catalog
+          name: push-admission-controller-to-control-plane-app-catalog
           context: architect
           app_catalog: "control-plane-catalog"
           app_catalog_test: "control-plane-test-catalog"
-          chart: "g8s-admission-controller"
+          chart: "admission-controller"
           requires:
-            - push-g8s-admission-controller-to-quay
+            - push-admission-controller-to-quay
           filters:
             branches:
               only: master
@@ -61,13 +61,13 @@ workflows:
               only: /^v.*/
 
       - architect/push-to-app-collection:
-          name: push-g8s-admission-controller-to-aws-app-collection
+          name: push-admission-controller-to-aws-app-collection
           context: architect
-          app_name: "g8s-admission-controller"
+          app_name: "admission-controller"
           app_collection_repo: "aws-app-collection"
           unique: "true"
           requires:
-            - push-g8s-admission-controller-to-control-plane-app-catalog
+            - push-admission-controller-to-control-plane-app-catalog
           filters:
             branches:
               ignore: /.*/

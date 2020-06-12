@@ -14,13 +14,13 @@ Firecracker Team
 
     kind create cluster
     CGO_ENABLED=0 go build .
-    docker build . -t g8s-admission-controller:dev
-    kind load docker-image g8s-admission-controller:dev
+    docker build . -t admission-controller:dev
+    kind load docker-image admission-controller:dev
     opsctl ensure crds -k "$(kind get kubeconfig)" -p aws
     kubectl apply --context kind-kind -f local_dev/certmanager.yml
     ## Wait until certmanaget is up
     kubectl apply --context kind-kind -f local_dev/clusterissuer.yml
-    helm template g8s-admission-controller -f helm/g8s-admission-controller/ci/default-values.yaml helm/g8s-admission-controller > local_dev/deploy.yaml
-    ## Replace image name with g8s-admission-controller:dev
+    helm template admission-controller -f helm/admission-controller/ci/default-values.yaml helm/admission-controller > local_dev/deploy.yaml
+    ## Replace image name with admission-controller:dev
     kubectl apply --context kind-kind -f local_dev/deploy.yaml
     kind delete cluster

@@ -1,5 +1,5 @@
 image:
-  name: "giantswarm/g8s-admission-controller"
+  name: "giantswarm/admission-controller"
   tag: "[[ .Version ]]"
 
 project:

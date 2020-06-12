@@ -3,7 +3,7 @@ package config
 import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/giantswarm/g8s-admission-controller/pkg/g8scontrolplane"
+	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
 const (
