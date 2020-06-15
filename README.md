@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/giantswarm/admission-controller.svg?style=svg)](https://circleci.com/gh/giantswarm/admission-controller)
+
 # G8S Admission Controller
 
 Giant Swarm Control Plane admission controller that implements the following rules:
