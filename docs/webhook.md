@@ -37,7 +37,7 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 
 	var result []admission.PatchOperation
 	if job.Spec.TTLSecondsAfterFinished == nil {
-		result = append(result, admission.PatchAdd("/spec/ttlSecondsAfterFinished", admitter.DefaultTTLSecondsAfterFinished))
+		result = append(result, admission.PatchAdd("/spec/something", admitter.DefaultSomething)
 	}
 	return result, nil
 }
