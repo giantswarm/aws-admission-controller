@@ -19,7 +19,7 @@ func main() {
 
 	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(&cfg.G8sControlPaneConfig)
 	if err != nil {
-		log.Fatalf("Unable to create Pod admitter: %v", err)
+		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
 	handler := http.NewServeMux()
