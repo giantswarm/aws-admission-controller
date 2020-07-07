@@ -4,7 +4,8 @@
 
 Giant Swarm Control Plane admission controller that implements the following rules:
 
-- When the G8SControlPlane replicas is changed from 1 to 3 the Availavility Zones of the AWSControlPlane will be defaulted if needed.
+- In a G8SControlPlane resource, when the `.spec.replicas` is changed from 1 to 3, the Availavility Zones of the according AWSControlPlane will be defaulted if needed.
+- When a new AWSMachineDeployment is created, details are logged.
 
 The certificates for the webhook are created with CertManager and injected through the CA Injector.
 
@@ -12,33 +13,29 @@ The certificates for the webhook are created with CertManager and injected throu
 
 Firecracker Team
 
-## Getting the project
-
-Clone the git repository: https://github.com/giantswarm/admission-controller
-
-### How to build
-
-Build it using the `make` command.
-
-```bash
-$ cd admission-controller
-$ make
-```
-
 ### Local Development
 
 Testing the admission-controller in a kind cluster on your local machine:
 
-```bash
+```nohighlight
 kind create cluster
+
+# Build a linux image
 CGO_ENABLED=0 go build .
 docker build . -t admission-controller:dev
 kind load docker-image admission-controller:dev
+
+# Make sure the Custom Resource Definitions are in place
 opsctl ensure crds -k "$(kind get kubeconfig)" -p aws
+
+# Insert the certificate
 kubectl apply --context kind-kind -f local_dev/certmanager.yml
+
 ## Wait until certmanager is up
+
 kubectl apply --context kind-kind -f local_dev/clusterissuer.yml
 helm template admission-controller -f helm/admission-controller/ci/default-values.yaml helm/admission-controller > local_dev/deploy.yaml
+
 ## Replace image name with admission-controller:dev
 kubectl apply --context kind-kind -f local_dev/deploy.yaml
 kind delete cluster
@@ -50,16 +47,15 @@ See [Releases](https://github.com/giantswarm/admission-controller/releases)
 
 ## Contact
 
-- Mailing list: [giantswarm](https://groups.google.com/forum/!forum/giantswarm)
-- IRC: #[giantswarm](irc://irc.freenode.org:6667/#giantswarm) on freenode.org
 - Bugs: [issues](https://github.com/giantswarm/admission-controller/issues)
+- Please visit https://www.giantswarm.io/responsible-disclosure for information on reporting security issues.
 
-## Contributing & Reporting Bugs
+## Contributing, reporting bugs
 
 See [CONTRIBUTING](CONTRIBUTING.md) for details on submitting patches, the
 contribution workflow as well as reporting bugs.
 
-## Publishing a Release
+## Publishing a release
 
 See [docs/Release.md](https://github.com/giantswarm/admission-controller/blob/master/docs/release.md)
 
@@ -67,6 +63,6 @@ See [docs/Release.md](https://github.com/giantswarm/admission-controller/blob/ma
 
 See [docs/webhook.md](https://github.com/giantswarm/admission-controller/blob/master/docs/webhook.md)
 
-## Writing Tests 
+## Writing tests
 
 See [docs/tests.md](https://github.com/giantswarm/admission-controller/blob/master/docs/tests.md)
