@@ -9,7 +9,6 @@ import (
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"github.com/google/go-cmp/cmp"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/admission/v1beta1"
 	restclient "k8s.io/client-go/rest"
@@ -69,44 +68,45 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
-		log.Errorf("unable to parse AWSMachineDeployment plane: %v", err)
+		log.Errorf("unable to parse AWSMachineDeployment: %v", err)
 		return nil, admission.InternalError
 	}
 	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
-		log.Errorf("unable to parse g8scontrol plane: %v", err)
+		log.Errorf("unable to parse AWSMachineDeployment: %v", err)
 		return nil, admission.InternalError
 	}
 
-	// Log object details
-	log.Infof("Node pool %s - old object: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR)
-	log.Infof("Node pool %s - old InstanceDistribution: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution)
-	log.Infof("Node pool %s - old OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	if awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
-		log.Infof("Node pool %s - old *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentOldCR.ObjectMeta.Name, *awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	}
+	// // Log object details
+	// log.Infof("Node pool %s - old object: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR)
+	// log.Infof("Node pool %s - old InstanceDistribution: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution)
+	// log.Infof("Node pool %s - old OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
+	// if awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
+	// 	log.Infof("Node pool %s - old *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentOldCR.ObjectMeta.Name, *awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
+	// }
 
-	log.Infof("Node pool %s - new object: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR)
-	log.Infof("Node pool %s - new InstanceDistribution: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution)
-	log.Infof("Node pool %s - new OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
-		log.Infof("Node pool %s - new *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentNewCR.ObjectMeta.Name, *awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	}
+	// log.Infof("Node pool %s - new object: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR)
+	// log.Infof("Node pool %s - new InstanceDistribution: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution)
+	// log.Infof("Node pool %s - new OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
+	// if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
+	// 	log.Infof("Node pool %s - new *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentNewCR.ObjectMeta.Name, *awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
+	// }
 
-	if diff := cmp.Diff(awsMachineDeploymentOldCR, awsMachineDeploymentNewCR); diff != "" {
-		fmt.Printf("AWSMachineDeployment changes (-old +new):\n%s", diff)
-	}
+	// if diff := cmp.Diff(awsMachineDeploymentOldCR, awsMachineDeploymentNewCR); diff != "" {
+	// 	fmt.Printf("AWSMachineDeployment changes (-old +new):\n%s", diff)
+	// }
 
 	var result []admission.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		var defaultVal int = 100
-		patch := admission.PatchOperation{
-			Operation: "replace",
-			Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
-			Value:     &defaultVal,
-		}
-		result = append(result, patch)
+		log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
+		// var defaultVal int = 100
+		// patch := admission.PatchOperation{
+		// 	Operation: "replace",
+		// 	Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
+		// 	Value:     &defaultVal,
+		// }
+		// result = append(result, patch)
 	}
 
 	return result, nil
