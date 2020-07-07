@@ -13,8 +13,7 @@ workflows:
           context: architect
           binary: admission-controller
           filters:
-            branches:
-              only: master
+            # Do this on every commit and when a new tag is created.
             tags:
               only: /^v.*/
 
@@ -26,10 +25,8 @@ workflows:
           password_envar: "QUAY_PASSWORD"
           requires:
             - build-admission-controller
-          # Needed to trigger job also on git tag.
+          # Do this on every commit and when a new tag is created.
           filters:
-            branches:
-              only: master
             tags:
               only: /^v.*/
 
@@ -41,8 +38,8 @@ workflows:
           password_envar: "ALIYUN_PASSWORD"
           requires:
             - build-admission-controller
-          # Needed to trigger job only on git tag.
           filters:
+            # Do this on every commit to master and when a new tag is created.
             branches:
               only: master
             tags:
@@ -57,8 +54,7 @@ workflows:
           requires:
             - push-admission-controller-to-quay
           filters:
-            branches:
-              only: master
+            # Do this on every commit and when a new tag is created.
             tags:
               only: /^v.*/
 
@@ -71,6 +67,7 @@ workflows:
           requires:
             - push-admission-controller-to-control-plane-app-catalog
           filters:
+            # Only do this when a new tag is created.
             branches:
               ignore: /.*/
             tags:
