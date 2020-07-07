@@ -9,6 +9,7 @@ import (
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+	"github.com/google/go-cmp/cmp"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/admission/v1beta1"
 	restclient "k8s.io/client-go/rest"
@@ -89,6 +90,10 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	log.Infof("Node pool %s - new OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
 		log.Infof("Node pool %s - new *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentNewCR.ObjectMeta.Name, *awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
+	}
+
+	if diff := cmp.Diff(awsMachineDeploymentOldCR, awsMachineDeploymentNewCR); diff != "" {
+		log.Infof("AWSMachineDeployment changes (-old +new):\n%s", diff)
 	}
 
 	// Return an empty result, as we don't want to modify anything.
