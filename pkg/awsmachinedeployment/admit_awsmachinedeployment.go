@@ -96,7 +96,18 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 		fmt.Printf("AWSMachineDeployment changes (-old +new):\n%s", diff)
 	}
 
-	// Return an empty result, as we don't want to modify anything.
 	var result []admission.PatchOperation
+
+	// Default the OnDemandPercentageAboveBaseCapacity
+	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
+		var defaultVal int = 100
+		patch := admission.PatchOperation{
+			Operation: "replace",
+			Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
+			Value:     &defaultVal,
+		}
+		result = append(result, patch)
+	}
+
 	return result, nil
 }
