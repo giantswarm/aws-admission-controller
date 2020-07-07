@@ -3,7 +3,8 @@ orbs:
   architect: giantswarm/architect@0.10.0
 
 workflows:
-  workflow:
+  version: 2
+  main:
     jobs:
       - architect/go-build:
           name: build-admission-controller
