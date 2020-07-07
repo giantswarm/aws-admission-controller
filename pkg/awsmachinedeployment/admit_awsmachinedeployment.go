@@ -93,7 +93,7 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	}
 
 	if diff := cmp.Diff(awsMachineDeploymentOldCR, awsMachineDeploymentNewCR); diff != "" {
-		log.Infof("AWSMachineDeployment changes (-old +new):\n%s", diff)
+		fmt.Printf("AWSMachineDeployment changes (-old +new):\n%s", diff)
 	}
 
 	// Return an empty result, as we don't want to modify anything.
