@@ -31,7 +31,7 @@ Testing the admission-controller in a kind cluster on your local machine:
 
 ```bash
 kind create cluster
-CGO_ENABLED=0 go build .
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64go build .
 docker build . -t admission-controller:dev
 kind load docker-image admission-controller:dev
 opsctl ensure crds -k "$(kind get kubeconfig)" -p aws
