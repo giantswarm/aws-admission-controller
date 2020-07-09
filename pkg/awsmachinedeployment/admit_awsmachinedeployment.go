@@ -77,20 +77,7 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 		return nil, admission.InternalError
 	}
 
-	// // Log object details
-	// log.Infof("Node pool %s - old object: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR)
-	// log.Infof("Node pool %s - old InstanceDistribution: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution)
-	// log.Infof("Node pool %s - old OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentOldCR.ObjectMeta.Name, awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	// if awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
-	// 	log.Infof("Node pool %s - old *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentOldCR.ObjectMeta.Name, *awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	// }
-
-	// log.Infof("Node pool %s - new object: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR)
-	// log.Infof("Node pool %s - new InstanceDistribution: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution)
-	// log.Infof("Node pool %s - new OnDemandPercentageAboveBaseCapacity: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	// if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity != nil {
-	// 	log.Infof("Node pool %s - new *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentNewCR.ObjectMeta.Name, *awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
-	// }
+	log.Infof("Node pool %s - new InstanceDistribution: %#v", awsMachineDeploymentNewCR.ObjectMeta.Name, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution)
 
 	if diff := cmp.Diff(awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution); diff != "" {
 		fmt.Printf("AWSMachineDeployment.Spec.Provider.InstanceDistribution changes (-old +new):\n%s", diff)
