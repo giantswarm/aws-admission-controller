@@ -82,7 +82,6 @@ func awsMachineDeploymentAdmissionRequest() *v1beta1.AdmissionRequest {
 }
 
 func awsMachineDeploymentRawByte() []byte {
-	var ten int = 10
 	cr := infrastructurev1alpha2.AWSMachineDeployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AWSMachineDeployment",
@@ -107,8 +106,8 @@ func awsMachineDeploymentRawByte() []byte {
 			},
 			Provider: infrastructurev1alpha2.AWSMachineDeploymentSpecProvider{
 				InstanceDistribution: infrastructurev1alpha2.AWSMachineDeploymentSpecInstanceDistribution{
-					OnDemandBaseCapacity:                &ten,
-					OnDemandPercentageAboveBaseCapacity: &ten,
+					OnDemandBaseCapacity:                10,
+					OnDemandPercentageAboveBaseCapacity: 10,
 				},
 			},
 		},
@@ -118,7 +117,6 @@ func awsMachineDeploymentRawByte() []byte {
 }
 
 func awsMachineDeployment() *infrastructurev1alpha2.AWSMachineDeployment {
-	var ten int = 10
 	return &infrastructurev1alpha2.AWSMachineDeployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AWSMachineDeployment",
@@ -143,8 +141,8 @@ func awsMachineDeployment() *infrastructurev1alpha2.AWSMachineDeployment {
 			},
 			Provider: infrastructurev1alpha2.AWSMachineDeploymentSpecProvider{
 				InstanceDistribution: infrastructurev1alpha2.AWSMachineDeploymentSpecInstanceDistribution{
-					OnDemandBaseCapacity:                &ten,
-					OnDemandPercentageAboveBaseCapacity: &ten,
+					OnDemandBaseCapacity:                10,
+					OnDemandPercentageAboveBaseCapacity: 10,
 				},
 			},
 		},
