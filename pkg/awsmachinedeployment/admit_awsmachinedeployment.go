@@ -86,16 +86,12 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	var result []admission.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity
-	// if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-	// 	log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
-	// 	var defaultVal int = 100
-	// 	patch := admission.PatchOperation{
-	// 		Operation: "replace",
-	// 		Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
-	// 		Value:     &defaultVal,
-	// 	}
-	// 	result = append(result, patch)
-	// }
+	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
+		log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
+		var defaultVal int = 100
+		patch := admission.PatchAdd("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultVal)
+		result = append(result, patch)
+	}
 
 	return result, nil
 }
