@@ -89,7 +89,7 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
 		log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
 		var defaultVal int = 100
-		patch := admission.PatchAdd("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultVal)
+		patch := admission.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultVal)
 		result = append(result, patch)
 	}
 
