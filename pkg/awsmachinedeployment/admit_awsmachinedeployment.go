@@ -9,6 +9,7 @@ import (
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+	"github.com/google/go-cmp/cmp"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/admission/v1beta1"
 	restclient "k8s.io/client-go/rest"
@@ -91,23 +92,23 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	// 	log.Infof("Node pool %s - new *OnDemandPercentageAboveBaseCapacity: %d", awsMachineDeploymentNewCR.ObjectMeta.Name, *awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity)
 	// }
 
-	// if diff := cmp.Diff(awsMachineDeploymentOldCR, awsMachineDeploymentNewCR); diff != "" {
-	// 	fmt.Printf("AWSMachineDeployment changes (-old +new):\n%s", diff)
-	// }
+	if diff := cmp.Diff(awsMachineDeploymentOldCR.Spec.Provider.InstanceDistribution, awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution); diff != "" {
+		fmt.Printf("AWSMachineDeployment.Spec.Provider.InstanceDistribution changes (-old +new):\n%s", diff)
+	}
 
 	var result []admission.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity
-	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
-		// var defaultVal int = 100
-		// patch := admission.PatchOperation{
-		// 	Operation: "replace",
-		// 	Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
-		// 	Value:     &defaultVal,
-		// }
-		// result = append(result, patch)
-	}
+	// if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
+	// 	log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
+	// 	var defaultVal int = 100
+	// 	patch := admission.PatchOperation{
+	// 		Operation: "replace",
+	// 		Path:      ".spec.provider.instanceDistribution.onDemandBaseCapacity",
+	// 		Value:     &defaultVal,
+	// 	}
+	// 	result = append(result, patch)
+	// }
 
 	return result, nil
 }
