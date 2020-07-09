@@ -3,9 +3,10 @@ package config
 import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
+	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
 const (
