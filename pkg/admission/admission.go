@@ -31,7 +31,7 @@ var (
 func Handler(admitter Admitter) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Header.Get("Content-Type") != "application/json" {
-			admitter.Log("level", "error", "message", "invalid content-type: %s", request.Header.Get("Content-Type"))
+			admitter.Log("level", "error", "message", fmt.Sprintf("invalid content-type: %s", request.Header.Get("Content-Type")))
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -59,12 +59,12 @@ func Handler(admitter Admitter) http.HandlerFunc {
 
 		patchData, err := json.Marshal(patch)
 		if err != nil {
-			admitter.Log("level", "error", "message", "unable to serialize patch for %s: %v", resourceName, err)
+			admitter.Log("level", "error", "message", fmt.Sprintf("unable to serialize patch for %s: %v", resourceName, err))
 			writeResponse(admitter, writer, errorResponse(review.Request.UID, InternalError))
 			return
 		}
 
-		admitter.Log("level", "debug", "message", "admitted %s (with %d patches)", resourceName, len(patch))
+		admitter.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
 
 		pt := v1beta1.PatchTypeJSONPatch
 		writeResponse(admitter, writer, &v1beta1.AdmissionResponse{
