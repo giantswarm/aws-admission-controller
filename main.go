@@ -7,10 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/giantswarm/microerror"
+
 	"github.com/giantswarm/admission-controller/config"
 	"github.com/giantswarm/admission-controller/pkg/admission"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
-	"github.com/giantswarm/microerror"
 )
 
 func main() {
