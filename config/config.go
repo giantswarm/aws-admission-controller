@@ -19,11 +19,10 @@ type Config struct {
 	Address           string
 	AvailabilityZones string
 
-	Logger          micrologger.Logger
 	G8sControlPlane g8scontrolplane.Config
 }
 
-func Parse() Config {
+func Parse() (Config, error) {
 	var err error
 	var result Config
 
@@ -32,17 +31,18 @@ func Parse() Config {
 	{
 		newLogger, err = micrologger.New(micrologger.Config{})
 		if err != nil {
-			panic(microerror.JSON(err))
+			return Config{}, microerror.Mask(err)
 		}
 	}
-	result.Logger = newLogger
-	result.G8sControlPlane.Logger = newLogger
 
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&result.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&result.KeyFile)
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&result.Address)
 	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.G8sControlPlane.ValidAvailabilityZones)
 
+	// add logger to each admission handler
+	result.G8sControlPlane.Logger = newLogger
+
 	kingpin.Parse()
-	return result
+	return result, nil
 }
