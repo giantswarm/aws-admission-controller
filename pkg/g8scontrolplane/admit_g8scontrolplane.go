@@ -90,7 +90,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// We fetch the AWSControlPlane CR.
 			awsControlPlane := &infrastructurev1alpha2.AWSControlPlane{}
 			{
-				a.logger.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlaneNewCR.Name))
+				a.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlaneNewCR.Name))
 				err := a.k8sClient.CtrlClient().Get(ctx,
 					types.NamespacedName{Name: g8sControlPlaneNewCR.GetName(),
 						Namespace: g8sControlPlaneNewCR.GetNamespace()},
@@ -103,7 +103,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// If the availability zones need to be updated from 1 to 3, we do it here
 			{
 				if len(awsControlPlane.Spec.AvailabilityZones) == 1 {
-					a.logger.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
+					a.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
 					awsControlPlane.Spec.AvailabilityZones = a.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], a.validAvailabilityZones)
 					err := a.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
 					if err != nil {
@@ -123,7 +123,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	return result, nil
 }
 
-func (admitter *Admitter) getHAavailabilityZones(firstAZ string, azs []string) []string {
+func (a *Admitter) getHAavailabilityZones(firstAZ string, azs []string) []string {
 	var randomAZs []string
 	// Having 3 AZ's or more shuffle 3 HA masters in different AZ's
 	if len(azs) >= 3 {
@@ -136,7 +136,7 @@ func (admitter *Admitter) getHAavailabilityZones(firstAZ string, azs []string) [
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(tempAZs), func(i, j int) { tempAZs[i], tempAZs[j] = tempAZs[j], tempAZs[i] })
 		randomAZs = append(randomAZs, firstAZ, tempAZs[0], tempAZs[1])
-		admitter.Log("level", "debug", "message", fmt.Sprintf("%d AZ's available, selected AZ's: %v", len(azs), randomAZs))
+		a.Log("level", "debug", "message", fmt.Sprintf("%d AZ's available, selected AZ's: %v", len(azs), randomAZs))
 
 		return randomAZs
 
@@ -151,14 +151,14 @@ func (admitter *Admitter) getHAavailabilityZones(firstAZ string, azs []string) [
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(azs), func(i, j int) { azs[i], azs[j] = azs[j], azs[i] })
 		randomAZs = append(randomAZs, firstAZ, tempAZ, azs[0])
-		admitter.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, random AZ's will be %v", len(azs), randomAZs))
+		a.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, random AZ's will be %v", len(azs), randomAZs))
 
 		return randomAZs
 
 		// Having only 1 AZ available we add 3 HA masters to this AZ
 	} else {
 		randomAZs = append(randomAZs, firstAZ, firstAZ, firstAZ)
-		admitter.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, using the same AZ %v", len(azs), randomAZs))
+		a.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, using the same AZ %v", len(azs), randomAZs))
 
 		return randomAZs
 	}
