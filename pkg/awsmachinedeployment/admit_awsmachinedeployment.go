@@ -9,7 +9,6 @@ import (
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	log "github.com/sirupsen/logrus"
 	"k8s.io/api/admission/v1beta1"
 	restclient "k8s.io/client-go/rest"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
@@ -22,26 +21,24 @@ var (
 	defaultOnDemandPercentageAboveBaseCapacity int = 100
 )
 
-// Admitter defines our admitter object.
+// Admitter for AWSMachineDeployment object.
 type Admitter struct {
 	k8sClient k8sclient.Interface
+	logger    micrologger.Logger
 }
 
-// AdmitterConfig configures our Admitter.
-type AdmitterConfig struct {
+// Config configures AWSMachineDeployment Admitter.
+type Config struct {
+	Logger micrologger.Logger
 }
 
 // NewAdmitter returns a new admitter.
-func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
+func NewAdmitter(config Config) (*Admitter, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
 		if err != nil {
-			return nil, fmt.Errorf("failed to load key kubeconfig: %v", err)
-		}
-		newLogger, err := micrologger.New(micrologger.Config{})
-		if err != nil {
-			return nil, err
+			return nil, microerror.Mask(err)
 		}
 		c := k8sclient.ClientsConfig{
 			SchemeBuilder: k8sclient.SchemeBuilder{
@@ -49,7 +46,7 @@ func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
 				infrastructurev1alpha2.AddToScheme,
 				releasev1alpha1.AddToScheme,
 			},
-			Logger: newLogger,
+			Logger: config.Logger,
 
 			RestConfig: restConfig,
 		}
@@ -62,23 +59,22 @@ func NewAdmitter(cfg *AdmitterConfig) (*Admitter, error) {
 
 	admitter := &Admitter{
 		k8sClient: k8sClient,
+		logger:    config.Logger,
 	}
 
 	return admitter, nil
 }
 
 // Admit is the function executed for every matching webhook request.
-func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
 	// Parse incoming objects
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
-		log.Errorf("unable to parse AWSMachineDeployment: %v", err)
-		return nil, admission.InternalError
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
-		log.Errorf("unable to parse AWSMachineDeployment: %v", err)
-		return nil, admission.InternalError
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 
 	var result []admission.PatchOperation
@@ -87,10 +83,14 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
 	// attribute defined. Otherwise the request to create/modify the CR will fail.
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		log.Infof("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name)
+		a.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s onDemandBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
 		patch := admission.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
 		result = append(result, patch)
 	}
 
 	return result, nil
+}
+
+func (a *Admitter) Log(keyVals ...interface{}) {
+	a.logger.Log(keyVals...)
 }

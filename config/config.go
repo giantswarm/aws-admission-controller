@@ -5,6 +5,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
+	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
@@ -18,7 +19,8 @@ type Config struct {
 	Address           string
 	AvailabilityZones string
 
-	G8sControlPlane g8scontrolplane.Config
+	G8sControlPlane      g8scontrolplane.Config
+	AWSMachineDeployment awsmachinedeployment.Config
 }
 
 func Parse() (Config, error) {
@@ -41,6 +43,7 @@ func Parse() (Config, error) {
 
 	// add logger to each admission handler
 	result.G8sControlPlane.Logger = newLogger
+	result.AWSMachineDeployment.Logger = newLogger
 
 	kingpin.Parse()
 	return result, nil
