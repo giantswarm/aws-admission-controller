@@ -22,14 +22,14 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(config.AWSMachineDeployment)
+	if err != nil {
+		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
+	}
+
 	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(config.G8sControlPlane)
 	if err != nil {
 		panic(microerror.JSON(err))
-	}
-
-	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(nil)
-	if err != nil {
-		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
 	// Here we register our endpoints.
