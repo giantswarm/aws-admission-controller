@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/ghodss/yaml v1.0.0
-	github.com/giantswarm/apiextensions v0.4.13
+	github.com/giantswarm/apiextensions v0.4.14
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v3 v3.1.1
 	github.com/giantswarm/microerror v0.2.0
