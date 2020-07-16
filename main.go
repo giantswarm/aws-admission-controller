@@ -2,48 +2,58 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/giantswarm/microerror"
 
 	"github.com/giantswarm/admission-controller/config"
 	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
 func main() {
-	cfg := config.Parse()
+	config, err := config.Parse()
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
 
-	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(&cfg.G8sControlPaneConfig)
+	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(config.AWSMachineDeployment)
 	if err != nil {
 		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
+	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(config.G8sControlPlane)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	// Here we register our endpoints.
 	handler := http.NewServeMux()
+	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
 	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
 	handler.HandleFunc("/healthz", healthCheck)
 
-	serve(cfg, handler)
+	serve(config, handler)
 }
 
 func healthCheck(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	_, err := writer.Write([]byte("ok"))
 	if err != nil {
-		log.Fatalf("Healthcheck Error: %v", err)
+		panic(microerror.JSON(err))
 	}
 }
 
-func serve(cfg *config.Config, handler http.Handler) {
+func serve(config config.Config, handler http.Handler) {
 	server := &http.Server{
-		Addr:    cfg.Address,
+		Addr:    config.Address,
 		Handler: handler,
 	}
-
-	log.Infof("Starting server on %s", cfg.Address)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGTERM)
@@ -51,14 +61,14 @@ func serve(cfg *config.Config, handler http.Handler) {
 		<-sig
 		err := server.Shutdown(context.Background())
 		if err != nil {
-			log.Fatalf("Shutdown Error: %v", err)
+			panic(microerror.JSON(err))
 		}
 	}()
 
-	err := server.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
+	err := server.ListenAndServeTLS(config.CertFile, config.KeyFile)
 	if err != nil {
 		if err != http.ErrServerClosed {
-			log.Fatalf("Listen Error: %v", err)
+			panic(microerror.JSON(err))
 		}
 	}
 }

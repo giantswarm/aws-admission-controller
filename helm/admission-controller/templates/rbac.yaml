@@ -10,6 +10,8 @@ rules:
     resources:
       - awscontrolplanes
       - awscontrolplanes/status
+      - awsmachinedeployments
+      - awsmachinedeployments/status
       - g8scontrolplanes
       - g8scontrolplanes/status
     verbs:

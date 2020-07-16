@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"k8s.io/api/admission/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,10 +63,19 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 
+			// Create a new logger that is used by all admitters.
+			var newLogger micrologger.Logger
+			{
+				newLogger, err = micrologger.New(micrologger.Config{})
+				if err != nil {
+					panic(microerror.JSON(err))
+				}
+			}
 			fakeK8sClient := unittest.FakeK8sClient()
 			admit := &Admitter{
 				validAvailabilityZones: tc.validAvailabilityZones,
 				k8sClient:              fakeK8sClient,
+				logger:                 newLogger,
 			}
 
 			// create AWSControlPlane with the current AZ which belongs to G8sControlPlane
