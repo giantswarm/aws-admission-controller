@@ -8,6 +8,23 @@ metadata:
   labels:
     {{- include "labels.common" . | nindent 4 }}
 webhooks:
+  - name: awsmachinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /awsmachinedeployment
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - awsmachinedeployments
+        apiVersions:
+          - v1alpha2
+        operations:
+          - CREATE
+          - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
     failurePolicy: Ignore
     clientConfig:

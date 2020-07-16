@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/giantswarm/admission-controller/config"
 	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
@@ -20,12 +22,19 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(config.AWSMachineDeployment)
+	if err != nil {
+		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
+	}
+
 	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(config.G8sControlPlane)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
 
+	// Here we register our endpoints.
 	handler := http.NewServeMux()
+	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
 	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
 	handler.HandleFunc("/healthz", healthCheck)
 
