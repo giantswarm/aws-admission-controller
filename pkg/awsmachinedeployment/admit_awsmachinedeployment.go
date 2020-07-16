@@ -83,6 +83,9 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
 	// attribute defined. Otherwise the request to create/modify the CR will fail.
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
+		a.Log("level", "debug", "message", fmt.Sprintf("Old object raw: %s", string(request.OldObject.Raw)))
+		a.Log("level", "debug", "message", fmt.Sprintf("New object raw: %s", string(request.Object.Raw)))
+
 		a.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
 		patch := admission.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
 		result = append(result, patch)
