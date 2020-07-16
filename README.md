@@ -21,7 +21,7 @@ Testing the admission-controller in a kind cluster on your local machine:
 kind create cluster
 
 # Build a linux image
-CGO_ENABLED=0 go build .
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
 docker build . -t admission-controller:dev
 kind load docker-image admission-controller:dev
 
