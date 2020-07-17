@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2020-07-17
+
 ### Added
 
 - Validation Webhooks that check for valid upgrade paths for legacy Azure clusters.
@@ -25,7 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/admission-controller/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/giantswarm/admission-controller/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/giantswarm/admission-controller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/giantswarm/admission-controller/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/giantswarm/admission-controller/compare/v1.0.0...v0.0.1
 [0.0.1]: https://github.com/giantswarm/admission-controller/releases/tag/v0.0.1
