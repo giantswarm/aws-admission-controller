@@ -2,6 +2,7 @@ package azureupdate
 
 import (
 	"github.com/blang/semver"
+	"github.com/giantswarm/apiextensions/pkg/apis/provider/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
 	"github.com/giantswarm/microerror"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +24,19 @@ func availableReleases(g8sclient versioned.Interface) ([]*semver.Version, error)
 	}
 
 	return ret, nil
+}
+
+func clusterIsUpgrading(cr *v1alpha1.AzureConfig) (bool, string) {
+	for _, cond := range cr.Status.Cluster.Conditions {
+		if cond.Type == conditionUpdating {
+			return true, conditionUpdating
+		}
+		if cond.Type == conditionCreating {
+			return true, conditionCreating
+		}
+	}
+
+	return false, ""
 }
 
 func included(releases []*semver.Version, release *semver.Version) bool {

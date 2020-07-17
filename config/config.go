@@ -22,8 +22,8 @@ type Config struct {
 
 	G8sControlPlane      g8scontrolplane.Config
 	AWSMachineDeployment awsmachinedeployment.Config
-	AzureCluster         azureupdate.AzureClusterConfigAdmitterConfig
-	AzureConfig          azureupdate.AzureConfigAdmitterConfig
+	AzureCluster         azureupdate.AzureClusterConfigValidatorConfig
+	AzureConfig          azureupdate.AzureConfigValidatorConfig
 }
 
 func Parse() (Config, error) {

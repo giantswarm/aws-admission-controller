@@ -18,16 +18,16 @@ import (
 	"github.com/giantswarm/admission-controller/pkg/validator"
 )
 
-type AzureClusterConfigAdmitter struct {
+type AzureClusterConfigValidator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 }
 
-type AzureClusterConfigAdmitterConfig struct {
+type AzureClusterConfigValidatorConfig struct {
 	Logger micrologger.Logger
 }
 
-func NewAzureClusterConfigAdmitter(config AzureClusterConfigAdmitterConfig) (*AzureClusterConfigAdmitter, error) {
+func NewAzureClusterConfigValidator(config AzureClusterConfigValidatorConfig) (*AzureClusterConfigValidator, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
@@ -51,7 +51,7 @@ func NewAzureClusterConfigAdmitter(config AzureClusterConfigAdmitterConfig) (*Az
 		}
 	}
 
-	admitter := &AzureClusterConfigAdmitter{
+	admitter := &AzureClusterConfigValidator{
 		k8sClient: k8sClient,
 		logger:    config.Logger,
 	}
@@ -59,7 +59,7 @@ func NewAzureClusterConfigAdmitter(config AzureClusterConfigAdmitterConfig) (*Az
 	return admitter, nil
 }
 
-func (a *AzureClusterConfigAdmitter) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
+func (a *AzureClusterConfigValidator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	AzureClusterConfigNewCR := &corev1alpha1.AzureClusterConfig{}
 	AzureClusterConfigOldCR := &corev1alpha1.AzureClusterConfig{}
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, AzureClusterConfigNewCR); err != nil {
@@ -98,7 +98,7 @@ func (a *AzureClusterConfigAdmitter) Validate(request *v1beta1.AdmissionRequest)
 	return true, nil
 }
 
-func (a *AzureClusterConfigAdmitter) Log(keyVals ...interface{}) {
+func (a *AzureClusterConfigValidator) Log(keyVals ...interface{}) {
 	a.logger.Log(keyVals...)
 }
 

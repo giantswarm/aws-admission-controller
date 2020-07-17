@@ -224,7 +224,7 @@ func TestAzureConfigValidate(t *testing.T) {
 				}
 			}
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &AzureConfigAdmitter{
+			admit := &AzureConfigValidator{
 				k8sClient: fakeK8sClient,
 				logger:    newLogger,
 			}

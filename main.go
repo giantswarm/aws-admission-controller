@@ -34,12 +34,12 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
-	azureConfigAdmitter, err := azureupdate.NewAzureConfigAdmitter(config.AzureConfig)
+	azureConfigValidator, err := azureupdate.NewAzureConfigValidator(config.AzureConfig)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
 
-	azureClusterConfigAdmitter, err := azureupdate.NewAzureClusterConfigAdmitter(config.AzureCluster)
+	azureClusterConfigValidator, err := azureupdate.NewAzureClusterConfigValidator(config.AzureCluster)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
@@ -48,8 +48,8 @@ func main() {
 	handler := http.NewServeMux()
 	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
 	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
-	handler.Handle("/azureconfig", validator.Handler(azureConfigAdmitter))
-	handler.Handle("/azureclusterconfig", validator.Handler(azureClusterConfigAdmitter))
+	handler.Handle("/azureconfig", validator.Handler(azureConfigValidator))
+	handler.Handle("/azureclusterconfig", validator.Handler(azureClusterConfigValidator))
 	handler.HandleFunc("/healthz", healthCheck)
 
 	serve(config, handler)

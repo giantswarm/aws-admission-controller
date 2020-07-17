@@ -17,12 +17,12 @@ import (
 	"github.com/giantswarm/admission-controller/pkg/validator"
 )
 
-type AzureConfigAdmitter struct {
+type AzureConfigValidator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 }
 
-type AzureConfigAdmitterConfig struct {
+type AzureConfigValidatorConfig struct {
 	Logger micrologger.Logger
 }
 
@@ -32,7 +32,7 @@ const (
 	versionLabel      = "release.giantswarm.io/version"
 )
 
-func NewAzureConfigAdmitter(config AzureConfigAdmitterConfig) (*AzureConfigAdmitter, error) {
+func NewAzureConfigValidator(config AzureConfigValidatorConfig) (*AzureConfigValidator, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
@@ -56,7 +56,7 @@ func NewAzureConfigAdmitter(config AzureConfigAdmitterConfig) (*AzureConfigAdmit
 		}
 	}
 
-	admitter := &AzureConfigAdmitter{
+	admitter := &AzureConfigValidator{
 		k8sClient: k8sClient,
 		logger:    config.Logger,
 	}
@@ -64,7 +64,7 @@ func NewAzureConfigAdmitter(config AzureConfigAdmitterConfig) (*AzureConfigAdmit
 	return admitter, nil
 }
 
-func (a *AzureConfigAdmitter) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
+func (a *AzureConfigValidator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	azureConfigNewCR := &v1alpha1.AzureConfig{}
 	azureConfigOldCR := &v1alpha1.AzureConfig{}
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, azureConfigNewCR); err != nil {
@@ -96,21 +96,8 @@ func (a *AzureConfigAdmitter) Validate(request *v1beta1.AdmissionRequest) (bool,
 	return true, nil
 }
 
-func (a *AzureConfigAdmitter) Log(keyVals ...interface{}) {
+func (a *AzureConfigValidator) Log(keyVals ...interface{}) {
 	a.logger.Log(keyVals...)
-}
-
-func clusterIsUpgrading(cr *v1alpha1.AzureConfig) (bool, string) {
-	for _, cond := range cr.Status.Cluster.Conditions {
-		if cond.Type == conditionUpdating {
-			return true, conditionUpdating
-		}
-		if cond.Type == conditionCreating {
-			return true, conditionCreating
-		}
-	}
-
-	return false, ""
 }
 
 func clusterVersion(cr *v1alpha1.AzureConfig) (*semver.Version, error) {

@@ -197,7 +197,7 @@ func TestAzureClusterConfigValidate(t *testing.T) {
 				}
 			}
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &AzureClusterConfigAdmitter{
+			admit := &AzureClusterConfigValidator{
 				k8sClient: fakeK8sClient,
 				logger:    newLogger,
 			}
