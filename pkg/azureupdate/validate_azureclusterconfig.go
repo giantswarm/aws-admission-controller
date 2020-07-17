@@ -51,12 +51,12 @@ func NewAzureClusterConfigValidator(config AzureClusterConfigValidatorConfig) (*
 		}
 	}
 
-	admitter := &AzureClusterConfigValidator{
+	validator := &AzureClusterConfigValidator{
 		k8sClient: k8sClient,
 		logger:    config.Logger,
 	}
 
-	return admitter, nil
+	return validator, nil
 }
 
 func (a *AzureClusterConfigValidator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {

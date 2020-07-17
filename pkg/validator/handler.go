@@ -46,7 +46,6 @@ func Handler(validator Validator) http.HandlerFunc {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		//resourceName := fmt.Sprintf("%s %s/%s", review.Request.Kind, review.Request.Namespace, extractName(review.Request))
 
 		allowed, err := validator.Validate(review.Request)
 		if err != nil {
