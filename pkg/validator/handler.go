@@ -23,7 +23,6 @@ var (
 	scheme       = runtime.NewScheme()
 	codecs       = serializer.NewCodecFactory(scheme)
 	Deserializer = codecs.UniversalDeserializer()
-	//InternalError = errors.New("internal admission controller error")
 )
 
 func Handler(validator Validator) http.HandlerFunc {
@@ -61,25 +60,6 @@ func Handler(validator Validator) http.HandlerFunc {
 		})
 	}
 }
-
-//func extractName(request *v1beta1.AdmissionRequest) string {
-//	if request.Name != "" {
-//		return request.Name
-//	}
-//
-//	obj := metav1beta1.PartialObjectMetadata{}
-//	if _, _, err := Deserializer.Decode(request.Object.Raw, nil, &obj); err != nil {
-//		return "<unknown>"
-//	}
-//
-//	if obj.Name != "" {
-//		return obj.Name
-//	}
-//	if obj.GenerateName != "" {
-//		return obj.GenerateName + "<generated>"
-//	}
-//	return "<unknown>"
-//}
 
 func writeResponse(validator Validator, writer http.ResponseWriter, response *v1beta1.AdmissionResponse) {
 	resp, err := json.Marshal(v1beta1.AdmissionReview{
