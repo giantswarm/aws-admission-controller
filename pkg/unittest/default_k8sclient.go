@@ -4,6 +4,7 @@ import (
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
+	fakeg8s "github.com/giantswarm/apiextensions/pkg/clientset/versioned/fake"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8scrdclient"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -19,6 +20,7 @@ import (
 type fakeK8sClient struct {
 	ctrlClient client.Client
 	k8sClient  *fakek8s.Clientset
+	g8sclient  *fakeg8s.Clientset
 }
 
 func FakeK8sClient() k8sclient.Interface {
@@ -37,10 +39,12 @@ func FakeK8sClient() k8sclient.Interface {
 		}
 		_ = fakek8s.AddToScheme(scheme)
 		client := fakek8s.NewSimpleClientset()
+		g8sclient := fakeg8s.NewSimpleClientset()
 
 		k8sClient = &fakeK8sClient{
 			ctrlClient: fake.NewFakeClientWithScheme(scheme),
 			k8sClient:  client,
+			g8sclient:  g8sclient,
 		}
 	}
 
@@ -64,7 +68,7 @@ func (f *fakeK8sClient) ExtClient() apiextensionsclient.Interface {
 }
 
 func (f *fakeK8sClient) G8sClient() versioned.Interface {
-	return nil
+	return f.g8sclient
 }
 
 func (f *fakeK8sClient) K8sClient() kubernetes.Interface {
