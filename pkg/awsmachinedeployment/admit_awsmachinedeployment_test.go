@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,12 +23,8 @@ var (
 
 func TestAWSMachineDeploymentAdmit(t *testing.T) {
 	testCases := []struct {
-		name                    string
-		ctx                     context.Context
-		currentAvailabilityZone []string
-		// expectAvailabilityZones needs to be in order
-		expectAvailabilityZones []string
-		validAvailabilityZones  []string
+		name string
+		ctx  context.Context
 	}{
 		{
 			name: "case 0",
@@ -39,8 +37,17 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 			var err error
 
 			fakeK8sClient := unittest.FakeK8sClient()
+			// Create a new logger that is used by all admitters.
+			var newLogger micrologger.Logger
+			{
+				newLogger, err = micrologger.New(micrologger.Config{})
+				if err != nil {
+					panic(microerror.JSON(err))
+				}
+			}
 			admit := &Admitter{
 				k8sClient: fakeK8sClient,
+				logger:    newLogger,
 			}
 
 			// create AWSMachineDeployment
@@ -49,7 +56,7 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			// run admission request to update AWSControlPlane AZ's
+			// run admission request to update AWSMachineDeployment
 			_, err = admit.Admit(awsMachineDeploymentAdmissionRequest())
 			if err != nil {
 				t.Fatal(err)
