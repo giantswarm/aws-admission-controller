@@ -79,8 +79,8 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 
 	// General debugging
 	a.Log("level", "debug", "message", "AWSMachineDeployment modification admission request")
-	a.Log("level", "debug", "message", fmt.Sprintf("Old object: %#v", request.OldObject.Raw))
-	a.Log("level", "debug", "message", fmt.Sprintf("New object: %#v", request.Object.Raw))
+	a.Log("level", "debug", "message", fmt.Sprintf("Old object: %q", string(request.OldObject.Raw)))
+	a.Log("level", "debug", "message", fmt.Sprintf("New object: %q", string(request.Object.Raw)))
 
 	var result []admission.PatchOperation
 
