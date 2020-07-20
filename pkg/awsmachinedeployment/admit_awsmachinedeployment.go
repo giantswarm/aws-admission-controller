@@ -77,6 +77,11 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 
+	// General debugging
+	a.Log("level", "debug", "message", "AWSMachineDeployment modification admission request")
+	a.Log("level", "debug", "message", fmt.Sprintf("Old object: %#v", request.OldObject.Raw))
+	a.Log("level", "debug", "message", fmt.Sprintf("New object: %#v", request.Object.Raw))
+
 	var result []admission.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity.
