@@ -78,7 +78,7 @@ func (a *AzureClusterConfigValidator) Validate(request *v1beta1.AdmissionRequest
 		return false, microerror.Maskf(parsingFailedError, "unable to parse version from AzureClusterConfig (after edit)")
 	}
 
-	if !oldVersion.Equals(*newVersion) {
+	if !oldVersion.Equals(newVersion) {
 		// The AzureClusterConfig CR doesn't have an indication of the fact that an update is in progress.
 		// I need to use the corresponding AzureConfig CR for this check.
 		acName := AzureClusterConfigOldCR.Spec.Guest.ID
@@ -102,8 +102,8 @@ func (a *AzureClusterConfigValidator) Log(keyVals ...interface{}) {
 	a.logger.Log(keyVals...)
 }
 
-func clusterConfigVersion(cr *corev1alpha1.AzureClusterConfig) (*semver.Version, error) {
+func clusterConfigVersion(cr *corev1alpha1.AzureClusterConfig) (semver.Version, error) {
 	version := cr.Spec.Guest.ReleaseVersion
 
-	return semver.New(version)
+	return semver.ParseTolerant(version)
 }

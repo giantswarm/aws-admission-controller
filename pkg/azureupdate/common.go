@@ -39,9 +39,9 @@ func clusterIsUpgrading(cr *v1alpha1.AzureConfig) (bool, string) {
 	return false, ""
 }
 
-func included(releases []*semver.Version, release *semver.Version) bool {
+func included(releases []*semver.Version, release semver.Version) bool {
 	for _, r := range releases {
-		if r.EQ(*release) {
+		if r.EQ(release) {
 			return true
 		}
 	}
@@ -49,8 +49,8 @@ func included(releases []*semver.Version, release *semver.Version) bool {
 	return false
 }
 
-func upgradeAllowed(g8sclient versioned.Interface, oldVersion *semver.Version, newVersion *semver.Version) (bool, error) {
-	if !oldVersion.Equals(*newVersion) {
+func upgradeAllowed(g8sclient versioned.Interface, oldVersion semver.Version, newVersion semver.Version) (bool, error) {
+	if !oldVersion.Equals(newVersion) {
 		availableReleases, err := availableReleases(g8sclient)
 		if err != nil {
 			return false, err
@@ -62,18 +62,18 @@ func upgradeAllowed(g8sclient versioned.Interface, oldVersion *semver.Version, n
 		}
 
 		// Downgrades are not allowed.
-		if newVersion.LT(*oldVersion) {
+		if newVersion.LT(oldVersion) {
 			return false, microerror.Maskf(invalidOperationError, "downgrading is not allowed (attempted to downgrade from %s to %s)", oldVersion, newVersion)
 		}
 
 		if oldVersion.Major != newVersion.Major || oldVersion.Minor != newVersion.Minor {
 			// The major or minor version is changed. We support this only for sequential minor releases (no skip allowed).
 			for _, release := range availableReleases {
-				if release.EQ(*oldVersion) || release.EQ(*newVersion) {
+				if release.EQ(oldVersion) || release.EQ(newVersion) {
 					continue
 				}
 				// Look for a release with higher major or higher minor than the oldVersion and is LT the newVersion
-				if release.GT(*oldVersion) && release.LT(*newVersion) &&
+				if release.GT(oldVersion) && release.LT(newVersion) &&
 					(oldVersion.Major != release.Major || oldVersion.Minor != release.Minor) {
 					// Skipped one release.
 					return false, microerror.Maskf(invalidOperationError, "Updraging from %s to %s is not allowed (skipped %s)", oldVersion, newVersion, release)
