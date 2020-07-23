@@ -11,6 +11,7 @@ require (
 	github.com/giantswarm/k8sclient/v3 v3.1.2
 	github.com/giantswarm/microerror v0.2.0
 	github.com/giantswarm/micrologger v0.3.1
+	github.com/giantswarm/ruleengine v0.2.0
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/tools v0.0.0-20200706234117-b22de6825cf7 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -20,5 +21,4 @@ require (
 	k8s.io/client-go v0.17.8
 	sigs.k8s.io/cluster-api v0.3.7
 	sigs.k8s.io/controller-runtime v0.5.8
-	github.com/giantswarm/ruleengine v0.2.0
 )
