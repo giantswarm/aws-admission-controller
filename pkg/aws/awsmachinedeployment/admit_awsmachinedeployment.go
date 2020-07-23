@@ -14,6 +14,7 @@ import (
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/aws"
 )
 
 var (
@@ -71,10 +72,10 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 
 	var result []admission.PatchOperation

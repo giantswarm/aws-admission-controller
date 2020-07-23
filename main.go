@@ -12,9 +12,10 @@ import (
 
 	"github.com/giantswarm/admission-controller/config"
 	"github.com/giantswarm/admission-controller/pkg/admission"
-	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
+	"github.com/giantswarm/admission-controller/pkg/aws/awscontrolplane"
+	"github.com/giantswarm/admission-controller/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/admission-controller/pkg/aws/g8scontrolplane"
 	"github.com/giantswarm/admission-controller/pkg/azureupdate"
-	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 	"github.com/giantswarm/admission-controller/pkg/validator"
 )
 
@@ -27,6 +28,11 @@ func main() {
 	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(config.AWSMachineDeployment)
 	if err != nil {
 		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
+	}
+
+	awscontrolplaneAdmitter, err := awscontrolplane.NewAdmitter(config.AWSControlPlane)
+	if err != nil {
+		panic(microerror.JSON(err))
 	}
 
 	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(config.G8sControlPlane)
@@ -47,6 +53,7 @@ func main() {
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
 	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
+	handler.Handle("/awscontrolplane", admission.Handler(awscontrolplaneAdmitter))
 	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
 	handler.Handle("/azureconfig", validator.Handler(azureConfigValidator))
 	handler.Handle("/azureclusterconfig", validator.Handler(azureClusterConfigValidator))

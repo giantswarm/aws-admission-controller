@@ -5,9 +5,10 @@ import (
 	"github.com/giantswarm/micrologger"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
+	"github.com/giantswarm/admission-controller/pkg/aws/awscontrolplane"
+	"github.com/giantswarm/admission-controller/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/admission-controller/pkg/aws/g8scontrolplane"
 	"github.com/giantswarm/admission-controller/pkg/azureupdate"
-	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
 const (
@@ -21,6 +22,7 @@ type Config struct {
 	AvailabilityZones string
 
 	G8sControlPlane      g8scontrolplane.Config
+	AWSControlPlane      awscontrolplane.Config
 	AWSMachineDeployment awsmachinedeployment.Config
 	AzureCluster         azureupdate.AzureClusterConfigValidatorConfig
 	AzureConfig          azureupdate.AzureConfigValidatorConfig
@@ -43,9 +45,11 @@ func Parse() (Config, error) {
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&result.KeyFile)
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&result.Address)
 	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.G8sControlPlane.ValidAvailabilityZones)
+	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.AWSControlPlane.ValidAvailabilityZones)
 
 	// add logger to each admission handler
 	result.G8sControlPlane.Logger = newLogger
+	result.AWSControlPlane.Logger = newLogger
 	result.AWSMachineDeployment.Logger = newLogger
 	result.AzureCluster.Logger = newLogger
 	result.AzureConfig.Logger = newLogger

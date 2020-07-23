@@ -19,6 +19,7 @@ import (
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/aws"
 )
 
 type Admitter struct {
@@ -74,10 +75,10 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	g8sControlPlaneNewCR := &infrastructurev1alpha2.G8sControlPlane{}
 	g8sControlPlaneOldCR := &infrastructurev1alpha2.G8sControlPlane{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, g8sControlPlaneNewCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse g8scontrol plane: %v", err)
+		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
 	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, g8sControlPlaneOldCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse g8scontrol plane: %v", err)
+		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
 
 	var result []admission.PatchOperation
@@ -96,7 +97,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 						Namespace: g8sControlPlaneNewCR.GetNamespace()},
 					awsControlPlane)
 				if err != nil {
-					return microerror.Maskf(notFoundError, "failed to fetch AWSControlplane: %v", err)
+					return microerror.Maskf(aws.NotFoundError, "failed to fetch AWSControlplane: %v", err)
 				}
 			}
 
@@ -107,7 +108,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 					awsControlPlane.Spec.AvailabilityZones = a.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], a.validAvailabilityZones)
 					err := a.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
 					if err != nil {
-						return microerror.Maskf(executionFailedError, "failed to update AWSControlplane: %v", err)
+						return microerror.Maskf(aws.ExecutionFailedError, "failed to update AWSControlplane: %v", err)
 					}
 				}
 				return nil

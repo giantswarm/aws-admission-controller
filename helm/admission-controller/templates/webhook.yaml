@@ -25,6 +25,23 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+  - name: awscontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /awscontrolplane
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - "awscontrolplanes"
+        apiVersions:
+          - "v1alpha2"
+        operations:
+          - CREATE
+          - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
     failurePolicy: Ignore
     clientConfig:
