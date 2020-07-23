@@ -83,7 +83,7 @@ func (a *AzureConfigValidator) Validate(request *v1beta1.AdmissionRequest) (bool
 		return false, microerror.Maskf(parsingFailedError, "unable to parse version from AzureConfig (after edit)")
 	}
 
-	if !oldVersion.Equals(*newVersion) {
+	if !oldVersion.Equals(newVersion) {
 		// If tenant cluster is already upgrading, we can't change the version any more.
 		upgrading, status := clusterIsUpgrading(azureConfigOldCR)
 		if upgrading {
@@ -100,11 +100,11 @@ func (a *AzureConfigValidator) Log(keyVals ...interface{}) {
 	a.logger.Log(keyVals...)
 }
 
-func clusterVersion(cr *v1alpha1.AzureConfig) (*semver.Version, error) {
+func clusterVersion(cr *v1alpha1.AzureConfig) (semver.Version, error) {
 	version, ok := cr.Labels[versionLabel]
 	if !ok {
-		return nil, microerror.Maskf(parsingFailedError, "unable to get cluster version from AzureConfig %s", cr.Name)
+		return semver.Version{}, microerror.Maskf(parsingFailedError, "unable to get cluster version from AzureConfig %s", cr.Name)
 	}
 
-	return semver.New(version)
+	return semver.ParseTolerant(version)
 }
