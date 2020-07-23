@@ -25,15 +25,15 @@ import (
 	"github.com/giantswarm/admission-controller/pkg/aws"
 )
 
+type Config struct {
+	ValidAvailabilityZones string
+	Logger                 micrologger.Logger
+}
+
 type Admitter struct {
 	k8sClient              k8sclient.Interface
 	validAvailabilityZones []string
 	logger                 micrologger.Logger
-}
-
-type Config struct {
-	ValidAvailabilityZones string
-	Logger                 micrologger.Logger
 }
 
 // var (
