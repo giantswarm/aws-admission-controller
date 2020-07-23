@@ -90,7 +90,6 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
 		numberOfAZs := aws.DefaultMasterReplicas
 		fetch := func() error {
-
 			ctx := context.Background()
 
 			// We try to fetch the G8sControlPlane CR.
