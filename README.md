@@ -5,7 +5,8 @@
 Giant Swarm Control Plane admission controller that implements the following rules:
 
 - In a G8SControlPlane resource, when the `.spec.replicas` is changed from 1 to 3, the Availability Zones of the according AWSControlPlane will be defaulted if needed.
-- In an AWSControlPlane resource, the Availability Zones will be defaulted if they are `nil`.
+- In an AWSControlPlane resource, the Availability Zones will be defaulted if they are `nil`. In case the matching `g8scontrolplane` already exists, the number of AZs is
+  determined by the number of `replicas` defined there. In case no such `g8scontrolplane` exists, the default number of AZs is assigned. 
 - When a new AWSMachineDeployment is created, details are logged.
 
 The certificates for the webhook are created with CertManager and injected through the CA Injector.

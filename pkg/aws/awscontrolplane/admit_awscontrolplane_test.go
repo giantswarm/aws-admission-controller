@@ -80,11 +80,23 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			expectAvailabilityZones: []string{"cn-south-1a"},
 			validAvailabilityZones:  []string{"cn-south-1a"},
 		},
+		{
+			// Here we check if there is no defaulting when AZs are != nil. Note that the expected AZs being
+			// nil here means that the current AZs stay unchanged. (The patch is nil)
+			name: "case 5",
+			ctx:  context.Background(),
+
+			currentAvailabilityZone: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			g8sControlplaneReplicas: nil,
+			expectAvailabilityZones: nil,
+			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
+			var updatedAZs []string
 
 			// Create a new logger that is used by all admitters.
 			var newLogger micrologger.Logger
@@ -110,11 +122,13 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			}
 			// run admission request to default AWSControlPlane AZ's
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(awsControlPlaneAdmissionRequest())
+			patch, err = admit.Admit(awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone))
 			if err != nil {
 				t.Fatal(err)
 			}
-			updatedAZs := patch[0].Value.([]string)
+			if patch != nil {
+				updatedAZs = patch[0].Value.([]string)
+			}
 
 			// check if the amount of AZ's is correct
 			if len(tc.expectAvailabilityZones) != len(updatedAZs) {
@@ -135,7 +149,7 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func awsControlPlaneAdmissionRequest() *v1beta1.AdmissionRequest {
+func awsControlPlaneAdmissionRequest(AZs []string) *v1beta1.AdmissionRequest {
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -147,7 +161,7 @@ func awsControlPlaneAdmissionRequest() *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getAWSControlPlaneRAWByte(nil),
+			Raw:    getAWSControlPlaneRAWByte(AZs),
 			Object: nil,
 		},
 	}

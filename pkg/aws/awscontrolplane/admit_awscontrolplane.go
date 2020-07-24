@@ -36,10 +36,6 @@ type Admitter struct {
 	logger                 micrologger.Logger
 }
 
-// var (
-//  awsControlPlaneResource = metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "awscontrolplane"}
-// )
-
 func NewAdmitter(config Config) (*Admitter, error) {
 	var k8sClient k8sclient.Interface
 	{
@@ -85,37 +81,39 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	}
 
 	var result []admission.PatchOperation
-	// Trigger defaulting of the master availability zones
-	if awsControlPlaneCR.Spec.AvailabilityZones == nil && aws.IsHAVersion(releaseVersion) {
-		a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-		numberOfAZs := aws.DefaultMasterReplicas
-		fetch := func() error {
-			ctx := context.Background()
-
-			// We try to fetch the G8sControlPlane CR.
-			g8sControlPlane := &infrastructurev1alpha2.G8sControlPlane{}
-			{
-				a.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
-				err := a.k8sClient.CtrlClient().Get(ctx,
-					types.NamespacedName{Name: awsControlPlaneCR.GetName(),
-						Namespace: awsControlPlaneCR.GetNamespace()},
-					g8sControlPlane)
-				if err != nil {
-					return microerror.Maskf(aws.NotFoundError, "failed to fetch G8sControlplane: %v", err)
-				}
-			}
-			numberOfAZs = g8sControlPlane.Spec.Replicas
-			return nil
-		}
-		b := backoff.NewMaxRetries(3, 1*time.Second)
-		err := backoff.Retry(fetch, b)
-		if err != nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found", awsControlPlaneCR.Name))
-		}
-		// We default the AZs
-		patch := admission.PatchReplace("/spec/AvailabilityZones", a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones))
-		result = append(result, patch)
+	// We only default the AZs if they are not set and this is an HA Masters release
+	if awsControlPlaneCR.Spec.AvailabilityZones != nil || !aws.IsHAVersion(releaseVersion) {
+		return result, nil
 	}
+	// Trigger defaulting of the master availability zones
+	a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+	numberOfAZs := aws.DefaultMasterReplicas
+	fetch := func() error {
+		ctx := context.Background()
+
+		// We try to fetch the G8sControlPlane CR.
+		g8sControlPlane := &infrastructurev1alpha2.G8sControlPlane{}
+		{
+			a.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
+			err := a.k8sClient.CtrlClient().Get(ctx,
+				types.NamespacedName{Name: awsControlPlaneCR.GetName(),
+					Namespace: awsControlPlaneCR.GetNamespace()},
+				g8sControlPlane)
+			if err != nil {
+				return microerror.Maskf(aws.NotFoundError, "failed to fetch G8sControlplane: %v", err)
+			}
+		}
+		numberOfAZs = g8sControlPlane.Spec.Replicas
+		return nil
+	}
+	b := backoff.NewMaxRetries(3, 1*time.Second)
+	err = backoff.Retry(fetch, b)
+	if err != nil {
+		a.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found", awsControlPlaneCR.Name))
+	}
+	// We default the AZs
+	patch := admission.PatchReplace("/spec/AvailabilityZones", a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones))
+	result = append(result, patch)
 	return result, nil
 }
 
