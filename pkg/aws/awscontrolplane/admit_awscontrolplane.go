@@ -128,7 +128,7 @@ func (a *Admitter) getNavailabilityZones(n int, azs []string) []string {
 	rand.Shuffle(len(randomAZs), func(i, j int) { randomAZs[i], randomAZs[j] = randomAZs[j], randomAZs[i] })
 	randomAZs = randomAZs[:n]
 	sort.Strings(randomAZs)
-	a.Log("level", "debug", "message", fmt.Sprintf("%d AZ's available, selected AZ's: %v", len(azs), randomAZs))
+	a.Log("level", "debug", "message", fmt.Sprintf("available AZ's: %v, selected AZ's: %v", azs, randomAZs))
 
 	return randomAZs
 }
