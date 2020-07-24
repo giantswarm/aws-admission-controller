@@ -45,7 +45,6 @@ func Parse() (Config, error) {
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&result.KeyFile)
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&result.Address)
 	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.G8sControlPlane.ValidAvailabilityZones)
-	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.AWSControlPlane.ValidAvailabilityZones)
 
 	// add logger to each admission handler
 	result.G8sControlPlane.Logger = newLogger
