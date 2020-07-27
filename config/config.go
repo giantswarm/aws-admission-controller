@@ -53,10 +53,11 @@ func Parse() (Config, error) {
 	result.AzureCluster.Logger = newLogger
 	result.AzureConfig.Logger = newLogger
 
-	// add availability zones
+	kingpin.Parse()
+
+	// add availability zones to admitter configs
 	result.AWSControlPlane.ValidAvailabilityZones = result.AvailabilityZones
 	result.G8sControlPlane.ValidAvailabilityZones = result.AvailabilityZones
 
-	kingpin.Parse()
 	return result, nil
 }
