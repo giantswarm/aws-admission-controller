@@ -112,8 +112,11 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		a.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found", awsControlPlaneCR.Name))
 	}
 	// We default the AZs
-	patch := admission.PatchAdd("/spec/AvailabilityZones", a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones))
-	result = append(result, patch)
+	defaultedAZs := a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones)
+	for _, az := range defaultedAZs {
+		patch := admission.PatchAdd("/spec/AvailabilityZones", az)
+		result = append(result, patch)
+	}
 	return result, nil
 }
 
