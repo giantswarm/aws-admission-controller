@@ -106,7 +106,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		numberOfAZs = g8sControlPlane.Spec.Replicas
 		return nil
 	}
-	b := backoff.NewMaxRetries(3, 1*time.Second)
+	b := backoff.NewMaxRetries(5, 5*time.Second)
 	err = backoff.Retry(fetch, b)
 	if err != nil {
 		a.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found", awsControlPlaneCR.Name))
