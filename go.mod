@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/ghodss/yaml v1.0.0
-	github.com/giantswarm/apiextensions v0.4.17
+	github.com/giantswarm/apiextensions v0.4.18
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v3 v3.1.2
 	github.com/giantswarm/microerror v0.2.1
