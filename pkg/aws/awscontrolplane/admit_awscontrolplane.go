@@ -113,10 +113,9 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	}
 	// We default the AZs
 	defaultedAZs := a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones)
-	for _, az := range defaultedAZs {
-		patch := admission.PatchAdd("/spec/AvailabilityZones", az)
-		result = append(result, patch)
-	}
+	patch := admission.PatchAdd("/spec/availabilityZones", defaultedAZs)
+	result = append(result, patch)
+
 	return result, nil
 }
 

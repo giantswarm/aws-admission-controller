@@ -126,8 +126,9 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			for _, p := range patch {
-				updatedAZs = append(updatedAZs, p.Value.(string))
+
+			if patch != nil {
+				updatedAZs = patch[0].Value.([]string)
 			}
 
 			// check if the amount of AZ's is correct
