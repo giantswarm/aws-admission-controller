@@ -8,6 +8,9 @@ const (
 	// DefaultMasterReplicas is the default number of master node replicas
 	DefaultMasterReplicas = 3
 
+	// DefaultMasterInstanceType is the default master instance type
+	DefaultMasterInstanceType = "m5.xlarge"
+
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
 )
