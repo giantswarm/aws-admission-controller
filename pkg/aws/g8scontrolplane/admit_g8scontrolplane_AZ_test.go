@@ -24,7 +24,7 @@ var (
 	controlPlaneNameSpace = "default"
 )
 
-func TestG8sControlPlaneAdmit(t *testing.T) {
+func TestAZG8sControlPlaneAdmit(t *testing.T) {
 	testCases := []struct {
 		name                    string
 		ctx                     context.Context
@@ -85,7 +85,7 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 			}
 
 			// run admission request to update AWSControlPlane AZ's
-			_, err = admit.Admit(g8sControlPlaneAdmissionRequest())
+			_, err = admit.Admit(g8sControlPlaneUpdateAdmissionRequest())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -127,7 +127,7 @@ func TestG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneAdmissionRequest() *v1beta1.AdmissionRequest {
+func g8sControlPlaneUpdateAdmissionRequest() *v1beta1.AdmissionRequest {
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
