@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/admission-controller/pkg/aws"
 	"github.com/giantswarm/admission-controller/pkg/unittest"
 )
 
@@ -34,6 +35,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 		// expectAvailabilityZones needs to be in order
 		expectAvailabilityZones []string
 		validAvailabilityZones  []string
+		currentInstanceType     string
+		expectedInstanceType    string
 	}{
 		{
 			name: "case 0",
@@ -43,6 +46,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: nil,
 			expectAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
 		},
 		{
 			name: "case 1",
@@ -52,6 +57,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: nil,
 			expectAvailabilityZones: []string{"cn-north-1a", "cn-north-1b", "cn-north-1a"},
 			validAvailabilityZones:  []string{"cn-north-1a", "cn-north-1b"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
 		},
 		{
 			name: "case 2",
@@ -61,6 +68,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: nil,
 			expectAvailabilityZones: []string{"cn-south-1a", "eu-south-1a", "cn-south-1a"},
 			validAvailabilityZones:  []string{"cn-south-1a"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
 		},
 		{
 			name: "case 3",
@@ -70,6 +79,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: ruleengine.ToIntPtr(3),
 			expectAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
 		},
 		{
 			name: "case 4",
@@ -79,6 +90,8 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: ruleengine.ToIntPtr(1),
 			expectAvailabilityZones: []string{"cn-south-1a"},
 			validAvailabilityZones:  []string{"cn-south-1a"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
 		},
 		{
 			// Here we check if there is no defaulting when AZs are != nil. Note that the expected AZs being
@@ -90,6 +103,20 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			g8sControlplaneReplicas: nil,
 			expectAvailabilityZones: nil,
 			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			currentInstanceType:     "m4.xlarge",
+			expectedInstanceType:    "",
+		},
+		{
+			// Here we check if the instance type is defaulted
+			name: "case 6",
+			ctx:  context.Background(),
+
+			currentAvailabilityZone: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			g8sControlplaneReplicas: nil,
+			expectAvailabilityZones: nil,
+			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			currentInstanceType:     "",
+			expectedInstanceType:    aws.DefaultMasterInstanceType,
 		},
 	}
 
@@ -97,6 +124,7 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 			var updatedAZs []string
+			var updatedInstanceType string
 
 			// Create a new logger that is used by all admitters.
 			var newLogger micrologger.Logger
@@ -122,13 +150,17 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 			}
 			// run admission request to default AWSControlPlane AZ's
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone))
+			patch, err = admit.Admit(awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone, tc.currentInstanceType))
 			if err != nil {
 				t.Fatal(err)
 			}
-
-			if patch != nil {
-				updatedAZs = patch[0].Value.([]string)
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/availabilityZones" {
+					updatedAZs = p.Value.([]string)
+				} else if p.Path == "/spec/instanceType" {
+					updatedInstanceType = p.Value.(string)
+				}
 			}
 
 			// check if the amount of AZ's is correct
@@ -146,11 +178,15 @@ func TestAWSControlPlaneAdmit(t *testing.T) {
 					t.Fatalf("expected AZ %s is missing in updated AZ list %v", az, updatedAZs)
 				}
 			}
+			// check if the instanceType is as expected
+			if tc.expectedInstanceType != updatedInstanceType {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedInstanceType, updatedInstanceType)
+			}
 		})
 	}
 }
 
-func awsControlPlaneAdmissionRequest(AZs []string) *v1beta1.AdmissionRequest {
+func awsControlPlaneAdmissionRequest(AZs []string, instanceType string) *v1beta1.AdmissionRequest {
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -162,7 +198,7 @@ func awsControlPlaneAdmissionRequest(AZs []string) *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getAWSControlPlaneRAWByte(AZs),
+			Raw:    getAWSControlPlaneRAWByte(AZs, instanceType),
 			Object: nil,
 		},
 	}
@@ -197,7 +233,7 @@ func g8sControlPlane(replicaNum int) *infrastructurev1alpha2.G8sControlPlane {
 	return g8scontrolPlane
 }
 
-func getAWSControlPlaneRAWByte(currentAvailabilityZone []string) []byte {
+func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstanceType string) []byte {
 	awsControlPlane := infrastructurev1alpha2.AWSControlPlane{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AWSControlPlane",
@@ -213,7 +249,7 @@ func getAWSControlPlaneRAWByte(currentAvailabilityZone []string) []byte {
 		},
 		Spec: infrastructurev1alpha2.AWSControlPlaneSpec{
 			AvailabilityZones: currentAvailabilityZone,
-			InstanceType:      "m4.xlarge",
+			InstanceType:      currentInstanceType,
 		},
 	}
 	byt, _ := json.Marshal(awsControlPlane)
