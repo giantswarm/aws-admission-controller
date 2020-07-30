@@ -22,8 +22,10 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 		currentAvailabilityZone []string
 		currentReplicas         int
 		expectReplicas          int
+		preHArelease            bool
 	}{
 		{
+			// Default replicas for 1 awscontrolplane AZ
 			name: "case 0",
 			ctx:  context.Background(),
 
@@ -32,6 +34,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			expectReplicas:          1,
 		},
 		{
+			// Default replicas for 3 awscontrolplane AZs
 			name: "case 1",
 			ctx:  context.Background(),
 
@@ -40,6 +43,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			expectReplicas:          3,
 		},
 		{
+			// Default replicas without awscontrolplane in case it's an HA release
 			name: "case 2",
 			ctx:  context.Background(),
 
@@ -48,6 +52,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			expectReplicas:          3,
 		},
 		{
+			// Don't default replicas if they are set to 1
 			name: "case 3",
 			ctx:  context.Background(),
 
@@ -56,6 +61,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			expectReplicas:          0,
 		},
 		{
+			// Don't default replicas if they are set to 3
 			name: "case 4",
 			ctx:  context.Background(),
 
@@ -63,12 +69,23 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			currentReplicas:         3,
 			expectReplicas:          0,
 		},
+		{
+			// Default replicas without awscontrolplane in case it's not an HA release
+			name: "case 5",
+			ctx:  context.Background(),
+
+			preHArelease:            true,
+			currentAvailabilityZone: nil,
+			currentReplicas:         0,
+			expectReplicas:          1,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 			var updatedReplicas int
+			var release string
 
 			// Create a new logger that is used by all admitters.
 			var newLogger micrologger.Logger
@@ -84,7 +101,11 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 				k8sClient:              fakeK8sClient,
 				logger:                 newLogger,
 			}
-
+			if tc.preHArelease {
+				release = "11.3.0"
+			} else {
+				release = "11.5.0"
+			}
 			// create AWSControlPlane with the current AZ which belongs to G8sControlPlane if needed
 			if tc.currentAvailabilityZone != nil {
 				err = fakeK8sClient.CtrlClient().Create(tc.ctx, awsControlPlane(tc.currentAvailabilityZone))
@@ -95,7 +116,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 
 			// run admission request to default replicas
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(g8sControlPlaneCreateAdmissionRequest(tc.currentReplicas))
+			patch, err = admit.Admit(g8sControlPlaneCreateAdmissionRequest(tc.currentReplicas, release))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -113,7 +134,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneCreateAdmissionRequest(replicas int) *v1beta1.AdmissionRequest {
+func g8sControlPlaneCreateAdmissionRequest(replicas int, release string) *v1beta1.AdmissionRequest {
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -125,7 +146,7 @@ func g8sControlPlaneCreateAdmissionRequest(replicas int) *v1beta1.AdmissionReque
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(replicas),
+			Raw:    getG8sControlPlaneRAWByte(replicas, release),
 			Object: nil,
 		},
 	}

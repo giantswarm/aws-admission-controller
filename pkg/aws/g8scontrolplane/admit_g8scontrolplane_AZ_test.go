@@ -34,6 +34,7 @@ func TestAZG8sControlPlaneAdmit(t *testing.T) {
 		validAvailabilityZones  []string
 	}{
 		{
+			// Update from 1 to 3 Masters with 3 valid AZs
 			name: "case 0",
 			ctx:  context.Background(),
 
@@ -42,6 +43,7 @@ func TestAZG8sControlPlaneAdmit(t *testing.T) {
 			validAvailabilityZones:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 		},
 		{
+			// Update from 1 to 3 Masters with 2 valid AZs
 			name: "case 1",
 			ctx:  context.Background(),
 
@@ -50,6 +52,7 @@ func TestAZG8sControlPlaneAdmit(t *testing.T) {
 			validAvailabilityZones:  []string{"cn-north-1a", "cn-north-1b"},
 		},
 		{
+			// Update from 1 to 3 Masters with 1 valid AZ
 			name: "case 2",
 			ctx:  context.Background(),
 
@@ -139,18 +142,18 @@ func g8sControlPlaneUpdateAdmissionRequest() *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Update,
 		Object: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(3),
+			Raw:    getG8sControlPlaneRAWByte(3, "11.5.0"),
 			Object: nil,
 		},
 		OldObject: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(1),
+			Raw:    getG8sControlPlaneRAWByte(1, "11.5.0"),
 			Object: nil,
 		},
 	}
 	return req
 }
 
-func getG8sControlPlaneRAWByte(replicaNum int) []byte {
+func getG8sControlPlaneRAWByte(replicaNum int, release string) []byte {
 	g8scontrolPlane := infrastructurev1alpha2.G8sControlPlane{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "G8sControlPlane",
@@ -162,7 +165,7 @@ func getG8sControlPlaneRAWByte(replicaNum int) []byte {
 			Labels: map[string]string{
 				"giantswarm.io/control-plane":   controlPlaneName,
 				"giantswarm.io/organization":    "giantswarm",
-				"release.giantswarm.io/version": "11.5.0",
+				"release.giantswarm.io/version": release,
 			},
 		},
 		Spec: infrastructurev1alpha2.G8sControlPlaneSpec{
