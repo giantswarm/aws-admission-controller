@@ -55,6 +55,14 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			currentReplicas:         1,
 			expectReplicas:          0,
 		},
+		{
+			name: "case 4",
+			ctx:  context.Background(),
+
+			currentAvailabilityZone: nil,
+			currentReplicas:         3,
+			expectReplicas:          0,
+		},
 	}
 
 	for i, tc := range testCases {
