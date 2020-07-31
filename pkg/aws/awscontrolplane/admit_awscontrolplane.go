@@ -154,7 +154,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found", awsControlPlaneCR.Name))
+			a.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		}
 		// Trigger defaulting of the master instance type
 		if awsControlPlaneCR.Spec.InstanceType == "" {
