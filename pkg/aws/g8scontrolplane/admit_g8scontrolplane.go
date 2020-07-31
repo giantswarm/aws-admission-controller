@@ -10,14 +10,17 @@ import (
 	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/release/v1alpha1"
+	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/apiextensions/pkg/label"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"k8s.io/api/admission/v1beta1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/reference"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/admission-controller/pkg/admission"
@@ -90,11 +93,13 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	var result []admission.PatchOperation
 	var replicas int
 
-	// We only need to manipulate if replicas are not set or if its an update from single to master
-	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !(g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1) {
+	// We only need to manipulate if replicas are not set or if its an update from single to HA master or on create
+	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !(g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1) && request.Operation != "CREATE" {
 		return result, nil
 	}
-	if aws.IsHAVersion(releaseVersion) {
+	infrastructureCRRef := &v1.ObjectReference{}
+	// We need to fetch the AWSControlPlane in case AZs need to be defaulted or the g8scontrolplane is just created
+	if aws.IsHAVersion(releaseVersion) || request.Operation == "CREATE" {
 		replicas = aws.DefaultMasterReplicas
 		update := func() error {
 			ctx := context.Background()
@@ -113,10 +118,15 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			}
 			// If there is an AWSControlPlane, the default replicas match the number of AZs
 			replicas = len(awsControlPlane.Spec.AvailabilityZones)
+			// If there is an AWSControlplane, we get its infrastructure reference
+			infrastructureCRRef, err = reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlane)
+			if err != nil {
+				return microerror.Maskf(aws.ExecutionFailedError, "failed to create reference to AWSControlplane: %v", err)
+			}
 
 			// If the availability zones need to be updated from 1 to 3, we do it here
 			{
-				if g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1 && len(awsControlPlane.Spec.AvailabilityZones) == 1 {
+				if aws.IsHAVersion(releaseVersion) && g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1 && len(awsControlPlane.Spec.AvailabilityZones) == 1 {
 					a.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
 					awsControlPlane.Spec.AvailabilityZones = a.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], a.validAvailabilityZones)
 					err := a.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
@@ -129,11 +139,15 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		}
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err := backoff.Retry(update, b)
-		if err != nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found", g8sControlPlaneNewCR.Name))
+		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
+		if aws.IsNotFound(err) {
+			a.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneNewCR.Name, err))
+		} else if err != nil {
+			return nil, err
 		}
-	} else {
-		// For pre HA Masters, the replicas are 1 for a single master
+	}
+	// For pre HA Masters, the replicas are 1 for a single master
+	if !aws.IsHAVersion(releaseVersion) {
 		replicas = 1
 	}
 	// Trigger defaulting of the replicas
@@ -142,6 +156,13 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		patch := admission.PatchReplace("/spec/replicas", replicas)
 		result = append(result, patch)
 	}
+	// If the infrastructure reference is not set, we do it here
+	if request.Operation == "CREATE" && g8sControlPlaneNewCR.Spec.InfrastructureRef.Name != infrastructureCRRef.Name {
+		a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlaneNewCR.Name))
+		patch := admission.PatchReplace("/spec/infrastructureRef", infrastructureCRRef)
+		result = append(result, patch)
+	}
+
 	return result, nil
 }
 
