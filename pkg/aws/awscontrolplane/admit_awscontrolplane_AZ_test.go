@@ -130,7 +130,11 @@ func TestAZAWSControlPlaneAdmit(t *testing.T) {
 			}
 			// run admission request to default AWSControlPlane AZ's
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone, "m4.xlarge", HAReleaseVersion))
+			request, err := awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone, "m4.xlarge", HAReleaseVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			patch, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -160,7 +164,12 @@ func TestAZAWSControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release string) *v1beta1.AdmissionRequest {
+func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release string) (*v1beta1.AdmissionRequest, error) {
+	awscontrolplane, err := getAWSControlPlaneRAWByte(AZs, instanceType, release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -172,11 +181,11 @@ func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release 
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getAWSControlPlaneRAWByte(AZs, instanceType, release),
+			Raw:    awscontrolplane,
 			Object: nil,
 		},
 	}
-	return req
+	return req, nil
 }
 
 func g8sControlPlane(replicaNum int) *infrastructurev1alpha2.G8sControlPlane {
@@ -208,7 +217,7 @@ func g8sControlPlane(replicaNum int) *infrastructurev1alpha2.G8sControlPlane {
 	return g8scontrolPlane
 }
 
-func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstanceType string, release string) []byte {
+func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstanceType string, release string) ([]byte, error) {
 	awsControlPlane := infrastructurev1alpha2.AWSControlPlane{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AWSControlPlane",
@@ -228,8 +237,11 @@ func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstance
 			InstanceType:      currentInstanceType,
 		},
 	}
-	byt, _ := json.Marshal(awsControlPlane)
-	return byt
+	byt, err := json.Marshal(awsControlPlane)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	return byt, nil
 }
 
 func updatedAZinExpectedAZs(az string, expectedAZs []string) bool {

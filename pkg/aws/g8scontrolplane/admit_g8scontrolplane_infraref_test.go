@@ -73,7 +73,11 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 
 			// run admission request for g8sControlPlane without reference
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(g8sControlPlaneNoReferenceAdmissionRequest())
+			request, err := g8sControlPlaneNoReferenceAdmissionRequest()
+			if err != nil {
+				t.Fatal(err)
+			}
+			patch, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -91,7 +95,11 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneNoReferenceAdmissionRequest() *v1beta1.AdmissionRequest {
+func g8sControlPlaneNoReferenceAdmissionRequest() (*v1beta1.AdmissionRequest, error) {
+	g8scontrolplane, err := getG8sControlPlaneNoRefRAWByte()
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -103,14 +111,14 @@ func g8sControlPlaneNoReferenceAdmissionRequest() *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getG8sControlPlaneNoRefRAWByte(),
+			Raw:    g8scontrolplane,
 			Object: nil,
 		},
 	}
-	return req
+	return req, nil
 }
 
-func getG8sControlPlaneNoRefRAWByte() []byte {
+func getG8sControlPlaneNoRefRAWByte() ([]byte, error) {
 	g8scontrolPlane := &infrastructurev1alpha2.G8sControlPlane{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "G8sControlPlane",
@@ -130,6 +138,9 @@ func getG8sControlPlaneNoRefRAWByte() []byte {
 			InfrastructureRef: v1.ObjectReference{},
 		},
 	}
-	byt, _ := json.Marshal(g8scontrolPlane)
-	return byt
+	byt, err := json.Marshal(g8scontrolPlane)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	return byt, nil
 }

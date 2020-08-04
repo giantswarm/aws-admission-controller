@@ -115,14 +115,14 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 					a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
 					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlaneCR)
 					if err != nil {
-						return microerror.Maskf(aws.ExecutionFailedError, "failed to create reference to AWSControlplane: %v", err)
+						microerror.Mask(err)
 					}
 
 					// We update the reference in the CR
 					g8sControlPlane.Spec.InfrastructureRef = *infrastructureCRRef
 					err = a.k8sClient.CtrlClient().Update(ctx, g8sControlPlane)
 					if err != nil {
-						return microerror.Maskf(aws.ExecutionFailedError, "failed to update G8sControlplane: %v", err)
+						microerror.Mask(err)
 					}
 				}
 			}

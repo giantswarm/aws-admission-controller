@@ -56,7 +56,11 @@ func TestInfraRefAWSControlPlaneAdmit(t *testing.T) {
 				t.Fatal(err)
 			}
 			// run admission request to update the infrastructure reference
-			_, err = admit.Admit(awsControlPlaneAdmissionRequest([]string{"eu-central-1a"}, "m4.xlarge", HAReleaseVersion))
+			request, err := awsControlPlaneAdmissionRequest([]string{"eu-central-1a"}, "m4.xlarge", HAReleaseVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}

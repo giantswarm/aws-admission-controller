@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
+	"github.com/giantswarm/microerror"
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -50,7 +51,11 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 			}
 
 			// run admission request to update AWSControlPlane AZ's
-			_, err = admit.Admit(awsMachineDeploymentAdmissionRequest())
+			request, err := awsMachineDeploymentAdmissionRequest()
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -58,7 +63,11 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 	}
 }
 
-func awsMachineDeploymentAdmissionRequest() *v1beta1.AdmissionRequest {
+func awsMachineDeploymentAdmissionRequest() (*v1beta1.AdmissionRequest, error) {
+	awsmachinedeployment, err := awsMachineDeploymentRawByte()
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -70,18 +79,18 @@ func awsMachineDeploymentAdmissionRequest() *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Update,
 		Object: runtime.RawExtension{
-			Raw:    awsMachineDeploymentRawByte(),
+			Raw:    awsmachinedeployment,
 			Object: nil,
 		},
 		OldObject: runtime.RawExtension{
-			Raw:    awsMachineDeploymentRawByte(),
+			Raw:    awsmachinedeployment,
 			Object: nil,
 		},
 	}
-	return req
+	return req, nil
 }
 
-func awsMachineDeploymentRawByte() []byte {
+func awsMachineDeploymentRawByte() ([]byte, error) {
 	var ten int = 10
 	cr := infrastructurev1alpha2.AWSMachineDeployment{
 		TypeMeta: metav1.TypeMeta{
@@ -113,8 +122,11 @@ func awsMachineDeploymentRawByte() []byte {
 			},
 		},
 	}
-	byt, _ := json.Marshal(cr)
-	return byt
+	byt, err := json.Marshal(cr)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	return byt, nil
 }
 
 func awsMachineDeployment() *infrastructurev1alpha2.AWSMachineDeployment {

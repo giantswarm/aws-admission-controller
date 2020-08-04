@@ -116,7 +116,11 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 
 			// run admission request to default replicas
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(g8sControlPlaneCreateAdmissionRequest(tc.currentReplicas, release))
+			request, err := g8sControlPlaneCreateAdmissionRequest(tc.currentReplicas, release)
+			if err != nil {
+				t.Fatal(err)
+			}
+			patch, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -134,7 +138,11 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneCreateAdmissionRequest(replicas int, release string) *v1beta1.AdmissionRequest {
+func g8sControlPlaneCreateAdmissionRequest(replicas int, release string) (*v1beta1.AdmissionRequest, error) {
+	g8scontrolplane, err := getG8sControlPlaneRAWByte(replicas, release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -146,9 +154,9 @@ func g8sControlPlaneCreateAdmissionRequest(replicas int, release string) *v1beta
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(replicas, release),
+			Raw:    g8scontrolplane,
 			Object: nil,
 		},
 	}
-	return req
+	return req, nil
 }

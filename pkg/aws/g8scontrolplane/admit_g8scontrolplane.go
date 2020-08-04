@@ -94,7 +94,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	var replicas int
 
 	// We only need to manipulate if replicas are not set or if its an update from single to HA master or on create
-	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !(g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1) && request.Operation != "CREATE" {
+	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !isUpdateFromSingleToHA(g8sControlPlaneNewCR, g8sControlPlaneOldCR) && request.Operation != "CREATE" {
 		return result, nil
 	}
 	infrastructureCRRef := &v1.ObjectReference{}
@@ -121,17 +121,17 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// If there is an AWSControlplane, we get its infrastructure reference
 			infrastructureCRRef, err = reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlane)
 			if err != nil {
-				return microerror.Maskf(aws.ExecutionFailedError, "failed to create reference to AWSControlplane: %v", err)
+				return microerror.Mask(err)
 			}
 
 			// If the availability zones need to be updated from 1 to 3, we do it here
 			{
-				if aws.IsHAVersion(releaseVersion) && g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1 && len(awsControlPlane.Spec.AvailabilityZones) == 1 {
+				if aws.IsHAVersion(releaseVersion) && isUpdateFromSingleToHA(g8sControlPlaneNewCR, g8sControlPlaneOldCR) && len(awsControlPlane.Spec.AvailabilityZones) == 1 {
 					a.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
 					awsControlPlane.Spec.AvailabilityZones = a.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], a.validAvailabilityZones)
 					err := a.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
 					if err != nil {
-						return microerror.Maskf(aws.ExecutionFailedError, "failed to update AWSControlplane: %v", err)
+						return microerror.Mask(err)
 					}
 				}
 				return nil
@@ -218,4 +218,8 @@ func releaseVersion(cr *infrastructurev1alpha2.G8sControlPlane) (*semver.Version
 	}
 
 	return semver.New(version)
+}
+
+func isUpdateFromSingleToHA(g8sControlPlaneNewCR *infrastructurev1alpha2.G8sControlPlane, g8sControlPlaneOldCR *infrastructurev1alpha2.G8sControlPlane) bool {
+	return g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1
 }
