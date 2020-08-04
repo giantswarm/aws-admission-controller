@@ -94,12 +94,12 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	var replicas int
 
 	// We only need to manipulate if replicas are not set or if its an update from single to HA master or on create
-	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !isUpdateFromSingleToHA(g8sControlPlaneNewCR, g8sControlPlaneOldCR) && request.Operation != "CREATE" {
+	if g8sControlPlaneNewCR.Spec.Replicas != 0 && !isUpdateFromSingleToHA(g8sControlPlaneNewCR, g8sControlPlaneOldCR) && request.Operation != aws.CreateOperation {
 		return result, nil
 	}
 	infrastructureCRRef := &v1.ObjectReference{}
 	// We need to fetch the AWSControlPlane in case AZs need to be defaulted or the g8scontrolplane is just created
-	if aws.IsHAVersion(releaseVersion) || request.Operation == "CREATE" {
+	if aws.IsHAVersion(releaseVersion) || request.Operation == aws.CreateOperation {
 		replicas = aws.DefaultMasterReplicas
 		update := func() error {
 			ctx := context.Background()
@@ -157,7 +157,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		result = append(result, patch)
 	}
 	// If the infrastructure reference is not set, we do it here
-	if request.Operation == "CREATE" && g8sControlPlaneNewCR.Spec.InfrastructureRef.Name != infrastructureCRRef.Name {
+	if request.Operation == aws.CreateOperation && g8sControlPlaneNewCR.Spec.InfrastructureRef.Name != infrastructureCRRef.Name {
 		a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlaneNewCR.Name))
 		patch := admission.PatchReplace("/spec/infrastructureRef", infrastructureCRRef)
 		result = append(result, patch)
