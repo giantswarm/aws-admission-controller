@@ -99,10 +99,11 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			g8sControlPlane := &infrastructurev1alpha2.G8sControlPlane{}
 			{
 				a.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
-				err := a.k8sClient.CtrlClient().Get(ctx,
-					types.NamespacedName{Name: awsControlPlaneCR.GetName(),
-						Namespace: awsControlPlaneCR.GetNamespace()},
-					g8sControlPlane)
+				err := a.k8sClient.CtrlClient().Get(
+					ctx,
+					types.NamespacedName{Name: awsControlPlaneCR.GetName(), Namespace: awsControlPlaneCR.GetNamespace()},
+					g8sControlPlane,
+				)
 				if err != nil {
 					return microerror.Maskf(aws.NotFoundError, "failed to fetch G8sControlplane: %v", err)
 				}
