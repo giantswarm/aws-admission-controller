@@ -89,6 +89,10 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	if err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
+	namespace := g8sControlPlaneNewCR.GetNamespace()
+	if namespace == "" {
+		namespace = "default"
+	}
 
 	var result []admission.PatchOperation
 	var replicas int
@@ -110,7 +114,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 				a.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlaneNewCR.Name))
 				err := a.k8sClient.CtrlClient().Get(ctx,
 					types.NamespacedName{Name: g8sControlPlaneNewCR.GetName(),
-						Namespace: g8sControlPlaneNewCR.GetNamespace()},
+						Namespace: namespace},
 					awsControlPlane)
 				if err != nil {
 					return microerror.Maskf(aws.NotFoundError, "failed to fetch AWSControlplane: %v", err)

@@ -81,6 +81,10 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	if err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
+	namespace := awsControlPlaneCR.GetNamespace()
+	if namespace == "" {
+		namespace = "default"
+	}
 
 	var result []admission.PatchOperation
 	var numberOfAZs int
@@ -101,7 +105,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 				a.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
 				err := a.k8sClient.CtrlClient().Get(
 					ctx,
-					types.NamespacedName{Name: awsControlPlaneCR.GetName(), Namespace: awsControlPlaneCR.GetNamespace()},
+					types.NamespacedName{Name: awsControlPlaneCR.GetName(), Namespace: namespace},
 					g8sControlPlane,
 				)
 				if err != nil {
@@ -168,7 +172,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 				a.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
 				err := a.k8sClient.CtrlClient().Get(ctx,
 					types.NamespacedName{Name: clusterID,
-						Namespace: awsControlPlaneCR.GetNamespace()},
+						Namespace: namespace},
 					AWSCluster)
 				if err != nil {
 					return microerror.Maskf(aws.NotFoundError, "failed to fetch AWSCluster: %v", err)
