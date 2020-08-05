@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added mutating webhook to default `availabilityZones` and `instanceType` in the `AWSControlPlane` CR.
+- Added mutating webhook to default `replicas` and `infrastructureRef` in the `G8sControlPlane` CR.
+- Added unit tests for `AWSControlPlane` and `G8sControlPlane` admitters
+
 ## [1.2.0] - 2020-07-20
 
 ### Added
