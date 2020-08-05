@@ -6,7 +6,6 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
-	"github.com/giantswarm/admission-controller/pkg/azureupdate"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
 )
 
@@ -22,8 +21,6 @@ type Config struct {
 
 	G8sControlPlane      g8scontrolplane.Config
 	AWSMachineDeployment awsmachinedeployment.Config
-	AzureCluster         azureupdate.AzureClusterConfigValidatorConfig
-	AzureConfig          azureupdate.AzureConfigValidatorConfig
 }
 
 func Parse() (Config, error) {
@@ -47,8 +44,6 @@ func Parse() (Config, error) {
 	// add logger to each admission handler
 	result.G8sControlPlane.Logger = newLogger
 	result.AWSMachineDeployment.Logger = newLogger
-	result.AzureCluster.Logger = newLogger
-	result.AzureConfig.Logger = newLogger
 
 	kingpin.Parse()
 	return result, nil
