@@ -13,9 +13,7 @@ import (
 	"github.com/giantswarm/admission-controller/config"
 	"github.com/giantswarm/admission-controller/pkg/admission"
 	"github.com/giantswarm/admission-controller/pkg/awsmachinedeployment"
-	"github.com/giantswarm/admission-controller/pkg/azureupdate"
 	"github.com/giantswarm/admission-controller/pkg/g8scontrolplane"
-	"github.com/giantswarm/admission-controller/pkg/validator"
 )
 
 func main() {
@@ -34,22 +32,10 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
-	azureConfigValidator, err := azureupdate.NewAzureConfigValidator(config.AzureConfig)
-	if err != nil {
-		panic(microerror.JSON(err))
-	}
-
-	azureClusterConfigValidator, err := azureupdate.NewAzureClusterConfigValidator(config.AzureCluster)
-	if err != nil {
-		panic(microerror.JSON(err))
-	}
-
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
 	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
 	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
-	handler.Handle("/azureconfig", validator.Handler(azureConfigValidator))
-	handler.Handle("/azureclusterconfig", validator.Handler(azureClusterConfigValidator))
 	handler.HandleFunc("/healthz", healthCheck)
 
 	serve(config, handler)

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- Removed Azure-related endpoints.
+
 ## [1.3.0] - 2020-07-23
 
 ### Changed
