@@ -13,6 +13,9 @@ const (
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
+
+	// CreateOperation is the string attribute in an admission request for creation
+	CreateOperation = "CREATE"
 )
 
 // IsHAVersion returns whether a given releaseVersion supports HA Masters

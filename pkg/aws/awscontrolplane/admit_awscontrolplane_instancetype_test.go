@@ -60,7 +60,11 @@ func TestInstanceTypeAWSControlPlaneAdmit(t *testing.T) {
 
 			// run admission request to default AWSControlPlane InstanceType
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(awsControlPlaneAdmissionRequest([]string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}, tc.currentInstanceType, HAReleaseVersion))
+			request, err := awsControlPlaneAdmissionRequest([]string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}, tc.currentInstanceType, HAReleaseVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			patch, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}

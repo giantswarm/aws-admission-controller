@@ -88,7 +88,11 @@ func TestAZG8sControlPlaneAdmit(t *testing.T) {
 			}
 
 			// run admission request to update AWSControlPlane AZ's
-			_, err = admit.Admit(g8sControlPlaneUpdateAdmissionRequest())
+			request, err := g8sControlPlaneUpdateAdmissionRequest()
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -130,7 +134,15 @@ func TestAZG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneUpdateAdmissionRequest() *v1beta1.AdmissionRequest {
+func g8sControlPlaneUpdateAdmissionRequest() (*v1beta1.AdmissionRequest, error) {
+	g8scontrolplane, err := getG8sControlPlaneRAWByte(3, "11.5.0")
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	g8scontrolplaneOld, err := getG8sControlPlaneRAWByte(1, "11.5.0")
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	req := &v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
@@ -142,18 +154,18 @@ func g8sControlPlaneUpdateAdmissionRequest() *v1beta1.AdmissionRequest {
 		},
 		Operation: v1beta1.Update,
 		Object: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(3, "11.5.0"),
+			Raw:    g8scontrolplane,
 			Object: nil,
 		},
 		OldObject: runtime.RawExtension{
-			Raw:    getG8sControlPlaneRAWByte(1, "11.5.0"),
+			Raw:    g8scontrolplaneOld,
 			Object: nil,
 		},
 	}
-	return req
+	return req, nil
 }
 
-func getG8sControlPlaneRAWByte(replicaNum int, release string) []byte {
+func getG8sControlPlaneRAWByte(replicaNum int, release string) ([]byte, error) {
 	g8scontrolPlane := infrastructurev1alpha2.G8sControlPlane{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "G8sControlPlane",
@@ -178,8 +190,11 @@ func getG8sControlPlaneRAWByte(replicaNum int, release string) []byte {
 			},
 		},
 	}
-	byt, _ := json.Marshal(g8scontrolPlane)
-	return byt
+	byt, err := json.Marshal(g8scontrolPlane)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	return byt, nil
 }
 
 func awsControlPlane(currentAvailabilityZone []string) *infrastructurev1alpha2.AWSControlPlane {

@@ -92,7 +92,11 @@ func TestPreHAAWSControlPlaneAdmit(t *testing.T) {
 			}
 			// run admission request to default AWSControlPlane
 			var patch []admission.PatchOperation
-			patch, err = admit.Admit(awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone, tc.currentInstanceType, preHAReleaseVersion))
+			request, err := awsControlPlaneAdmissionRequest(tc.currentAvailabilityZone, tc.currentInstanceType, preHAReleaseVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			patch, err = admit.Admit(request)
 			if err != nil {
 				t.Fatal(err)
 			}
