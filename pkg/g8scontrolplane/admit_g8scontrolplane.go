@@ -74,7 +74,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 
 	var result []admission.PatchOperation
 
-	if *request.DryRun {
+	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
 
