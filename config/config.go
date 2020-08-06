@@ -8,7 +8,6 @@ import (
 	"github.com/giantswarm/admission-controller/pkg/aws/awscontrolplane"
 	"github.com/giantswarm/admission-controller/pkg/aws/awsmachinedeployment"
 	"github.com/giantswarm/admission-controller/pkg/aws/g8scontrolplane"
-	"github.com/giantswarm/admission-controller/pkg/azureupdate"
 )
 
 const (
@@ -24,8 +23,6 @@ type Config struct {
 	G8sControlPlane      g8scontrolplane.Config
 	AWSControlPlane      awscontrolplane.Config
 	AWSMachineDeployment awsmachinedeployment.Config
-	AzureCluster         azureupdate.AzureClusterConfigValidatorConfig
-	AzureConfig          azureupdate.AzureConfigValidatorConfig
 }
 
 func Parse() (Config, error) {
@@ -50,8 +47,6 @@ func Parse() (Config, error) {
 	result.G8sControlPlane.Logger = newLogger
 	result.AWSControlPlane.Logger = newLogger
 	result.AWSMachineDeployment.Logger = newLogger
-	result.AzureCluster.Logger = newLogger
-	result.AzureConfig.Logger = newLogger
 
 	kingpin.Parse()
 

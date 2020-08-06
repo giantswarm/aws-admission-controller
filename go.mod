@@ -6,10 +6,10 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/ghodss/yaml v1.0.0
-	github.com/giantswarm/apiextensions v0.4.16
+	github.com/giantswarm/apiextensions v0.4.20
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v3 v3.1.2
-	github.com/giantswarm/microerror v0.2.0
+	github.com/giantswarm/microerror v0.2.1
 	github.com/giantswarm/micrologger v0.3.1
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/stretchr/testify v1.6.1
@@ -19,6 +19,6 @@ require (
 	k8s.io/apiextensions-apiserver v0.17.8
 	k8s.io/apimachinery v0.17.8
 	k8s.io/client-go v0.17.8
-	sigs.k8s.io/cluster-api v0.3.7
-	sigs.k8s.io/controller-runtime v0.5.8
+	sigs.k8s.io/cluster-api v0.3.8
+	sigs.k8s.io/controller-runtime v0.5.9
 )

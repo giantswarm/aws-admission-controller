@@ -72,19 +72,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v.*/ 
-
-      - architect/push-to-app-collection:
-          name: push-admission-controller-to-azure-app-collection
-          context: architect
-          app_name: "admission-controller"
-          app_collection_repo: "azure-app-collection"
-          unique: "true"
-          requires:
-            - push-admission-controller-to-control-plane-app-catalog
-          filters:
-            # Only do this when a new tag is created.
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
-
