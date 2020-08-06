@@ -72,8 +72,10 @@ func NewAdmitter(config Config) (*Admitter, error) {
 
 func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
 
+	var result []admission.PatchOperation
+
 	if *request.DryRun {
-		return nil, nil
+		return result, nil
 	}
 
 	g8sControlPlaneNewCR := &infrastructurev1alpha2.G8sControlPlane{}
@@ -85,7 +87,6 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
 
-	var result []admission.PatchOperation
 	// Trigger master upgrade from single to HA
 	if g8sControlPlaneNewCR.Spec.Replicas == 3 && g8sControlPlaneOldCR.Spec.Replicas == 1 {
 		update := func() error {
