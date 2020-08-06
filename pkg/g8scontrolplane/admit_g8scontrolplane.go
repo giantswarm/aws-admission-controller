@@ -71,6 +71,11 @@ func NewAdmitter(config Config) (*Admitter, error) {
 }
 
 func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+
+	if *request.DryRun {
+		return nil, nil
+	}
+
 	g8sControlPlaneNewCR := &infrastructurev1alpha2.G8sControlPlane{}
 	g8sControlPlaneOldCR := &infrastructurev1alpha2.G8sControlPlane{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, g8sControlPlaneNewCR); err != nil {
