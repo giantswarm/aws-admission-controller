@@ -118,6 +118,9 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 				if request.Operation == aws.CreateOperation && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
 					a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
 					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlaneCR)
+					if infrastructureCRRef.Namespace == "" {
+						infrastructureCRRef.Namespace = namespace
+					}
 					if err != nil {
 						return microerror.Mask(err)
 					}
