@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- If a request has the dry-run flag, update of AWSControlPlane will not be triggered.
+
 ### Removed
 
 - Removed Azure-related endpoints.
