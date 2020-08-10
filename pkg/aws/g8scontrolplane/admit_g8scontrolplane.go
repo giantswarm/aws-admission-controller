@@ -77,6 +77,13 @@ func NewAdmitter(config Config) (*Admitter, error) {
 }
 
 func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+
+	var result []admission.PatchOperation
+
+	if request.DryRun != nil && *request.DryRun {
+		return result, nil
+	}
+
 	g8sControlPlaneNewCR := &infrastructurev1alpha2.G8sControlPlane{}
 	g8sControlPlaneOldCR := &infrastructurev1alpha2.G8sControlPlane{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, g8sControlPlaneNewCR); err != nil {
@@ -94,7 +101,6 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		namespace = "default"
 	}
 
-	var result []admission.PatchOperation
 	var replicas int
 
 	// We only need to manipulate if replicas are not set or if its an update from single to HA master or on create

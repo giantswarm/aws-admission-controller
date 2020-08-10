@@ -10,6 +10,7 @@ metadata:
 webhooks:
   - name: awsmachinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
     failurePolicy: Ignore
+    sideEffects: None
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -44,6 +45,7 @@ webhooks:
           - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
     failurePolicy: Ignore
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}

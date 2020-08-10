@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added mutating webhook to default `availabilityZones` and `instanceType` in the `AWSControlPlane` CR.
 - Added mutating webhook to default `replicas` and `infrastructureRef` in the `G8sControlPlane` CR.
 - Added unit tests for `AWSControlPlane` and `G8sControlPlane` admitters
+- If a request has the dry-run flag, update of AWSControlPlane will not be triggered.
+
 ### Removed
 
 - Removed Azure-related endpoints.
