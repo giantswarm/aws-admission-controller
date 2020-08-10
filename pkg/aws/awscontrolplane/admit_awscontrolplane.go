@@ -73,6 +73,13 @@ func NewAdmitter(config Config) (*Admitter, error) {
 }
 
 func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+
+	var result []admission.PatchOperation
+
+	if request.DryRun != nil && *request.DryRun {
+		return result, nil
+	}
+
 	awsControlPlaneCR := &infrastructurev1alpha2.AWSControlPlane{}
 	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
@@ -85,8 +92,6 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	if namespace == "" {
 		namespace = "default"
 	}
-
-	var result []admission.PatchOperation
 	var numberOfAZs int
 
 	// We only need to manipulate if attributes are not set or it's a create operation
