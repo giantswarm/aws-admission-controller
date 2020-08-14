@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added mutating webhook to default `availabilityZones` and `instanceType` in the `AWSControlPlane` CR.
 - Added mutating webhook to default `replicas` and `infrastructureRef` in the `G8sControlPlane` CR.
 - Added unit tests for `AWSControlPlane` and `G8sControlPlane` admitters
+
+## [1.4.0] - 2020-08-10
+
 - If a request has the dry-run flag, update of AWSControlPlane will not be triggered.
 
 ### Removed
@@ -44,7 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/admission-controller/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/giantswarm/admission-controller/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/giantswarm/admission-controller/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/giantswarm/admission-controller/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/giantswarm/admission-controller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/giantswarm/admission-controller/compare/v1.0.0...v1.1.0
