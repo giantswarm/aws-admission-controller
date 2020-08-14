@@ -8,6 +8,8 @@ rules:
   - apiGroups:
       - infrastructure.giantswarm.io
     resources:
+      - awsclusters
+      - awsclusters/status
       - awscontrolplanes
       - awscontrolplanes/status
       - awsmachinedeployments

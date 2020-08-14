@@ -1,32 +1,32 @@
-package g8scontrolplane
+package aws
 
 import (
 	"github.com/giantswarm/microerror"
 )
 
-var executionFailedError = &microerror.Error{
+var ExecutionFailedError = &microerror.Error{
 	Kind: "executionFailedError",
 }
 
 // IsExecutionFailed asserts executionFailedError.
 func IsExecutionFailed(err error) bool {
-	return microerror.Cause(err) == executionFailedError
+	return microerror.Cause(err) == ExecutionFailedError
 }
 
-var notFoundError = &microerror.Error{
+var NotFoundError = &microerror.Error{
 	Kind: "notFoundError",
 }
 
 // IsNotFound asserts notFoundError.
 func IsNotFound(err error) bool {
-	return microerror.Cause(err) == notFoundError
+	return microerror.Cause(err) == NotFoundError
 }
 
-var parsingFailedError = &microerror.Error{
+var ParsingFailedError = &microerror.Error{
 	Kind: "parsingFailedError",
 }
 
 // IsParsingFailed asserts parsingFailedError.
 func IsParsingFailed(err error) bool {
-	return microerror.Cause(err) == parsingFailedError
+	return microerror.Cause(err) == ParsingFailedError
 }
