@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/giantswarm/admission-controller.svg?style=svg)](https://circleci.com/gh/giantswarm/admission-controller)
+[![CircleCI](https://circleci.com/gh/giantswarm/admission-controller.svg?style=shield)](https://circleci.com/gh/giantswarm/admission-controller)
 
 # G8S Admission Controller
 
