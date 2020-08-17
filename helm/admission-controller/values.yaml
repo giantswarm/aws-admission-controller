@@ -5,3 +5,7 @@ image:
 project:
   branch: "[[ .Branch ]]"
   commit: "[[ .SHA ]]"
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
