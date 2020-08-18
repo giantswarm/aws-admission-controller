@@ -5,3 +5,13 @@ image:
 project:
   branch: "[[ .Branch ]]"
   commit: "[[ .SHA ]]"
+
+deploymentStrategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
