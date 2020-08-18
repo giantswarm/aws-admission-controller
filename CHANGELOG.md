@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed label selector for PodDisruptionBudget.
+
 ## [1.5.1] - 2020-08-18
+
+### Added
+
+- Change the replicas to 3 and add a PodDisruptionBudget.
 
 ## [1.5.0] - 2020-08-14
 
