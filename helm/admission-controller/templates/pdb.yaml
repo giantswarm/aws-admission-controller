@@ -14,6 +14,5 @@ spec:
   maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
 {{- end }}
   selector:
-    matchLabels:
-      app: {{ include "resource.default.name" . }}
+    {{- include "labels.selector" . | nindent 4 }}
 {{- end }}
