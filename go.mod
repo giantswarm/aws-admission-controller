@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/evanphx/json-patch v4.5.0+incompatible
+	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/ghodss/yaml v1.0.0
 	github.com/giantswarm/apiextensions v0.4.20
 	github.com/giantswarm/backoff v0.2.0
