@@ -1,0 +1,23 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "resource.networkPolicy.name" . }}
+  namespace: {{ include "resource.default.namespace" . }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "labels.selector" . | nindent 6 }}
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    - port: 8080
+      protocol: TCP
+  policyTypes:
+  - Egress
+  - Ingress
+

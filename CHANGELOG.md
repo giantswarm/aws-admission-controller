@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add NetworkPolicy and security context matching Pod Security Policy.
+
 ## [1.5.2] - 2020-08-18
 
 ### Fixed
