@@ -14,9 +14,9 @@ spec:
   ingress:
   - ports:
     - port: 443
-      protocol: HTTPS
+      protocol: TCP
     - port: 8080
-      protocol: HTTPS
+      protocol: TCP
   policyTypes:
   - Egress
   - Ingress
