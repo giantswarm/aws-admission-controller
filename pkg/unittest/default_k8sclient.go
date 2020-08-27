@@ -1,12 +1,12 @@
 package unittest
 
 import (
-	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/pkg/apis/infrastructure/v1alpha2"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/pkg/apis/release/v1alpha1"
-	"github.com/giantswarm/apiextensions/pkg/clientset/versioned"
-	fakeg8s "github.com/giantswarm/apiextensions/pkg/clientset/versioned/fake"
-	"github.com/giantswarm/k8sclient/v3/pkg/k8sclient"
-	"github.com/giantswarm/k8sclient/v3/pkg/k8scrdclient"
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
+	"github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned"
+	fakeg8s "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/fake"
+	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v4/pkg/k8scrdclient"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
