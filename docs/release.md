@@ -16,11 +16,11 @@ git tag -a ${VERSION} -m "Release version ${VERSION}"
 git push origin ${VERSION}
 ```
 
-Follow CircleCI's progress in https://circleci.com/gh/giantswarm/admission-controller/.
+Follow CircleCI's progress in https://circleci.com/gh/giantswarm/aws-admission-controller/.
 
 ## Edit the release draft and publish
 
-Open the [release draft](https://github.com/giantswarm/admission-controller/releases/) on Github.
+Open the [release draft](https://github.com/giantswarm/aws-admission-controller/releases/) on Github.
 
 Edit the description to inform about what has changed since the last release. Save and publish the release.
 
@@ -31,6 +31,6 @@ CircleCI must be set up with certain environment variables:
 - `CODE_SIGNING_CERT_BUNDLE_BASE64` - Base64 encoded PKCS#12 key/cert bundle used for signing Windows binaries
 - `CODE_SIGNING_CERT_BUNDLE_PASSWORD` - Password for the above bundle
 - `RELEASE_TOKEN` - A GitHub token with the permission to write to repositories
-  - [giantswarm/admission-controller](https://github.com/giantswarm/admission-controller/)
+  - [giantswarm/aws-admission-controller](https://github.com/giantswarm/aws-admission-controller/)
 - `GITHUB_USER_EMAIL` - Email address of the github user owning the personal token above
 - `GITHUB_USER_NAME` - Username of the above github user

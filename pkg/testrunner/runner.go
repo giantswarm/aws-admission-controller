@@ -14,7 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/giantswarm/admission-controller/pkg/admission"
+	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 )
 
 type Runner struct {

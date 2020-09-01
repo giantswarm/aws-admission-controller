@@ -6472,7 +6472,7 @@ rules:
     verbs: ["create"]
   # We require these rules to support users with the OwnerReferencesPermissionEnforcement
   # admission controller enabled:
-  # https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#ownerreferencespermissionenforcement
+  # https://kubernetes.io/docs/reference/access-authn-authz/aws-admission-controllers/#ownerreferencespermissionenforcement
   - apiGroups: ["acme.cert-manager.io"]
     resources: ["challenges/finalizers"]
     verbs: ["update"]
@@ -6528,7 +6528,7 @@ rules:
     verbs: ["create", "delete"]
   # We require these rules to support users with the OwnerReferencesPermissionEnforcement
   # admission controller enabled:
-  # https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#ownerreferencespermissionenforcement
+  # https://kubernetes.io/docs/reference/access-authn-authz/aws-admission-controllers/#ownerreferencespermissionenforcement
   - apiGroups: ["acme.cert-manager.io"]
     resources: ["orders/finalizers"]
     verbs: ["update"]
@@ -6564,7 +6564,7 @@ rules:
     verbs: ["get", "list", "watch"]
   # We require these rules to support users with the OwnerReferencesPermissionEnforcement
   # admission controller enabled:
-  # https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#ownerreferencespermissionenforcement
+  # https://kubernetes.io/docs/reference/access-authn-authz/aws-admission-controllers/#ownerreferencespermissionenforcement
   - apiGroups: ["extensions"]
     resources: ["ingresses/finalizers"]
     verbs: ["update"]
@@ -6594,7 +6594,7 @@ rules:
     verbs: ["get", "list", "watch"]
   # We require these rules to support users with the OwnerReferencesPermissionEnforcement
   # admission controller enabled:
-  # https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#ownerreferencespermissionenforcement
+  # https://kubernetes.io/docs/reference/access-authn-authz/aws-admission-controllers/#ownerreferencespermissionenforcement
   - apiGroups: ["cert-manager.io"]
     resources: ["certificates/finalizers", "certificaterequests/finalizers"]
     verbs: ["update"]
