@@ -5,6 +5,8 @@ metadata:
   namespace: {{ include "resource.default.namespace" . }}
   labels:
     {{- include "labels.common" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "true"
 spec:
   ports:
   - port: 443
