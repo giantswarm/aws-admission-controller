@@ -16,7 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/giantswarm/admission-controller/pkg/unittest"
+	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 )
 
 var (

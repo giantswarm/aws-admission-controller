@@ -5,9 +5,9 @@ import (
 	"github.com/giantswarm/micrologger"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	"github.com/giantswarm/admission-controller/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/admission-controller/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/admission-controller/pkg/aws/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
 )
 
 const (

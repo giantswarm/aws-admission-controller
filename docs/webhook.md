@@ -1,7 +1,7 @@
 
 ## Add a new webhook
 
-Make sure you update the [webhook configuration](../helm/admission-controller/templates/webhook.yaml) to add the object which needs to be mutated or validated.
+Make sure you update the [webhook configuration](../helm/aws-admission-controller/templates/webhook.yaml) to add the object which needs to be mutated or validated.
 
 Initiate it in `main.go` and use a optional configuration.
 
@@ -16,7 +16,7 @@ myAdmitter , err := myadmitter.NewAdmitter(&cfg.MyConfig)
 	handler.Handle("/myendpoint", admission.Handler(myAdmitter))
 ```
 
-The URL path has to match with service path in the [webhook configuration](../helm/admission-controller/templates/webhook.yaml).
+The URL path has to match with service path in the [webhook configuration](../helm/aws-admission-controller/templates/webhook.yaml).
 
 To satisfy the `Admitter` interface you need to add an `Admit` method.
 
@@ -43,4 +43,4 @@ func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.
 }
 ```
 
-It's important to know `PatchOperation` only support `PatchAdd` or `PatchReplace`, see [patch.go](../admission-controller/pkg/admission/patch.go).
+It's important to know `PatchOperation` only support `PatchAdd` or `PatchReplace`, see [patch.go](../aws-admission-controller/pkg/admission/patch.go).

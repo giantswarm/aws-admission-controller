@@ -10,11 +10,11 @@ import (
 
 	"github.com/giantswarm/microerror"
 
-	"github.com/giantswarm/admission-controller/config"
-	"github.com/giantswarm/admission-controller/pkg/admission"
-	"github.com/giantswarm/admission-controller/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/admission-controller/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/admission-controller/pkg/aws/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/config"
+	"github.com/giantswarm/aws-admission-controller/pkg/admission"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
 )
 
 func main() {
