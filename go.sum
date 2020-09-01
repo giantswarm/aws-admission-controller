@@ -227,7 +227,6 @@ github.com/gogo/protobuf v1.3.1/go.mod h1:SlYgWuQ5SjCEi6WLHjHCa1yvBfUnHcTbrrZtXP
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20160516000752-02826c3e7903/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
-github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 h1:ZgQEtGgCBiWRM39fZuwSd1LwSqqSW0hOdXCYYDX0R3I=
 github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e h1:1r7pUrabqp18hOBcwBwiTsbnFeTZHV9eER/QT5JVZxY=
 github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
@@ -795,14 +794,12 @@ k8s.io/apimachinery v0.18.5/go.mod h1:OaXp26zu/5J7p0f92ASynJa1pZo06YlV9fG7BoWbCk
 k8s.io/apiserver v0.17.8/go.mod h1:XU2YBi1I/v/P1R5lb0lEwSQ1rnXE01k7yxVtdIWH4Lo=
 k8s.io/apiserver v0.17.9/go.mod h1:Qaxd3EbeoPRBHVMtFyuKNAObqP6VAkzIMyWYz8KuE2k=
 k8s.io/apiserver v0.18.4/go.mod h1:q+zoFct5ABNnYkGIaGQ3bcbUNdmPyOCoEBcg51LChY8=
-k8s.io/apiserver v0.18.5 h1:+kk0J2Qf6xd8a5rxcNpf80jwCF99KUWA7tpvctTWObc=
 k8s.io/apiserver v0.18.5/go.mod h1:+1XgOMq7YJ3OyqPNSJ54EveHwCoBWcJT9CaPycYI5ps=
 k8s.io/client-go v0.17.8/go.mod h1:SJsDS64AAtt9VZyeaQMb4Ck5etCitZ/FwajWdzua5eY=
 k8s.io/client-go v0.17.9/go.mod h1:3cM92qAd1XknA5IRkRfpJhl9OQjkYy97ZEUio70wVnI=
 k8s.io/client-go v0.18.4/go.mod h1:f5sXwL4yAZRkAtzOxRWUhA/N8XzGCb+nPZI8PfobZ9g=
 k8s.io/client-go v0.18.5 h1:cLhGZdOmyPhwtt20Lrb7uAqxxB1uvY+NTmNJvno1oKA=
 k8s.io/client-go v0.18.5/go.mod h1:EsiD+7Fx+bRckKWZXnAXRKKetm1WuzPagH4iOSC8x58=
-k8s.io/cluster-bootstrap v0.17.8 h1:qee9dmkOVwngBf98zbwrij1s898EZ2aHg+ymXw1UBLU=
 k8s.io/cluster-bootstrap v0.17.8/go.mod h1:SC9J2Lt/MBOkxcCB04+5mYULLfDQL5kdM0BjtKaVCVU=
 k8s.io/code-generator v0.17.8/go.mod h1:iiHz51+oTx+Z9D0vB3CH3O4HDDPWrvZyUgUYaIE9h9M=
 k8s.io/code-generator v0.17.9/go.mod h1:iiHz51+oTx+Z9D0vB3CH3O4HDDPWrvZyUgUYaIE9h9M=
@@ -811,7 +808,6 @@ k8s.io/code-generator v0.18.5/go.mod h1:TgNEVx9hCyPGpdtCWA34olQYLkh3ok9ar7XfSsr8
 k8s.io/component-base v0.17.8/go.mod h1:xfNNdTAMsYzdiAa8vXnqDhRVSEgkfza0iMt0FrZDY7s=
 k8s.io/component-base v0.17.9/go.mod h1:Wg22ePDK0mfTa+bEFgZHGwr0h40lXnYy6D7D+f7itFk=
 k8s.io/component-base v0.18.4/go.mod h1:7jr/Ef5PGmKwQhyAz/pjByxJbC58mhKAhiaDu0vXfPk=
-k8s.io/component-base v0.18.5 h1:QIz2xFax8W5XQREoNcP/MHgnt4ClgfZ837Qx9yCeCzA=
 k8s.io/component-base v0.18.5/go.mod h1:RSbcboNk4B+S8Acs2JaBOVW3XNz1+A637s2jL+QQrlU=
 k8s.io/gengo v0.0.0-20190128074634-0689ccc1d7d6/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
 k8s.io/gengo v0.0.0-20190822140433-26a664648505/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8IAqLxYwwyPxAX1Pzy0ii0=
@@ -838,12 +834,9 @@ modernc.org/strutil v1.0.0/go.mod h1:lstksw84oURvj9y3tn8lGvRxyRC1S2+g5uuIzNfIOBs
 modernc.org/xc v1.0.0/go.mod h1:mRNCo0bvLjGhHO9WsyuKVU4q0ceiDDDoEeWDJHrNx8I=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7/go.mod h1:PHgbrJT7lCHcxMU+mDHEm+nx46H4zuuHZkDP6icnhu0=
 sigs.k8s.io/cluster-api v0.3.7/go.mod h1:G6gscKzZTGhMOOF3rDZXCxsLIbhVaacbjaiikB/rBmA=
-sigs.k8s.io/cluster-api v0.3.8 h1:YYaAzXP+bHzqIQTJoJXMIT4QN4MjIep9NnxwBDPjiD8=
-sigs.k8s.io/cluster-api v0.3.8/go.mod h1:j2beYKyad77JkeGaiv4l2obt81C3eqxfZGFDqX0YWjs=
 sigs.k8s.io/cluster-api v0.3.9 h1:WongQFeW+vbII9Karc3nIarxMfuUuTr33QU9aSyiKfs=
 sigs.k8s.io/cluster-api v0.3.9/go.mod h1:A7Om/um/j7hvqTvm+KEMEjDOn6fHKRhcVtBiuAH+tYQ=
 sigs.k8s.io/controller-runtime v0.5.8/go.mod h1:UI/unU7Q+mo/rWBrND0NAaVNj/Xjh/+aqSv/M3njpmo=
-sigs.k8s.io/controller-runtime v0.5.9/go.mod h1:UI/unU7Q+mo/rWBrND0NAaVNj/Xjh/+aqSv/M3njpmo=
 sigs.k8s.io/controller-runtime v0.5.10/go.mod h1:OTqxLuz7gVcrq+BHGUgedRu6b2VIKCEc7Pu4Jbwui0A=
 sigs.k8s.io/controller-runtime v0.6.1 h1:LcK2+nk0kmaOnKGN+vBcWHqY5WDJNJNB/c5pW+sU8fc=
 sigs.k8s.io/controller-runtime v0.6.1/go.mod h1:XRYBPdbf5XJu9kpS84VJiZ7h/u1hF3gEORz0efEja7A=
