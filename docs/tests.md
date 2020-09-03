@@ -1,6 +1,6 @@
 ## How to write tests
 
-In general when the admission controller receives an admission request it will be send to the right admission handler depending on the [webhook configuration](../helm/admission-controller/templates/webhook.yaml).
+In general when the admission controller receives an admission request it will be send to the right admission handler depending on the [webhook configuration](../helm/aws-admission-controller/templates/webhook.yaml).
 
 Each webhook endpoint is created in `pkg`, e.g. `g8scontrolplane`.
 
@@ -22,8 +22,8 @@ package example
 import (
 	"testing"
 
-	"github.com/giantswarm/admission-controller/pkg/admission"
-	"github.com/giantswarm/admission-controller/pkg/testrunner"
+	"github.com/giantswarm/aws-admission-controller/pkg/admission"
+	"github.com/giantswarm/aws-admission-controller/pkg/testrunner"
 	"github.com/ghodss/yaml"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

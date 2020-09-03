@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2020-09-02
+
+### Changed
+
+- Rename admission-controller to aws-admission-controller
+
 ## [2.0.0] - 2020-08-27
 
 ### Changed
@@ -73,15 +79,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/admission-controller/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/giantswarm/admission-controller/compare/v1.6.0...v2.0.0
-[1.6.0]: https://github.com/giantswarm/admission-controller/compare/v1.5.2...v1.6.0
-[1.5.2]: https://github.com/giantswarm/admission-controller/compare/v1.5.1...v1.5.2
-[1.5.1]: https://github.com/giantswarm/admission-controller/compare/v1.5.0...v1.5.1
-[1.5.0]: https://github.com/giantswarm/admission-controller/compare/v1.4.0...v1.5.0
-[1.4.0]: https://github.com/giantswarm/admission-controller/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/giantswarm/admission-controller/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/giantswarm/admission-controller/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/giantswarm/admission-controller/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/giantswarm/admission-controller/compare/v1.0.0...v0.0.1
-[0.0.1]: https://github.com/giantswarm/admission-controller/releases/tag/v0.0.1
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.6.0...v2.0.0
+[1.6.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.5.2...v1.6.0
+[1.5.2]: https://github.com/giantswarm/aws-admission-controller/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/giantswarm/aws-admission-controller/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.0.0...v0.0.1
+[0.0.1]: https://github.com/giantswarm/aws-admission-controller/releases/tag/v0.0.1
