@@ -23,11 +23,11 @@ import (
 	"k8s.io/client-go/tools/reference"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
-type Admitter struct {
+type Mutator struct {
 	k8sClient              k8sclient.Interface
 	validAvailabilityZones []string
 	logger                 micrologger.Logger
@@ -38,11 +38,7 @@ type Config struct {
 	Logger                 micrologger.Logger
 }
 
-// var (
-//  g8sControlPlaneResource = metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "g8scontrolplane"}
-// )
-
-func NewAdmitter(config Config) (*Admitter, error) {
+func NewMutator(config Config) (*Mutator, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
@@ -67,18 +63,18 @@ func NewAdmitter(config Config) (*Admitter, error) {
 	}
 
 	var availabilityZones []string = strings.Split(config.ValidAvailabilityZones, ",")
-	admitter := &Admitter{
+	mutator := &Mutator{
 		k8sClient:              k8sClient,
 		validAvailabilityZones: availabilityZones,
 		logger:                 config.Logger,
 	}
 
-	return admitter, nil
+	return mutator, nil
 }
 
-func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
 
-	var result []admission.PatchOperation
+	var result []mutator.PatchOperation
 
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
@@ -86,10 +82,10 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 
 	g8sControlPlaneNewCR := &infrastructurev1alpha2.G8sControlPlane{}
 	g8sControlPlaneOldCR := &infrastructurev1alpha2.G8sControlPlane{}
-	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, g8sControlPlaneNewCR); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, g8sControlPlaneNewCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
-	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, g8sControlPlaneOldCR); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, g8sControlPlaneOldCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
 	releaseVersion, err := releaseVersion(g8sControlPlaneNewCR)
@@ -117,8 +113,8 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// We fetch the AWSControlPlane CR.
 			awsControlPlane := &infrastructurev1alpha2.AWSControlPlane{}
 			{
-				a.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlaneNewCR.Name))
-				err := a.k8sClient.CtrlClient().Get(ctx,
+				m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlaneNewCR.Name))
+				err := m.k8sClient.CtrlClient().Get(ctx,
 					types.NamespacedName{Name: g8sControlPlaneNewCR.GetName(),
 						Namespace: namespace},
 					awsControlPlane)
@@ -137,9 +133,9 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// If the availability zones need to be updated from 1 to 3, we do it here
 			{
 				if aws.IsHAVersion(releaseVersion) && isUpdateFromSingleToHA(g8sControlPlaneNewCR, g8sControlPlaneOldCR) && len(awsControlPlane.Spec.AvailabilityZones) == 1 {
-					a.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
-					awsControlPlane.Spec.AvailabilityZones = a.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], a.validAvailabilityZones)
-					err := a.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
+					m.Log("level", "debug", "message", fmt.Sprintf("Updating AWSControlPlane AZs for HA %s", awsControlPlane.Name))
+					awsControlPlane.Spec.AvailabilityZones = m.getHAavailabilityZones(awsControlPlane.Spec.AvailabilityZones[0], m.validAvailabilityZones)
+					err := m.k8sClient.CtrlClient().Update(ctx, awsControlPlane)
 					if err != nil {
 						return microerror.Mask(err)
 					}
@@ -151,7 +147,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		err := backoff.Retry(update, b)
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if aws.IsNotFound(err) {
-			a.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneNewCR.Name, err))
+			m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneNewCR.Name, err))
 		} else if err != nil {
 			return nil, err
 		}
@@ -162,21 +158,21 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	}
 	// Trigger defaulting of the replicas
 	if g8sControlPlaneNewCR.Spec.Replicas == 0 {
-		a.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s Replicas are 0 and will be defaulted", g8sControlPlaneNewCR.ObjectMeta.Name))
-		patch := admission.PatchReplace("/spec/replicas", replicas)
+		m.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s Replicas are 0 and will be defaulted", g8sControlPlaneNewCR.ObjectMeta.Name))
+		patch := mutator.PatchReplace("/spec/replicas", replicas)
 		result = append(result, patch)
 	}
 	// If the infrastructure reference is not set, we do it here
 	if request.Operation == aws.CreateOperation && g8sControlPlaneNewCR.Spec.InfrastructureRef.Name != infrastructureCRRef.Name {
-		a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlaneNewCR.Name))
-		patch := admission.PatchReplace("/spec/infrastructureRef", infrastructureCRRef)
+		m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlaneNewCR.Name))
+		patch := mutator.PatchReplace("/spec/infrastructureRef", infrastructureCRRef)
 		result = append(result, patch)
 	}
 
 	return result, nil
 }
 
-func (a *Admitter) getHAavailabilityZones(firstAZ string, azs []string) []string {
+func (m *Mutator) getHAavailabilityZones(firstAZ string, azs []string) []string {
 	var randomAZs []string
 	// Having 3 AZ's or more shuffle 3 HA masters in different AZ's
 	if len(azs) >= 3 {
@@ -189,7 +185,7 @@ func (a *Admitter) getHAavailabilityZones(firstAZ string, azs []string) []string
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(tempAZs), func(i, j int) { tempAZs[i], tempAZs[j] = tempAZs[j], tempAZs[i] })
 		randomAZs = append(randomAZs, firstAZ, tempAZs[0], tempAZs[1])
-		a.Log("level", "debug", "message", fmt.Sprintf("%d AZ's available, selected AZ's: %v", len(azs), randomAZs))
+		m.Log("level", "debug", "message", fmt.Sprintf("%d AZ's available, selected AZ's: %v", len(azs), randomAZs))
 
 		return randomAZs
 
@@ -204,21 +200,21 @@ func (a *Admitter) getHAavailabilityZones(firstAZ string, azs []string) []string
 		rand.Seed(time.Now().UnixNano())
 		rand.Shuffle(len(azs), func(i, j int) { azs[i], azs[j] = azs[j], azs[i] })
 		randomAZs = append(randomAZs, firstAZ, tempAZ, azs[0])
-		a.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, random AZ's will be %v", len(azs), randomAZs))
+		m.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, random AZ's will be %v", len(azs), randomAZs))
 
 		return randomAZs
 
 		// Having only 1 AZ available we add 3 HA masters to this AZ
 	} else {
 		randomAZs = append(randomAZs, firstAZ, firstAZ, firstAZ)
-		a.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, using the same AZ %v", len(azs), randomAZs))
+		m.Log("level", "debug", "message", fmt.Sprintf("only %d AZ's available, using the same AZ %v", len(azs), randomAZs))
 
 		return randomAZs
 	}
 }
 
-func (a *Admitter) Log(keyVals ...interface{}) {
-	a.logger.Log(keyVals...)
+func (m *Mutator) Log(keyVals ...interface{}) {
+	m.logger.Log(keyVals...)
 }
 
 func releaseVersion(cr *infrastructurev1alpha2.G8sControlPlane) (*semver.Version, error) {

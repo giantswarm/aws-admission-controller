@@ -11,10 +11,10 @@ import (
 	"github.com/giantswarm/microerror"
 
 	"github.com/giantswarm/aws-admission-controller/config"
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
 func main() {
@@ -23,26 +23,27 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
-	awsMachineDeploymentAdmitter, err := awsmachinedeployment.NewAdmitter(config.AWSMachineDeployment)
+	// Setup handler for mutating webhook
+	awsMachineDeploymentMutator, err := awsmachinedeployment.NewMutator(config.AWSMachineDeployment)
 	if err != nil {
 		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
-	awscontrolplaneAdmitter, err := awscontrolplane.NewAdmitter(config.AWSControlPlane)
+	awscontrolplaneMutator, err := awscontrolplane.NewMutator(config.AWSControlPlane)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
 
-	g8scontrolplaneAdmitter, err := g8scontrolplane.NewAdmitter(config.G8sControlPlane)
+	g8scontrolplaneMutator, err := g8scontrolplane.NewMutator(config.G8sControlPlane)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
 
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
-	handler.Handle("/awsmachinedeployment", admission.Handler(awsMachineDeploymentAdmitter))
-	handler.Handle("/awscontrolplane", admission.Handler(awscontrolplaneAdmitter))
-	handler.Handle("/g8scontrolplane", admission.Handler(g8scontrolplaneAdmitter))
+	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsMachineDeploymentMutator))
+	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
+	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
 	handler.HandleFunc("/healthz", healthCheck)
 
 	serve(config, handler)

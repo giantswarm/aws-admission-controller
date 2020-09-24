@@ -23,8 +23,9 @@ import (
 	"k8s.io/client-go/tools/reference"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
+	admission "github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
 type Config struct {
@@ -32,13 +33,13 @@ type Config struct {
 	Logger                 micrologger.Logger
 }
 
-type Admitter struct {
+type Mutator struct {
 	k8sClient              k8sclient.Interface
 	validAvailabilityZones []string
 	logger                 micrologger.Logger
 }
 
-func NewAdmitter(config Config) (*Admitter, error) {
+func NewMutator(config Config) (*Mutator, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
@@ -63,25 +64,25 @@ func NewAdmitter(config Config) (*Admitter, error) {
 	}
 
 	var availabilityZones []string = strings.Split(config.ValidAvailabilityZones, ",")
-	admitter := &Admitter{
+	mutator := &Mutator{
 		k8sClient:              k8sClient,
 		validAvailabilityZones: availabilityZones,
 		logger:                 config.Logger,
 	}
 
-	return admitter, nil
+	return mutator, nil
 }
 
-func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
 
-	var result []admission.PatchOperation
+	var result []mutator.PatchOperation
 
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
 
 	awsControlPlaneCR := &infrastructurev1alpha2.AWSControlPlane{}
-	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 	releaseVersion, err := releaseVersion(awsControlPlaneCR)
@@ -107,8 +108,8 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			// We try to fetch the G8sControlPlane CR.
 			g8sControlPlane := &infrastructurev1alpha2.G8sControlPlane{}
 			{
-				a.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
-				err := a.k8sClient.CtrlClient().Get(
+				m.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
+				err := m.k8sClient.CtrlClient().Get(
 					ctx,
 					types.NamespacedName{Name: awsControlPlaneCR.GetName(), Namespace: namespace},
 					g8sControlPlane,
@@ -121,7 +122,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 			{
 				// If the infrastructure reference is not set, we do it here
 				if request.Operation == aws.CreateOperation && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
-					a.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
+					m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
 					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlaneCR)
 					if infrastructureCRRef.Namespace == "" {
 						infrastructureCRRef.Namespace = namespace
@@ -132,7 +133,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 
 					// We update the reference in the CR
 					g8sControlPlane.Spec.InfrastructureRef = *infrastructureCRRef
-					err = a.k8sClient.CtrlClient().Update(ctx, g8sControlPlane)
+					err = m.k8sClient.CtrlClient().Update(ctx, g8sControlPlane)
 					if err != nil {
 						return microerror.Mask(err)
 					}
@@ -144,7 +145,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the g8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if aws.IsNotFound(err) {
-			a.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
+			m.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		} else if err != nil {
 			return nil, err
 		}
@@ -152,15 +153,15 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	if aws.IsHAVersion(releaseVersion) {
 		// Trigger defaulting of the master instance type
 		if awsControlPlaneCR.Spec.InstanceType == "" {
-			a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
 			patch := admission.PatchAdd("/spec/instanceType", aws.DefaultMasterInstanceType)
 			result = append(result, patch)
 		}
 		// Trigger defaulting of the master availability zones
 		if awsControlPlaneCR.Spec.AvailabilityZones == nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
 			// We default the AZs
-			defaultedAZs := a.getNavailabilityZones(numberOfAZs, a.validAvailabilityZones)
+			defaultedAZs := m.getNavailabilityZones(numberOfAZs, m.validAvailabilityZones)
 			patch := admission.PatchAdd("/spec/availabilityZones", defaultedAZs)
 			result = append(result, patch)
 		}
@@ -177,8 +178,8 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 				return err
 			}
 			{
-				a.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
-				err := a.k8sClient.CtrlClient().Get(ctx,
+				m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
+				err := m.k8sClient.CtrlClient().Get(ctx,
 					types.NamespacedName{Name: clusterID,
 						Namespace: namespace},
 					AWSCluster)
@@ -193,18 +194,18 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
+			m.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		}
 		// Trigger defaulting of the master instance type
 		if awsControlPlaneCR.Spec.InstanceType == "" {
-			a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			patch := admission.PatchAdd("/spec/instanceType", instanceType)
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+			patch := mutator.PatchAdd("/spec/instanceType", instanceType)
 			result = append(result, patch)
 		}
 		// Trigger defaulting of the master availability zone
 		if awsControlPlaneCR.Spec.AvailabilityZones == nil {
-			a.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			patch := admission.PatchAdd("/spec/availabilityZones", availabilityZone)
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+			patch := mutator.PatchAdd("/spec/availabilityZones", availabilityZone)
 			result = append(result, patch)
 		}
 	}
@@ -212,7 +213,7 @@ func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOp
 	return result, nil
 }
 
-func (a *Admitter) getNavailabilityZones(n int, azs []string) []string {
+func (m *Mutator) getNavailabilityZones(n int, azs []string) []string {
 	randomAZs := azs
 	// In case there are not enough distinct AZs, we repeat them
 	for len(randomAZs) < n {
@@ -223,13 +224,13 @@ func (a *Admitter) getNavailabilityZones(n int, azs []string) []string {
 	rand.Shuffle(len(randomAZs), func(i, j int) { randomAZs[i], randomAZs[j] = randomAZs[j], randomAZs[i] })
 	randomAZs = randomAZs[:n]
 	sort.Strings(randomAZs)
-	a.Log("level", "debug", "message", fmt.Sprintf("available AZ's: %v, selected AZ's: %v", azs, randomAZs))
+	m.Log("level", "debug", "message", fmt.Sprintf("available AZ's: %v, selected AZ's: %v", azs, randomAZs))
 
 	return randomAZs
 }
 
-func (a *Admitter) Log(keyVals ...interface{}) {
-	a.logger.Log(keyVals...)
+func (m *Mutator) Log(keyVals ...interface{}) {
+	m.logger.Log(keyVals...)
 }
 
 func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version, error) {

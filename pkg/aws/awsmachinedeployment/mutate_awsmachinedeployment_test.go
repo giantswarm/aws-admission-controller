@@ -40,7 +40,7 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 			var err error
 
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &Admitter{
+			mutator := &Mutator{
 				k8sClient: fakeK8sClient,
 			}
 
@@ -55,7 +55,7 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = admit.Admit(request)
+			_, err = mutator.Mutate(request)
 			if err != nil {
 				t.Fatal(err)
 			}

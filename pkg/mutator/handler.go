@@ -1,4 +1,4 @@
-package admission
+package mutator
 
 import (
 	"encoding/json"
@@ -16,8 +16,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type Admitter interface {
-	Admit(review *v1beta1.AdmissionRequest) ([]PatchOperation, error)
+type Mutator interface {
+	Mutate(review *v1beta1.AdmissionRequest) ([]PatchOperation, error)
 	Log(keyVals ...interface{})
 }
 
@@ -28,46 +28,46 @@ var (
 	InternalError = errors.New("internal admission controller error")
 )
 
-func Handler(admitter Admitter) http.HandlerFunc {
+func Handler(mutator Mutator) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.Header.Get("Content-Type") != "application/json" {
-			admitter.Log("level", "error", "message", fmt.Sprintf("invalid content-type: %s", request.Header.Get("Content-Type")))
+			mutator.Log("level", "error", "message", fmt.Sprintf("invalid content-type: %s", request.Header.Get("Content-Type")))
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		data, err := ioutil.ReadAll(request.Body)
 		if err != nil {
-			admitter.Log("level", "error", "message", "unable to read request")
+			mutator.Log("level", "error", "message", "unable to read request")
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		review := v1beta1.AdmissionReview{}
 		if _, _, err := Deserializer.Decode(data, nil, &review); err != nil {
-			admitter.Log("level", "error", "message", "unable to parse admission review request")
+			mutator.Log("level", "error", "message", "unable to parse admission review request")
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		resourceName := fmt.Sprintf("%s %s/%s", review.Request.Kind, review.Request.Namespace, extractName(review.Request))
 
-		patch, err := admitter.Admit(review.Request)
+		patch, err := mutator.Mutate(review.Request)
 		if err != nil {
-			writeResponse(admitter, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
+			writeResponse(mutator, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
 			return
 		}
 
 		patchData, err := json.Marshal(patch)
 		if err != nil {
-			admitter.Log("level", "error", "message", fmt.Sprintf("unable to serialize patch for %s: %v", resourceName, err))
-			writeResponse(admitter, writer, errorResponse(review.Request.UID, InternalError))
+			mutator.Log("level", "error", "message", fmt.Sprintf("unable to serialize patch for %s: %v", resourceName, err))
+			writeResponse(mutator, writer, errorResponse(review.Request.UID, InternalError))
 			return
 		}
 
-		admitter.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
+		mutator.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
 
 		pt := v1beta1.PatchTypeJSONPatch
-		writeResponse(admitter, writer, &v1beta1.AdmissionResponse{
+		writeResponse(mutator, writer, &v1beta1.AdmissionResponse{
 			Allowed:   true,
 			UID:       review.Request.UID,
 			Patch:     patchData,
@@ -95,16 +95,16 @@ func extractName(request *v1beta1.AdmissionRequest) string {
 	return "<unknown>"
 }
 
-func writeResponse(admitter Admitter, writer http.ResponseWriter, response *v1beta1.AdmissionResponse) {
+func writeResponse(mutator Mutator, writer http.ResponseWriter, response *v1beta1.AdmissionResponse) {
 	resp, err := json.Marshal(v1beta1.AdmissionReview{
 		Response: response,
 	})
 	if err != nil {
-		admitter.Log("level", "error", "message", "unable to serialize response", microerror.JSON(err))
+		mutator.Log("level", "error", "message", "unable to serialize response", microerror.JSON(err))
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
 	if _, err := writer.Write(resp); err != nil {
-		admitter.Log("level", "error", "message", "unable to write response", microerror.JSON(err))
+		mutator.Log("level", "error", "message", "unable to write response", microerror.JSON(err))
 	}
 }
 

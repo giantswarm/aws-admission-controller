@@ -1,4 +1,4 @@
-package admission
+package mutator
 
 // PatchOperation specifies one JSONPatch operation.
 // See [RFC6902](https://tools.ietf.org/html/rfc6902) for details.

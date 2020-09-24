@@ -13,8 +13,8 @@ import (
 	restclient "k8s.io/client-go/rest"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
 var (
@@ -22,8 +22,8 @@ var (
 	defaultOnDemandPercentageAboveBaseCapacity int = 100
 )
 
-// Admitter for AWSMachineDeployment object.
-type Admitter struct {
+// Mutator for AWSMachineDeployment object.
+type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 }
@@ -33,8 +33,8 @@ type Config struct {
 	Logger micrologger.Logger
 }
 
-// NewAdmitter returns a new admitter.
-func NewAdmitter(config Config) (*Admitter, error) {
+// NewMutator returns a new mutator.
+func NewMutator(config Config) (*Mutator, error) {
 	var k8sClient k8sclient.Interface
 	{
 		restConfig, err := restclient.InClusterConfig()
@@ -58,40 +58,40 @@ func NewAdmitter(config Config) (*Admitter, error) {
 		}
 	}
 
-	admitter := &Admitter{
+	mutator := &Mutator{
 		k8sClient: k8sClient,
 		logger:    config.Logger,
 	}
 
-	return admitter, nil
+	return mutator, nil
 }
 
-// Admit is the function executed for every matching webhook request.
-func (a *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+// Mutate is the function executed for every matching webhook request.
+func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
 	// Parse incoming objects
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
-	if _, _, err := admission.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
-	if _, _, err := admission.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 
-	var result []admission.PatchOperation
+	var result []mutator.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity.
 	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
 	// attribute defined. Otherwise the request to create/modify the CR will fail.
 	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		a.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
-		patch := admission.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
+		patch := mutator.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
 		result = append(result, patch)
 	}
 
 	return result, nil
 }
 
-func (a *Admitter) Log(keyVals ...interface{}) {
-	a.logger.Log(keyVals...)
+func (m *Mutator) Log(keyVals ...interface{}) {
+	m.logger.Log(keyVals...)
 }
