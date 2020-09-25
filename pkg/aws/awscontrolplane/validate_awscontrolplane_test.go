@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
+	"github.com/giantswarm/aws-admission-controller/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 )
 
 func TestControlPlaneLabelMatch(t *testing.T) {
