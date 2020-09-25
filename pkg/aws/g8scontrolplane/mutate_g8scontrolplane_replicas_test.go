@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 )
 
@@ -96,7 +96,7 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 				}
 			}
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &Admitter{
+			mutate := &Mutator{
 				validAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 				k8sClient:              fakeK8sClient,
 				logger:                 newLogger,
@@ -115,12 +115,12 @@ func TestReplicasG8sControlPlaneAdmit(t *testing.T) {
 			}
 
 			// run admission request to default replicas
-			var patch []admission.PatchOperation
+			var patch []mutator.PatchOperation
 			request, err := g8sControlPlaneCreateAdmissionRequest(tc.currentReplicas, release)
 			if err != nil {
 				t.Fatal(err)
 			}
-			patch, err = admit.Admit(request)
+			patch, err = mutate.Mutate(request)
 			if err != nil {
 				t.Fatal(err)
 			}

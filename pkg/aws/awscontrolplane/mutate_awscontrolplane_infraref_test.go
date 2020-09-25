@@ -44,7 +44,7 @@ func TestInfraRefAWSControlPlaneAdmit(t *testing.T) {
 				}
 			}
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &Admitter{
+			mutator := &Mutator{
 				validAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 				k8sClient:              fakeK8sClient,
 				logger:                 newLogger,
@@ -60,7 +60,7 @@ func TestInfraRefAWSControlPlaneAdmit(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = admit.Admit(request)
+			_, err = mutator.Mutate(request)
 			if err != nil {
 				t.Fatal(err)
 			}

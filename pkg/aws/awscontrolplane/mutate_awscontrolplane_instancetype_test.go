@@ -8,8 +8,8 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/admission"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 )
 
@@ -52,19 +52,19 @@ func TestInstanceTypeAWSControlPlaneAdmit(t *testing.T) {
 				}
 			}
 			fakeK8sClient := unittest.FakeK8sClient()
-			admit := &Admitter{
+			mutate := &Mutator{
 				validAvailabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 				k8sClient:              fakeK8sClient,
 				logger:                 newLogger,
 			}
 
 			// run admission request to default AWSControlPlane InstanceType
-			var patch []admission.PatchOperation
+			var patch []mutator.PatchOperation
 			request, err := awsControlPlaneAdmissionRequest([]string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}, tc.currentInstanceType, HAReleaseVersion)
 			if err != nil {
 				t.Fatal(err)
 			}
-			patch, err = admit.Admit(request)
+			patch, err = mutate.Mutate(request)
 			if err != nil {
 				t.Fatal(err)
 			}

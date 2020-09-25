@@ -15,7 +15,7 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /awsmachinedeployment
+        path: /mutate/awsmachinedeployment
       caBundle: Cg==
     rules:
       - apiGroups: ["infrastructure.giantswarm.io"]
@@ -33,7 +33,7 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /awscontrolplane
+        path: /mutate/awscontrolplane
       caBundle: Cg==
     rules:
       - apiGroups: ["infrastructure.giantswarm.io"]
@@ -51,7 +51,7 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /g8scontrolplane
+        path: /mutate/g8scontrolplane
       caBundle: Cg==
     rules:
       - apiGroups: ["infrastructure.giantswarm.io"]
