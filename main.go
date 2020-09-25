@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/pkg/validator"
 )
 
 func main() {
@@ -39,11 +40,18 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	// Setup handler for validating webhook
+	awscontrolplaneValidator, err := awscontrolplane.NewValidator()
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsMachineDeploymentMutator))
 	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
+	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
 	handler.HandleFunc("/healthz", healthCheck)
 
 	serve(config, handler)

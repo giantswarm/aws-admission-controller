@@ -30,3 +30,12 @@ var ParsingFailedError = &microerror.Error{
 func IsParsingFailed(err error) bool {
 	return microerror.Cause(err) == ParsingFailedError
 }
+
+var ControlPlaneLabelNotEqualError = &microerror.Error{
+	Kind: "controlPlaneLabelNotEqualError",
+}
+
+// IsControlPlaneLabelNotEqualError asserts controlPlaneLabelNotEqualError.
+func IsControlPlaneLabelNotEqualError(err error) bool {
+	return microerror.Cause(err) == ControlPlaneLabelNotEqualError
+}
