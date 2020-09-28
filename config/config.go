@@ -1,13 +1,14 @@
 package config
 
 import (
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
+	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
-
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
+	restclient "k8s.io/client-go/rest"
+	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 )
 
 const (
@@ -15,19 +16,17 @@ const (
 )
 
 type Config struct {
-	CertFile          string
-	KeyFile           string
 	Address           string
 	AvailabilityZones string
-
-	G8sControlPlane      g8scontrolplane.Config
-	AWSControlPlane      awscontrolplane.Config
-	AWSMachineDeployment awsmachinedeployment.Config
+	CertFile          string
+	Logger            micrologger.Logger
+	K8sClient         k8sclient.Interface
+	KeyFile           string
 }
 
 func Parse() (Config, error) {
 	var err error
-	var result Config
+	var config Config
 
 	// Create a new logger that is used by all admitters.
 	var newLogger micrologger.Logger
@@ -36,23 +35,40 @@ func Parse() (Config, error) {
 		if err != nil {
 			return Config{}, microerror.Mask(err)
 		}
+		config.Logger = newLogger
 	}
 
-	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&result.CertFile)
-	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&result.KeyFile)
-	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&result.Address)
-	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&result.AvailabilityZones)
+	// Create a new k8sclient that is used by all admitters.
+	var k8sClient k8sclient.Interface
+	{
+		restConfig, err := restclient.InClusterConfig()
+		if err != nil {
+			return Config{}, microerror.Mask(err)
+		}
+		c := k8sclient.ClientsConfig{
+			SchemeBuilder: k8sclient.SchemeBuilder{
+				apiv1alpha2.AddToScheme,
+				infrastructurev1alpha2.AddToScheme,
+				releasev1alpha1.AddToScheme,
+			},
+			Logger: config.Logger,
 
-	// add logger to each admission handler
-	result.G8sControlPlane.Logger = newLogger
-	result.AWSControlPlane.Logger = newLogger
-	result.AWSMachineDeployment.Logger = newLogger
+			RestConfig: restConfig,
+		}
+
+		k8sClient, err = k8sclient.NewClients(c)
+		if err != nil {
+			return Config{}, microerror.Mask(err)
+		}
+		config.K8sClient = k8sClient
+	}
+
+	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
+	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&config.AvailabilityZones)
+	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
+	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)
 
 	kingpin.Parse()
 
-	// add availability zones to admitter configs
-	result.AWSControlPlane.ValidAvailabilityZones = result.AvailabilityZones
-	result.G8sControlPlane.ValidAvailabilityZones = result.AvailabilityZones
-
-	return result, nil
+	return config, nil
 }

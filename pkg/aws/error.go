@@ -22,6 +22,15 @@ func IsNotFound(err error) bool {
 	return microerror.Cause(err) == NotFoundError
 }
 
+var InvalidConfigError = &microerror.Error{
+	Kind: "invalidConfigError",
+}
+
+// IsInvalidConfig asserts invalidConfigError.
+func IsInvalidConfig(err error) bool {
+	return microerror.Cause(err) == InvalidConfigError
+}
+
 var ParsingFailedError = &microerror.Error{
 	Kind: "parsingFailedError",
 }

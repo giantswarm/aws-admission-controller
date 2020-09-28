@@ -25,17 +25,17 @@ func main() {
 	}
 
 	// Setup handler for mutating webhook
-	awsMachineDeploymentMutator, err := awsmachinedeployment.NewMutator(config.AWSMachineDeployment)
+	awsMachineDeploymentMutator, err := awsmachinedeployment.NewMutator(config)
 	if err != nil {
 		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
-	awscontrolplaneMutator, err := awscontrolplane.NewMutator(config.AWSControlPlane)
+	awscontrolplaneMutator, err := awscontrolplane.NewMutator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
 
-	g8scontrolplaneMutator, err := g8scontrolplane.NewMutator(config.G8sControlPlane)
+	g8scontrolplaneMutator, err := g8scontrolplane.NewMutator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
