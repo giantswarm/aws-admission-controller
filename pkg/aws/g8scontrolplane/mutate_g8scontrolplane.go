@@ -9,7 +9,6 @@ import (
 
 	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
 	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/apiextensions/v2/pkg/label"
 	"github.com/giantswarm/backoff"
@@ -19,61 +18,40 @@ import (
 	"k8s.io/api/admission/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
-	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/reference"
-	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
+	"github.com/giantswarm/aws-admission-controller/config"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
 type Mutator struct {
-	k8sClient              k8sclient.Interface
+	k8sClient k8sclient.Interface
+	logger    micrologger.Logger
+
 	validAvailabilityZones []string
-	logger                 micrologger.Logger
 }
 
-type Config struct {
-	ValidAvailabilityZones string
-	Logger                 micrologger.Logger
-}
-
-func NewMutator(config Config) (*Mutator, error) {
-	var k8sClient k8sclient.Interface
-	{
-		restConfig, err := restclient.InClusterConfig()
-		if err != nil {
-			return nil, fmt.Errorf("failed to load key kubeconfig: %v", err)
-		}
-		c := k8sclient.ClientsConfig{
-			SchemeBuilder: k8sclient.SchemeBuilder{
-				apiv1alpha2.AddToScheme,
-				infrastructurev1alpha2.AddToScheme,
-				releasev1alpha1.AddToScheme,
-			},
-			Logger: config.Logger,
-
-			RestConfig: restConfig,
-		}
-
-		k8sClient, err = k8sclient.NewClients(c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
+func NewMutator(config config.Config) (*Mutator, error) {
+	if config.K8sClient == nil {
+		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+	}
+	if config.Logger == nil {
+		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
 	}
 
-	var availabilityZones []string = strings.Split(config.ValidAvailabilityZones, ",")
+	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
 	mutator := &Mutator{
-		k8sClient:              k8sClient,
+		k8sClient: config.K8sClient,
+		logger:    config.Logger,
+
 		validAvailabilityZones: availabilityZones,
-		logger:                 config.Logger,
 	}
 
 	return mutator, nil
 }
 
 func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
-
 	var result []mutator.PatchOperation
 
 	if request.DryRun != nil && *request.DryRun {
