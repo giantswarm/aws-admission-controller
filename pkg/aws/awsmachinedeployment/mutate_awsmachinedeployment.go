@@ -5,14 +5,12 @@ import (
 	"fmt"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"k8s.io/api/admission/v1beta1"
-	restclient "k8s.io/client-go/rest"
-	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
+	"github.com/giantswarm/aws-admission-controller/config"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
@@ -22,44 +20,27 @@ var (
 	defaultOnDemandPercentageAboveBaseCapacity int = 100
 )
 
+type Config struct {
+	K8sClient k8sclient.Interface
+	Logger    micrologger.Logger
+}
+
 // Mutator for AWSMachineDeployment object.
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 }
 
-// Config configures AWSMachineDeployment Admitter.
-type Config struct {
-	Logger micrologger.Logger
-}
-
-// NewMutator returns a new mutator.
-func NewMutator(config Config) (*Mutator, error) {
-	var k8sClient k8sclient.Interface
-	{
-		restConfig, err := restclient.InClusterConfig()
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-		c := k8sclient.ClientsConfig{
-			SchemeBuilder: k8sclient.SchemeBuilder{
-				apiv1alpha2.AddToScheme,
-				infrastructurev1alpha2.AddToScheme,
-				releasev1alpha1.AddToScheme,
-			},
-			Logger: config.Logger,
-
-			RestConfig: restConfig,
-		}
-
-		k8sClient, err = k8sclient.NewClients(c)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
+func NewMutator(config config.Config) (*Mutator, error) {
+	if config.K8sClient == nil {
+		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+	}
+	if config.Logger == nil {
+		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	mutator := &Mutator{
-		k8sClient: k8sClient,
+		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 	}
 
@@ -68,6 +49,12 @@ func NewMutator(config Config) (*Mutator, error) {
 
 // Mutate is the function executed for every matching webhook request.
 func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if request.DryRun != nil && *request.DryRun {
+		return result, nil
+	}
+
 	// Parse incoming objects
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
@@ -77,8 +64,6 @@ func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOper
 	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
 		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
-
-	var result []mutator.PatchOperation
 
 	// Default the OnDemandPercentageAboveBaseCapacity.
 	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
