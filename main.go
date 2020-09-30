@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// Setup handler for validating webhook
-	awscontrolplaneValidator, err := awscontrolplane.NewValidator()
+	awscontrolplaneValidator, err := awscontrolplane.NewValidator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
