@@ -6,14 +6,16 @@ import (
 	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
+	restclient "k8s.io/client-go/rest"
+	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
-	"github.com/giantswarm/aws-admission-controller/config"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/pkg/label"
@@ -25,17 +27,42 @@ type Validator struct {
 	logger    micrologger.Logger
 }
 
-func NewValidator(config config.Config) (*Validator, error) {
-	if config.K8sClient == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+func NewValidator() (*Validator, error) {
+	var err error
+	var newLogger micrologger.Logger
+	{
+		newLogger, err = micrologger.New(micrologger.Config{})
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
 	}
-	if config.Logger == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
+
+	var k8sClient k8sclient.Interface
+	{
+		restConfig, err := restclient.InClusterConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load key kubeconfig: %v", err)
+		}
+		c := k8sclient.ClientsConfig{
+			SchemeBuilder: k8sclient.SchemeBuilder{
+				apiv1alpha2.AddToScheme,
+				infrastructurev1alpha2.AddToScheme,
+				releasev1alpha1.AddToScheme,
+			},
+			Logger: newLogger,
+
+			RestConfig: restConfig,
+		}
+
+		k8sClient, err = k8sclient.NewClients(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
 	}
 
 	validator := &Validator{
-		k8sClient: config.K8sClient,
-		logger:    config.Logger,
+		k8sClient: k8sClient,
+		logger:    newLogger,
 	}
 
 	return validator, nil
