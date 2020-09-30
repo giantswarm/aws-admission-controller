@@ -25,14 +25,14 @@ func main() {
 	}
 
 	// Setup handler for mutating webhook
-	awsMachineDeploymentMutator, err := awsmachinedeployment.NewMutator(config)
-	if err != nil {
-		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
-	}
-
 	awscontrolplaneMutator, err := awscontrolplane.NewMutator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
+	}
+
+	awsmachinedeploymentMutator, err := awsmachinedeployment.NewMutator(config)
+	if err != nil {
+		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
 	}
 
 	g8scontrolplaneMutator, err := g8scontrolplane.NewMutator(config)
@@ -46,12 +46,18 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	awsmachinedeploymentValidator, err := awsmachinedeployment.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
-	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsMachineDeploymentMutator))
+	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
 	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
 	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
+	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
 	handler.HandleFunc("/healthz", healthCheck)
 
 	serve(config, handler)
