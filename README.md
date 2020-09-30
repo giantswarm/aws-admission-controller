@@ -4,6 +4,8 @@
 
 Giant Swarm Control Plane admission controller that implements the following rules:
 
+Mutating Webhook:
+
 - In a `G8sControlPlane` resource, when the `.spec.replicas` is changed from 1 to 3, the Availability Zones of the according `AWSControlPlane` will be defaulted if needed.
 - In a `G8sControlPlane` resource, the replicas attribute will be defaulted if it is not defined.
   - For HA-Versions, in case the matching `AWSControlPlane` already exists, the number of AZs determines the value of `replicas`.
@@ -21,6 +23,10 @@ Giant Swarm Control Plane admission controller that implements the following rul
 - On creation of an `AWSControlPlane` resource, the infrastructure reference of the according `G8sControlPlane` will be set if needed.
 
 - When a new `AWSMachineDeployment` is created, details are logged.
+
+Validating Webhook:
+
+- In a `AWSControlPlane` resource, it validates the Control Plane ID is matching against `G8ControlPlane` resource.
 
 The certificates for the webhook are created with CertManager and injected through the CA Injector.
 

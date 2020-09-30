@@ -62,3 +62,50 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "resource.default.name" . }}
+  namespace: {{ include "resource.default.namespace" . }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ include "resource.default.namespace" . }}/{{ include "resource.default.name" . }}-certificates
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+webhooks:
+  - name: awsmachinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    sideEffects: None
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /validate/awsmachinedeployment
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - awsmachinedeployments
+        apiVersions:
+          - v1alpha2
+        operations:
+          - CREATE
+          - UPDATE
+  - name: awscontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    sideEffects: NoneOnDryRun
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /validate/awscontrolplane
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - "awscontrolplanes"
+        apiVersions:
+          - "v1alpha2"
+        operations:
+          - CREATE
+          - UPDATE

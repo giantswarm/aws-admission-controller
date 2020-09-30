@@ -13,6 +13,15 @@ func IsExecutionFailed(err error) bool {
 	return microerror.Cause(err) == ExecutionFailedError
 }
 
+var NotAllowedError = &microerror.Error{
+	Kind: "notAllowedError",
+}
+
+// IsNotAllowed asserts notAllowedError.
+func IsNotAllowed(err error) bool {
+	return microerror.Cause(err) == NotAllowedError
+}
+
 var NotFoundError = &microerror.Error{
 	Kind: "notFoundError",
 }
@@ -38,4 +47,13 @@ var ParsingFailedError = &microerror.Error{
 // IsParsingFailed asserts parsingFailedError.
 func IsParsingFailed(err error) bool {
 	return microerror.Cause(err) == ParsingFailedError
+}
+
+var ControlPlaneLabelNotEqualError = &microerror.Error{
+	Kind: "controlPlaneLabelNotEqualError",
+}
+
+// IsControlPlaneLabelNotEqualError asserts controlPlaneLabelNotEqualError.
+func IsControlPlaneLabelNotEqualError(err error) bool {
+	return microerror.Cause(err) == ControlPlaneLabelNotEqualError
 }
