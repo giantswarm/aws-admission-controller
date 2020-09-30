@@ -46,7 +46,12 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &g8sControlPlane); err != nil {
 		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	allowed, err := v.ReplicaAZMatch(g8sControlPlane)
+	allowed, err := v.ReplicaCount(g8sControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+	allowed, err = v.ReplicaAZMatch(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
@@ -100,6 +105,22 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 			key.ControlPlane(&awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
+		)
+	}
+
+	return true, nil
+}
+func (v *Validator) ReplicaCount(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) (bool, error) {
+	if !aws.IsValidMasterReplicas(g8sControlPlane.Spec.Replicas) {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s has an invalid count of %v replicas. Valid replica counts are: %v",
+			key.ControlPlane(&g8sControlPlane),
+			g8sControlPlane.Spec.Replicas,
+			aws.ValidMasterReplicas()),
+		)
+		return false, microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("G8sControlPlane %s has an invalid count of %v replicas. Valid replica counts are: %v",
+			key.ControlPlane(&g8sControlPlane),
+			g8sControlPlane.Spec.Replicas,
+			aws.ValidMasterReplicas()),
 		)
 	}
 
