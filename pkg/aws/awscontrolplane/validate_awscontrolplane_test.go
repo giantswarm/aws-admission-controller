@@ -67,10 +67,7 @@ func TestControlPlaneLabelMatch(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			allowed, err := validate.Validate(&admissionRequest)
-			if err != nil {
-				t.Fatal(err)
-			}
+			allowed, _ := validate.Validate(&admissionRequest)
 			if allowed != tc.allowed {
 				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
 			}
