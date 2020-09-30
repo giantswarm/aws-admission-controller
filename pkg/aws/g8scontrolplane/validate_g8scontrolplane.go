@@ -41,23 +41,22 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
-	var allowed bool
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &g8sControlPlane); err != nil {
 		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	allowed, err := v.ReplicaCount(g8sControlPlane)
+	replicaCountAllowed, err := v.ReplicaCount(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
-	allowed, err = v.ReplicaAZMatch(g8sControlPlane)
+	replicaAZMatches, err := v.ReplicaAZMatch(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
 
-	return allowed, nil
+	return replicaCountAllowed && replicaAZMatches, nil
 }
 
 func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) (bool, error) {
