@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/giantswarm/microerror"
 	"k8s.io/api/admission/v1beta1"
@@ -14,11 +15,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/giantswarm/aws-admission-controller/pkg/metrics"
 )
 
 type Mutator interface {
-	Mutate(review *v1beta1.AdmissionRequest) ([]PatchOperation, error)
 	Log(keyVals ...interface{})
+	Mutate(review *v1beta1.AdmissionRequest) ([]PatchOperation, error)
+	Resource() string
 }
 
 var (
@@ -30,8 +34,13 @@ var (
 
 func Handler(mutator Mutator) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		start := time.Now()
+		defer metrics.DurationRequests.WithLabelValues("mutating", mutator.Resource()).Observe(float64(time.Since(start)) / float64(time.Second))
+
+		metrics.TotalRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 		if request.Header.Get("Content-Type") != "application/json" {
 			mutator.Log("level", "error", "message", fmt.Sprintf("invalid content-type: %s", request.Header.Get("Content-Type")))
+			metrics.InvalidRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -39,6 +48,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		data, err := ioutil.ReadAll(request.Body)
 		if err != nil {
 			mutator.Log("level", "error", "message", "unable to read request")
+			metrics.InternalError.WithLabelValues("mutating", mutator.Resource()).Inc()
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -46,6 +56,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		review := v1beta1.AdmissionReview{}
 		if _, _, err := Deserializer.Decode(data, nil, &review); err != nil {
 			mutator.Log("level", "error", "message", "unable to parse admission review request")
+			metrics.InvalidRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -54,6 +65,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		patch, err := mutator.Mutate(review.Request)
 		if err != nil {
 			writeResponse(mutator, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
+			metrics.RejectedRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 			return
 		}
 
@@ -61,10 +73,12 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		if err != nil {
 			mutator.Log("level", "error", "message", fmt.Sprintf("unable to serialize patch for %s: %v", resourceName, err))
 			writeResponse(mutator, writer, errorResponse(review.Request.UID, InternalError))
+			metrics.RejectedRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 			return
 		}
 
 		mutator.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
+		metrics.ApprovedRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 
 		pt := v1beta1.PatchTypeJSONPatch
 		writeResponse(mutator, writer, &v1beta1.AdmissionResponse{
@@ -101,6 +115,7 @@ func writeResponse(mutator Mutator, writer http.ResponseWriter, response *v1beta
 	})
 	if err != nil {
 		mutator.Log("level", "error", "message", "unable to serialize response", microerror.JSON(err))
+		metrics.InternalError.WithLabelValues("mutating", mutator.Resource()).Inc()
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
 	if _, err := writer.Write(resp); err != nil {

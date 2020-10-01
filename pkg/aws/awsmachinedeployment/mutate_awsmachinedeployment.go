@@ -80,3 +80,7 @@ func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOper
 func (m *Mutator) Log(keyVals ...interface{}) {
 	m.logger.Log(keyVals...)
 }
+
+func (m *Mutator) Resource() string {
+	return "awsmachinedeployment"
+}

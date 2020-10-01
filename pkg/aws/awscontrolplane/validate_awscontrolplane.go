@@ -111,3 +111,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 func (v *Validator) Log(keyVals ...interface{}) {
 	v.logger.Log(keyVals...)
 }
+
+func (v *Validator) Resource() string {
+	return "awscontrolplane"
+}
