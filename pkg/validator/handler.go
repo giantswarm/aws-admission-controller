@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/metrics"
 	"github.com/giantswarm/microerror"
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/giantswarm/aws-admission-controller/pkg/metrics"
 )
 
 type Validator interface {
