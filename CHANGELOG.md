@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- aws-admission-controller metrics
+- Validate AWSControlPlane label matches with G8sControlPlane
+
 ### Changed
 
 - Update k8s.io dependencies to 0.18.9
