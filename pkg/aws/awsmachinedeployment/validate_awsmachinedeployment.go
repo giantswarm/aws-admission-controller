@@ -47,7 +47,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	var allowed bool
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
-		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
+		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
 	allowed, err := v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
