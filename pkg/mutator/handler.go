@@ -78,7 +78,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		}
 
 		mutator.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
-		metrics.ApprovedRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
+		metrics.SuccessfulRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 
 		pt := v1beta1.PatchTypeJSONPatch
 		writeResponse(mutator, writer, &v1beta1.AdmissionResponse{

@@ -64,7 +64,7 @@ func Handler(validator Validator) http.HandlerFunc {
 			return
 		}
 
-		metrics.ApprovedRequests.WithLabelValues("validating", validator.Resource()).Inc()
+		metrics.SuccessfulRequests.WithLabelValues("validating", validator.Resource()).Inc()
 
 		writeResponse(validator, writer, &v1beta1.AdmissionResponse{
 			Allowed: allowed,

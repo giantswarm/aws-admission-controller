@@ -5,52 +5,52 @@ import (
 )
 
 const (
-	MetricNamespace = "aws_admission_controller"
+	metricNamespace = "admission"
 	metricSubsystem = "webhook"
 )
 
 var (
 	labels = []string{"webhook", "resource"}
 
-	InternalError = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: MetricNamespace,
-		Subsystem: metricSubsystem,
-		Name:      "internal_error",
-		Help:      "Total number of errors",
-	}, labels)
-	ApprovedRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: MetricNamespace,
-		Subsystem: metricSubsystem,
-		Name:      "successful_requests",
-		Help:      "Total number of successful requests",
-	}, labels)
 	DurationRequests = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: MetricNamespace,
+		Namespace: metricNamespace,
 		Subsystem: metricSubsystem,
-		Name:      "duration_requests",
-		Help:      "Duration of requests",
+		Name:      "request_duration_seconds",
+		Help:      "Duration of request",
 		Buckets:   []float64{.005, .01, .025, .05, .1, .25, .5, .75, 1, 1.25, 1.5, 2, 2.5, 5, 10},
 	}, labels)
-	InvalidRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: MetricNamespace,
+	InternalError = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: metricNamespace,
 		Subsystem: metricSubsystem,
-		Name:      "invalid_requests",
+		Name:      "errors_total",
+		Help:      "Total number of errors",
+	}, labels)
+	InvalidRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: metricNamespace,
+		Subsystem: metricSubsystem,
+		Name:      "requests_invalid_total",
 		Help:      "Total number of invalid requests",
 	}, labels)
 	RejectedRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: MetricNamespace,
+		Namespace: metricNamespace,
 		Subsystem: metricSubsystem,
-		Name:      "rejected_requests",
+		Name:      "requests_rejected_total",
 		Help:      "Total number of rejected requests",
 	}, labels)
-	TotalRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: MetricNamespace,
+	SuccessfulRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: metricNamespace,
 		Subsystem: metricSubsystem,
-		Name:      "requests",
+		Name:      "requests_successful_total",
+		Help:      "Total number of successful requests",
+	}, labels)
+	TotalRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: metricNamespace,
+		Subsystem: metricSubsystem,
+		Name:      "requests_total",
 		Help:      "Total number of requests",
 	}, labels)
 )
 
 func init() {
-	prometheus.MustRegister(TotalRequests, InvalidRequests, RejectedRequests, ApprovedRequests, DurationRequests)
+	prometheus.MustRegister(TotalRequests, InvalidRequests, RejectedRequests, SuccessfulRequests, DurationRequests)
 }
