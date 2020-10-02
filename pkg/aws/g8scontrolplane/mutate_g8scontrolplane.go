@@ -195,6 +195,10 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 	m.logger.Log(keyVals...)
 }
 
+func (m *Mutator) Resource() string {
+	return "g8scontrolplane"
+}
+
 func releaseVersion(cr *infrastructurev1alpha2.G8sControlPlane) (*semver.Version, error) {
 	version, ok := cr.Labels[label.ReleaseVersion]
 	if !ok {
