@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added validating webhook to validate `replicas` in the `G8sControlPlane` CR.
 - aws-admission-controller metrics
 
 ### Changed
