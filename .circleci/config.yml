@@ -40,8 +40,8 @@ workflows:
             - build-aws-admission-controller
           filters:
             # Do this on every commit to master and when a new tag is created.
-#            branches:
-#              only: master
+            branches:
+              only: master
             tags:
               only: /^v.*/
 
