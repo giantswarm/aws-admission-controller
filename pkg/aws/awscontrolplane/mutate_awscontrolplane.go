@@ -210,6 +210,10 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 	m.logger.Log(keyVals...)
 }
 
+func (m *Mutator) Resource() string {
+	return "awscontrolplane"
+}
+
 func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version, error) {
 	version, ok := cr.Labels[label.ReleaseVersion]
 	if !ok {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/giantswarm/microerror"
 	"k8s.io/api/admission/v1beta1"
@@ -12,11 +13,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/giantswarm/aws-admission-controller/pkg/metrics"
 )
 
 type Validator interface {
-	Validate(review *v1beta1.AdmissionRequest) (bool, error)
 	Log(keyVals ...interface{})
+	Resource() string
+	Validate(review *v1beta1.AdmissionRequest) (bool, error)
 }
 
 var (
@@ -27,8 +31,12 @@ var (
 
 func Handler(validator Validator) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		start := time.Now()
+		defer metrics.DurationRequests.WithLabelValues("validating", validator.Resource()).Observe(float64(time.Since(start)) / float64(time.Second))
+
 		if request.Header.Get("Content-Type") != "application/json" {
 			validator.Log("level", "error", "message", fmt.Sprintf("invalid content-type: %s", request.Header.Get("Content-Type")))
+			metrics.InvalidRequests.WithLabelValues("validating", validator.Resource()).Inc()
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -36,6 +44,7 @@ func Handler(validator Validator) http.HandlerFunc {
 		data, err := ioutil.ReadAll(request.Body)
 		if err != nil {
 			validator.Log("level", "error", "message", "unable to read request")
+			metrics.InternalError.WithLabelValues("validating", validator.Resource()).Inc()
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -43,6 +52,7 @@ func Handler(validator Validator) http.HandlerFunc {
 		review := v1beta1.AdmissionReview{}
 		if _, _, err := Deserializer.Decode(data, nil, &review); err != nil {
 			validator.Log("level", "error", "message", "unable to parse admission review request")
+			metrics.InvalidRequests.WithLabelValues("validating", validator.Resource()).Inc()
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -50,8 +60,11 @@ func Handler(validator Validator) http.HandlerFunc {
 		allowed, err := validator.Validate(review.Request)
 		if err != nil {
 			writeResponse(validator, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
+			metrics.RejectedRequests.WithLabelValues("validating", validator.Resource()).Inc()
 			return
 		}
+
+		metrics.SuccessfulRequests.WithLabelValues("validating", validator.Resource()).Inc()
 
 		writeResponse(validator, writer, &v1beta1.AdmissionResponse{
 			Allowed: allowed,
@@ -70,6 +83,7 @@ func writeResponse(validator Validator, writer http.ResponseWriter, response *v1
 	})
 	if err != nil {
 		validator.Log("level", "error", "message", "unable to serialize response", microerror.JSON(err))
+		metrics.InternalError.WithLabelValues("validating", validator.Resource()).Inc()
 		writer.WriteHeader(http.StatusInternalServerError)
 	}
 
