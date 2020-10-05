@@ -65,8 +65,8 @@ func main() {
 	metrics := http.NewServeMux()
 	metrics.Handle("/metrics", promhttp.Handler())
 
+	go serveMetrics(config, metrics)
 	serveTLS(config, handler)
-	serveMetrics(config, metrics)
 }
 
 func healthCheck(writer http.ResponseWriter, request *http.Request) {
