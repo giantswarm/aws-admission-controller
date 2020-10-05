@@ -116,3 +116,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 func (v *Validator) Log(keyVals ...interface{}) {
 	v.logger.Log(keyVals...)
 }
+
+func (v *Validator) Resource() string {
+	return "awsmachinedeployment"
+}
