@@ -43,7 +43,7 @@ func DefaultAdmissionRequestG8sControlPlane() (v1beta1.AdmissionRequest, error) 
 	req := v1beta1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
-			Kind:    "AWSControlPlane",
+			Kind:    "G8sControlPlane",
 		},
 		Resource: metav1.GroupVersionResource{
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
