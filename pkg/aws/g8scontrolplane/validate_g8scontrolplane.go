@@ -133,3 +133,7 @@ func (v *Validator) ReplicaCount(g8sControlPlane infrastructurev1alpha2.G8sContr
 func (m *Validator) Log(keyVals ...interface{}) {
 	m.logger.Log(keyVals...)
 }
+
+func (v *Validator) Resource() string {
+	return "g8scontrolplane"
+}

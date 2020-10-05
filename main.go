@@ -52,6 +52,11 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	g8scontrolplaneValidator, err := g8scontrolplane.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
@@ -59,6 +64,7 @@ func main() {
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
 	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
+	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
 
 	handler.Handle("/metrics", promhttp.Handler())
 	handler.HandleFunc("/healthz", healthCheck)
