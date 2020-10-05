@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	defaultAddress        = ":8080"
-	defaultMetricsAddress = ":8000"
+	defaultAddress        = ":8443"
+	defaultMetricsAddress = ":8080"
 )
 
 type Config struct {

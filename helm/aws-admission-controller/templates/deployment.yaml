@@ -45,22 +45,22 @@ spec:
           - name: {{ include "name" . }}-certificates
             mountPath: "/certs"
           ports:
-          - containerPort: 8080
+          - containerPort: 8443
             name: webhook
-          - containerPort: 8000
+          - containerPort: 8080
             name: metrics
           livenessProbe:
             httpGet:
               path: /healthz
               scheme: HTTPS
-              port: 8080
+              port: 8443
             initialDelaySeconds: 30
             timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /healthz
               scheme: HTTPS
-              port: 8080
+              port: 8443
             initialDelaySeconds: 30
             timeoutSeconds: 10
           resources:
