@@ -47,7 +47,7 @@ func DefaultAdmissionRequestG8sControlPlane() (v1beta1.AdmissionRequest, error) 
 		},
 		Resource: metav1.GroupVersionResource{
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
-			Resource: "awscontrolplanes",
+			Resource: "g8scontrolplanes",
 		},
 		Operation: v1beta1.Create,
 		Object: runtime.RawExtension{
