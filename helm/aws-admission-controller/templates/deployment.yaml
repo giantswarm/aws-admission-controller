@@ -46,6 +46,9 @@ spec:
             mountPath: "/certs"
           ports:
           - containerPort: 8080
+            name: webhook
+          - containerPort: 8000
+            name: metrics
           livenessProbe:
             httpGet:
               path: /healthz

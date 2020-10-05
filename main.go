@@ -103,7 +103,7 @@ func serveTLS(config config.Config, handler http.Handler) {
 
 func serveMetrics(config config.Config, handler http.Handler) {
 	server := &http.Server{
-		Addr:    config.Address,
+		Addr:    config.MetricsAddress,
 		Handler: handler,
 	}
 
