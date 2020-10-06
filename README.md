@@ -27,6 +27,7 @@ Mutating Webhook:
 Validating Webhook:
 
 - In a `AWSControlPlane` resource, it validates the Control Plane ID is matching against `G8ControlPlane` resource.
+- In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 
 The certificates for the webhook are created with CertManager and injected through the CA Injector.
 
