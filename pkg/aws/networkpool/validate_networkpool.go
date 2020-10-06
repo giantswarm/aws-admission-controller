@@ -105,7 +105,6 @@ func (v *Validator) networkPoolOverlapping(np infrastructurev1alpha2.NetworkPool
 
 	// append all CIDRs from existing NetworkPools
 	for _, networkPool := range networkPoolList.Items {
-		fmt.Println(networkPool)
 		networkCIDRs = append(networkCIDRs, networkPool.Spec.CIDRBlock)
 	}
 
