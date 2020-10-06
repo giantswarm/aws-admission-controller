@@ -18,26 +18,36 @@ import (
 )
 
 type Validator struct {
-	ipamNetworkCIDR string
-	k8sClient       k8sclient.Interface
-	logger          micrologger.Logger
+	dockerCIDR               string
+	ipamNetworkCIDR          string
+	k8sClient                k8sclient.Interface
+	kubernetesClusterIPRange string
+	logger                   micrologger.Logger
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
+	if config.DockerCIDR == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.DockerCIDR must not be empty", config)
+	}
 	if config.IPAMNetworkCIDR == "" {
 		return nil, microerror.Maskf(invalidConfigError, "%T.IPAMNetworkCIDR must not be empty", config)
 	}
 	if config.K8sClient == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
+	if config.KubernetesClusterIPRange == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.KubernetesClusterIPRange must not be empty", config)
+	}
 	if config.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	validator := &Validator{
-		ipamNetworkCIDR: config.IPAMNetworkCIDR,
-		k8sClient:       config.K8sClient,
-		logger:          config.Logger,
+		dockerCIDR:               config.DockerCIDR,
+		ipamNetworkCIDR:          config.IPAMNetworkCIDR,
+		k8sClient:                config.K8sClient,
+		kubernetesClusterIPRange: config.KubernetesClusterIPRange,
+		logger:                   config.Logger,
 	}
 
 	return validator, nil
@@ -59,7 +69,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	return allowed, nil
 }
 
-func (v *Validator) networkPoolOverlapping(networkPool infrastructurev1alpha2.NetworkPool) (bool, error) {
+func (v *Validator) networkPoolOverlapping(np infrastructurev1alpha2.NetworkPool) (bool, error) {
 	var err error
 	var fetch func() error
 	var networkCIDRs []string
@@ -95,14 +105,15 @@ func (v *Validator) networkPoolOverlapping(networkPool infrastructurev1alpha2.Ne
 
 	// append all CIDRs from existing NetworkPools
 	for _, networkPool := range networkPoolList.Items {
+		fmt.Println(networkPool)
 		networkCIDRs = append(networkCIDRs, networkPool.Spec.CIDRBlock)
 	}
 
-	// append tenant network CIDR
-	networkCIDRs = append(networkCIDRs, v.ipamNetworkCIDR)
+	// append Docker CIDR, Kubernetes cluster IP range and tenant cluster CIDR
+	networkCIDRs = append(networkCIDRs, v.dockerCIDR, v.ipamNetworkCIDR, v.kubernetesClusterIPRange)
 
 	// parse CIDRBlock from NetworkPool
-	customNet, err := mustParseCIDR(networkPool.Spec.CIDRBlock)
+	customNet, err := mustParseCIDR(np.Spec.CIDRBlock)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
