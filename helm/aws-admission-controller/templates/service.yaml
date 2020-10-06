@@ -7,9 +7,11 @@ metadata:
     {{- include "labels.common" . | nindent 4 }}
   annotations:
     prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8080"
 spec:
   ports:
   - port: 443
-    targetPort: 8080
+    targetPort: 8443
   selector:
     {{- include "labels.selector" . | nindent 4 }}
