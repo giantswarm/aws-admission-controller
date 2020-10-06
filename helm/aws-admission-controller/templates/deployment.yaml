@@ -36,11 +36,14 @@ spec:
           env:
             - name: DEFAULT_AWS_AZS
               value: {{ join "," .Values.Installation.V1.Provider.AWS.AvailabilityZones }}
+            - name: DEFAULT_IPAM_NETWORKCIDR
+              value: {{ .Values.Installation.V1.Guest.IPAM.NetworkCIDR }}
           args:
             - ./aws-admission-controller
             - --tls-cert-file=/certs/ca.crt
             - --tls-key-file=/certs/tls.key
             - --availability-zones=$(DEFAULT_AWS_AZS)
+            - --ipam-network-cidr=$(DEFAULT_IPAM_NETWORKCIDR)
           volumeMounts:
           - name: {{ include "name" . }}-certificates
             mountPath: "/certs"

@@ -21,6 +21,7 @@ type Config struct {
 	MetricsAddress    string
 	AvailabilityZones string
 	CertFile          string
+	IPAMNetworkCIDR   string
 	Logger            micrologger.Logger
 	K8sClient         k8sclient.Interface
 	KeyFile           string
@@ -68,6 +69,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
 	kingpin.Flag("metrics-address", "The metrics address for Prometheus").Default(defaultMetricsAddress).StringVar(&config.MetricsAddress)
 	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&config.AvailabilityZones)
+	kingpin.Flag("ipam-network-cidr", "Default CIDR from tenant cluster.").Required().StringVar(&config.IPAMNetworkCIDR)
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)
 
