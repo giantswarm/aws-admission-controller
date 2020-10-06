@@ -66,10 +66,13 @@ func main() {
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
 	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
 
-	handler.Handle("/metrics", promhttp.Handler())
 	handler.HandleFunc("/healthz", healthCheck)
 
-	serve(config, handler)
+	metrics := http.NewServeMux()
+	metrics.Handle("/metrics", promhttp.Handler())
+
+	go serveMetrics(config, metrics)
+	serveTLS(config, handler)
 }
 
 func healthCheck(writer http.ResponseWriter, request *http.Request) {
@@ -80,7 +83,7 @@ func healthCheck(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func serve(config config.Config, handler http.Handler) {
+func serveTLS(config config.Config, handler http.Handler) {
 	server := &http.Server{
 		Addr:    config.Address,
 		Handler: handler,
@@ -97,6 +100,30 @@ func serve(config config.Config, handler http.Handler) {
 	}()
 
 	err := server.ListenAndServeTLS(config.CertFile, config.KeyFile)
+	if err != nil {
+		if err != http.ErrServerClosed {
+			panic(microerror.JSON(err))
+		}
+	}
+}
+
+func serveMetrics(config config.Config, handler http.Handler) {
+	server := &http.Server{
+		Addr:    config.MetricsAddress,
+		Handler: handler,
+	}
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGTERM)
+	go func() {
+		<-sig
+		err := server.Shutdown(context.Background())
+		if err != nil {
+			panic(microerror.JSON(err))
+		}
+	}()
+
+	err := server.ListenAndServe()
 	if err != nil {
 		if err != http.ErrServerClosed {
 			panic(microerror.JSON(err))

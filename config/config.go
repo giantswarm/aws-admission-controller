@@ -12,11 +12,13 @@ import (
 )
 
 const (
-	defaultAddress = ":8080"
+	defaultAddress        = ":8443"
+	defaultMetricsAddress = ":8080"
 )
 
 type Config struct {
 	Address           string
+	MetricsAddress    string
 	AvailabilityZones string
 	CertFile          string
 	Logger            micrologger.Logger
@@ -64,6 +66,7 @@ func Parse() (Config, error) {
 	}
 
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
+	kingpin.Flag("metrics-address", "The metrics address for Prometheus").Default(defaultMetricsAddress).StringVar(&config.MetricsAddress)
 	kingpin.Flag("availability-zones", "List of AWS availability zones.").Required().StringVar(&config.AvailabilityZones)
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)
