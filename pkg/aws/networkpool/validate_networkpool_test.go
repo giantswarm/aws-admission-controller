@@ -98,7 +98,10 @@ func TestNetworkPool(t *testing.T) {
 
 			// create NetworkPools
 			for _, networkPoolCIDR := range tc.networkPoolCIDRs {
-				fakeK8sClient.CtrlClient().Create(tc.ctx, unittest.DefaultNetworkPool(networkPoolCIDR))
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, unittest.DefaultNetworkPool(networkPoolCIDR))
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			// simulate a admission request for NetworkPool creation
