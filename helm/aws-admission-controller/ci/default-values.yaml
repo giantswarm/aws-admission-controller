@@ -11,7 +11,7 @@ Installation:
     Docker:
       CIDR: "172.18.224.1/19"
      IPAM:
-      NetworkCIDR: 10.35.0.0/17
+      NetworkCIDR: "10.35.0.0/17"
     Kubernetes:
       API:
-        ClusterIPRange: '172.18.192.0/20'
+        ClusterIPRange: "172.18.192.0/20"
