@@ -13,6 +13,10 @@ const (
 	DefaultControlPlaneID = "a2wax"
 )
 
+func DefaultAvailabilityZones() []string {
+	return []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}
+}
+
 func DefaultAWSControlPlane() infrastructurev1alpha2.AWSControlPlane {
 	cr := infrastructurev1alpha2.AWSControlPlane{
 		ObjectMeta: metav1.ObjectMeta{

@@ -3,6 +3,7 @@ package awscontrolplane
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
@@ -23,6 +24,8 @@ import (
 type Validator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
+
+	validAvailabilityZones []string
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
@@ -33,9 +36,12 @@ func NewValidator(config config.Config) (*Validator, error) {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
+	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
 	validator := &Validator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
+
+		validAvailabilityZones: availabilityZones,
 	}
 
 	return validator, nil
@@ -52,6 +58,11 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 		return false, microerror.Mask(err)
 
 	}
+	azAllowed, err := v.AZValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
 	azCountAllowed, err := v.AZCount(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -63,7 +74,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 
 	}
 
-	return controlPlaneLabelMatches && azCountAllowed && azReplicaMatches, nil
+	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azReplicaMatches, nil
 }
 
 func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
@@ -137,6 +148,23 @@ func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPla
 	return true, nil
 }
 
+func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+	if !v.isValidMasterAvailabilityZones(awsControlPlane.Spec.AvailabilityZones) {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlane.Spec.AvailabilityZones,
+			v.validAvailabilityZones),
+		)
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlane.Spec.AvailabilityZones,
+			v.validAvailabilityZones),
+		)
+	}
+
+	return true, nil
+}
+
 func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
 	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
 	var err error
@@ -190,6 +218,23 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 	}
 
 	return true, nil
+}
+
+func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {
+	for _, az := range availabilityZones {
+		if !contains(v.validAvailabilityZones, az) {
+			return false
+		}
+	}
+	return true
+}
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {

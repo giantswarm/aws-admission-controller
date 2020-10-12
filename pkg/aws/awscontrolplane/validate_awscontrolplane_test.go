@@ -7,7 +7,6 @@ import (
 
 	"github.com/giantswarm/micrologger/microloggertest"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
 )
 
@@ -40,8 +39,9 @@ func TestAZReplicaMatch(t *testing.T) {
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
-				k8sClient: fakeK8sClient,
-				logger:    microloggertest.New(),
+				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
+				k8sClient:              fakeK8sClient,
+				logger:                 microloggertest.New(),
 			}
 
 			g8sControlPlane := unittest.DefaultG8sControlPlane()
@@ -78,7 +78,7 @@ func TestAZCount(t *testing.T) {
 			name: "case 0",
 
 			allowed: true,
-			azs:     []string{"cn-south-1a"},
+			azs:     []string{"eu-central-1a"},
 		},
 		{
 			ctx:  context.Background(),
@@ -92,7 +92,7 @@ func TestAZCount(t *testing.T) {
 			name: "case 3",
 
 			allowed: false,
-			azs:     []string{"cn-south-1a", "cn-south-1a", "cn-south-1a", "cn-south-1b"},
+			azs:     []string{"eu-central-1a", "eu-central-1a", "eu-central-1a", "eu-central-1c"},
 		},
 	}
 	for i, tc := range testCases {
@@ -101,8 +101,9 @@ func TestAZCount(t *testing.T) {
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
-				k8sClient: fakeK8sClient,
-				logger:    microloggertest.New(),
+				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
+				k8sClient:              fakeK8sClient,
+				logger:                 microloggertest.New(),
 			}
 
 			admissionRequest, err := awsControlPlaneAdmissionRequest(tc.azs, "m4.xlarge", "100.0.0")
@@ -118,27 +119,27 @@ func TestAZCount(t *testing.T) {
 	}
 }
 
-func TestControlPlaneLabelMatch(t *testing.T) {
+func TestAZValid(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context
 		name string
 
-		allowed        bool
-		controlPlaneID string
+		allowed  bool
+		validAZs []string
 	}{
 		{
 			ctx:  context.Background(),
 			name: "case 0",
 
-			allowed:        true,
-			controlPlaneID: unittest.DefaultControlPlaneID,
+			allowed:  false,
+			validAZs: []string{"cn-south-1a", "cn-south-1b"},
 		},
 		{
 			ctx:  context.Background(),
 			name: "case 1",
 
-			allowed:        false,
-			controlPlaneID: "notFound",
+			allowed:  true,
+			validAZs: unittest.DefaultAvailabilityZones(),
 		},
 	}
 	for i, tc := range testCases {
@@ -147,16 +148,9 @@ func TestControlPlaneLabelMatch(t *testing.T) {
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
-				k8sClient: fakeK8sClient,
-				logger:    microloggertest.New(),
-			}
-
-			g8sControlPlane := unittest.DefaultG8sControlPlane()
-			g8sControlPlane.SetLabels(map[string]string{label.ControlPlane: tc.controlPlaneID})
-
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &g8sControlPlane)
-			if err != nil {
-				t.Fatal(err)
+				validAvailabilityZones: tc.validAZs,
+				k8sClient:              fakeK8sClient,
+				logger:                 microloggertest.New(),
 			}
 
 			admissionRequest, err := unittest.DefaultAdmissionRequestAWSControlPlane()
