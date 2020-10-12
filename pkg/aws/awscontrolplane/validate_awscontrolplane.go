@@ -27,10 +27,10 @@ type Validator struct {
 
 func NewValidator(config config.Config) (*Validator, error) {
 	if config.K8sClient == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
 	if config.Logger == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	validator := &Validator{
@@ -45,7 +45,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
-		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 	controlPlaneLabelMatches, err := v.ControlPlaneLabelMatch(awsControlPlane)
 	if err != nil {
@@ -83,7 +83,7 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 				&g8sControlPlane,
 			)
 			if err != nil {
-				return microerror.Maskf(aws.NotFoundError, "failed to fetch g8sControlplane: %v", err)
+				return microerror.Maskf(notFoundError, "failed to fetch g8sControlplane: %v", err)
 			}
 			return nil
 		}
@@ -93,7 +93,7 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
-		if aws.IsNotFound(err) {
+		if isNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
 			return true, nil
 		} else if err != nil {
@@ -109,7 +109,7 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
 		)
-		return false, microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
 			key.ControlPlane(&awsControlPlane),
@@ -127,7 +127,7 @@ func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPla
 			len(awsControlPlane.Spec.AvailabilityZones),
 			aws.ValidMasterReplicas()),
 		)
-		return false, microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("AWSControlPlane %s has an invalid count of %v availability zones. Valid AZ counts are: %v",
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s has an invalid count of %v availability zones. Valid AZ counts are: %v",
 			key.ControlPlane(&awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			aws.ValidMasterReplicas()),
@@ -154,7 +154,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 				&g8sControlPlane,
 			)
 			if err != nil {
-				return microerror.Maskf(aws.NotFoundError, "failed to fetch G8sControlplane: %v", err)
+				return microerror.Maskf(notFoundError, "failed to fetch G8sControlplane: %v", err)
 			}
 			return nil
 		}
@@ -164,7 +164,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
-		if aws.IsNotFound(err) {
+		if isNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
 			return true, nil
 		} else if err != nil {
@@ -180,7 +180,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 			key.ControlPlane(&awsControlPlane),
 			key.Cluster(&g8sControlPlane)),
 		)
-		return false, microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("G8sControlPlane %s=%s label does not match with AWSControlPlane %s=%s label for cluster %s",
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s=%s label does not match with AWSControlPlane %s=%s label for cluster %s",
 			label.ControlPlane,
 			key.ControlPlane(&g8sControlPlane),
 			label.ControlPlane,

@@ -5,8 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
+	"github.com/giantswarm/micrologger/microloggertest"
 
 	"github.com/giantswarm/aws-admission-controller/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
@@ -38,15 +37,6 @@ func TestAZReplicaMatch(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
-
-			// Create a new logger that is used by all admitters.
-			var newLogger micrologger.Logger
-			{
-				newLogger, err = micrologger.New(micrologger.Config{})
-				if err != nil {
-					panic(microerror.JSON(err))
-				}
-			}
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
@@ -109,19 +99,10 @@ func TestAZCount(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 
-			// Create a new logger that is used by all admitters.
-			var newLogger micrologger.Logger
-			{
-				newLogger, err = micrologger.New(micrologger.Config{})
-				if err != nil {
-					panic(microerror.JSON(err))
-				}
-			}
-
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				k8sClient: fakeK8sClient,
-				logger:    newLogger,
+				logger:    microloggertest.New(),
 			}
 
 			admissionRequest, err := awsControlPlaneAdmissionRequest(tc.azs, "m4.xlarge", "100.0.0")
@@ -164,19 +145,10 @@ func TestControlPlaneLabelMatch(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 
-			// Create a new logger that is used by all admitters.
-			var newLogger micrologger.Logger
-			{
-				newLogger, err = micrologger.New(micrologger.Config{})
-				if err != nil {
-					panic(microerror.JSON(err))
-				}
-			}
-
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				k8sClient: fakeK8sClient,
-				logger:    newLogger,
+				logger:    microloggertest.New(),
 			}
 
 			g8sControlPlane := unittest.DefaultG8sControlPlane()
