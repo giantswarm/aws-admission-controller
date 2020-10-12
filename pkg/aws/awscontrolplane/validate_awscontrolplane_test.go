@@ -51,7 +51,7 @@ func TestAZReplicaMatch(t *testing.T) {
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				k8sClient: fakeK8sClient,
-				logger:    newLogger,
+				logger:    microloggertest.New(),
 			}
 
 			g8sControlPlane := unittest.DefaultG8sControlPlane()
