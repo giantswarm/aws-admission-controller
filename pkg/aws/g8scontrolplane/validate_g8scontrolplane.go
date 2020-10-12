@@ -86,7 +86,7 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
-		if isNotFound(err) {
+		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlane.GetName(), err))
 			return true, nil
 		} else if err != nil {

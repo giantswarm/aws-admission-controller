@@ -9,7 +9,7 @@ var executionFailedError = &microerror.Error{
 }
 
 // IsExecutionFailed asserts executionFailedError.
-func isExecutionFailed(err error) bool {
+func IsExecutionFailed(err error) bool {
 	return microerror.Cause(err) == executionFailedError
 }
 
@@ -18,7 +18,7 @@ var notAllowedError = &microerror.Error{
 }
 
 // IsNotAllowed asserts notAllowedError.
-func isNotAllowed(err error) bool {
+func IsNotAllowed(err error) bool {
 	return microerror.Cause(err) == notAllowedError
 }
 
@@ -27,7 +27,7 @@ var notFoundError = &microerror.Error{
 }
 
 // IsNotFound asserts notFoundError.
-func isNotFound(err error) bool {
+func IsNotFound(err error) bool {
 	return microerror.Cause(err) == notFoundError
 }
 
@@ -36,7 +36,7 @@ var invalidConfigError = &microerror.Error{
 }
 
 // IsInvalidConfig asserts invalidConfigError.
-func isInvalidConfig(err error) bool {
+func IsInvalidConfig(err error) bool {
 	return microerror.Cause(err) == invalidConfigError
 }
 
@@ -45,7 +45,7 @@ var parsingFailedError = &microerror.Error{
 }
 
 // IsParsingFailed asserts parsingFailedError.
-func isParsingFailed(err error) bool {
+func IsParsingFailed(err error) bool {
 	return microerror.Cause(err) == parsingFailedError
 }
 
@@ -54,6 +54,6 @@ var controlPlaneLabelNotEqualError = &microerror.Error{
 }
 
 // IsControlPlaneLabelNotEqualError asserts controlPlaneLabelNotEqualError.
-func isControlPlaneLabelNotEqualError(err error) bool {
+func IsControlPlaneLabelNotEqualError(err error) bool {
 	return microerror.Cause(err) == controlPlaneLabelNotEqualError
 }
