@@ -41,7 +41,7 @@ spec:
             - name: DEFAULT_IPAM_NETWORKCIDR
               value: {{ .Values.Installation.V1.Guest.IPAM.NetworkCIDR }}
             - name: DEFAULT_KUBERNETES_CLUSTER_IP_RANGE
-              value: {{ .Values.Installation.V1.Guest.Kubernetes.ClusterIPRange }}
+              value: {{ .Values.Installation.V1.Guest.Kubernetes.API.ClusterIPRange }}
           args:
             - ./aws-admission-controller
             - --availability-zones=$(DEFAULT_AWS_AZS)
