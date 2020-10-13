@@ -63,7 +63,6 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	allowed, err := v.networkPoolOverlapping(networkPool)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	return allowed, nil
