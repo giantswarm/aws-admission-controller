@@ -123,7 +123,7 @@ func (v *Validator) networkPoolOverlapping(np infrastructurev1alpha2.NetworkPool
 		}
 		// in case of overlapping network ranges we do not allow creating this NetworkPool
 		if intersect(customNet, net) {
-			return false, microerror.Maskf(intersectFailedError, fmt.Sprintf("network pool %s intersect with %s", customNet.String(), net.String()))
+			return false, microerror.Maskf(intersectFailedError, fmt.Sprintf("network pool %s intersect with an existing CIDR %s", customNet.String(), net.String()))
 		}
 
 	}
