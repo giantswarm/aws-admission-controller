@@ -46,7 +46,7 @@ func DefaultNetworkPool(cidrBlock string) *v1alpha2.NetworkPool {
 			Name:      id.Generate(),
 			Namespace: id.Generate(),
 			Labels: map[string]string{
-				"": "",
+				"giantswarm.io/organization": "giantswarm",
 			},
 		},
 		Spec: v1alpha2.NetworkPoolSpec{
