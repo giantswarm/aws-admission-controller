@@ -104,6 +104,10 @@ func (v *Validator) networkPoolOverlapping(np infrastructurev1alpha2.NetworkPool
 
 	// append all CIDRs from existing NetworkPools
 	for _, networkPool := range networkPoolList.Items {
+		// we do not want to add the same networkpool when updating, e.g. when extending the IP range
+		if networkPool.Name == np.Name && networkPool.Namespace == np.Namespace {
+			continue
+		}
 		networkCIDRs = append(networkCIDRs, networkPool.Spec.CIDRBlock)
 	}
 
