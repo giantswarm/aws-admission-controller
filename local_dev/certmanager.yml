@@ -7137,7 +7137,7 @@ spec:
             {}
 ---
 # Source: cert-manager/templates/webhook-mutating-webhook.yaml
-apiVersion: admissionregistration.k8s.io/v1
+apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: cert-manager-webhook
@@ -7152,7 +7152,6 @@ metadata:
     cert-manager.io/inject-ca-from-secret: "cert-manager/cert-manager-webhook-ca"
 webhooks:
   - name: webhook.cert-manager.io
-    admissionReviewVersions: [v1]
     rules:
       - apiGroups:
           - "cert-manager.io"
@@ -7175,7 +7174,7 @@ webhooks:
         path: /mutate
 ---
 # Source: cert-manager/templates/webhook-validating-webhook.yaml
-apiVersion: admissionregistration.k8s.io/v1
+apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: cert-manager-webhook
@@ -7190,7 +7189,6 @@ metadata:
     cert-manager.io/inject-ca-from-secret: "cert-manager/cert-manager-webhook-ca"
 webhooks:
   - name: webhook.cert-manager.io
-    admissionReviewVersions: [v1]
     namespaceSelector:
       matchExpressions:
       - key: "cert-manager.io/disable-validation"
