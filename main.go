@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/networkpool"
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/pkg/validator"
 )
@@ -57,6 +58,11 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	networkPoolValidator, err := networkpool.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
@@ -65,6 +71,7 @@ func main() {
 	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
 	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
+	handler.Handle("/validate/networkpool", validator.Handler(networkPoolValidator))
 
 	handler.HandleFunc("/healthz", healthCheck)
 

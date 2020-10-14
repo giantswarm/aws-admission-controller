@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - aws-admission-controller metrics
 - Validation for control-plane label
 - Validation for machine-deployment label
+- Validation for NetworkPools
 
 ### Changed
 

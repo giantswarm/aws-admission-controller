@@ -127,4 +127,21 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-
+  - name: networkpools.{{ include "resource.default.name" . }}.giantswarm.io
+    failurePolicy: Ignore
+    sideEffects: NoneOnDryRun
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /validate/networkpool
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["infrastructure.giantswarm.io"]
+        resources:
+          - "networkpools"
+        apiVersions:
+          - "v1alpha2"
+        operations:
+          - CREATE
+          - UPDATE
