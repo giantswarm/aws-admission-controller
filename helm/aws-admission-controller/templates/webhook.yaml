@@ -9,6 +9,7 @@ metadata:
     {{- include "labels.common" . | nindent 4 }}
 webhooks:
   - name: awsmachinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
     clientConfig:
@@ -27,6 +28,7 @@ webhooks:
           - CREATE
           - UPDATE
   - name: awscontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
@@ -45,6 +47,7 @@ webhooks:
           - CREATE
           - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
@@ -74,6 +77,7 @@ metadata:
     {{- include "labels.common" . | nindent 4 }}
 webhooks:
   - name: awsmachinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
     clientConfig:
@@ -92,6 +96,7 @@ webhooks:
           - CREATE
           - UPDATE
   - name: awscontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
@@ -110,6 +115,7 @@ webhooks:
           - CREATE
           - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
@@ -128,6 +134,7 @@ webhooks:
           - CREATE
           - UPDATE
   - name: networkpools.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: NoneOnDryRun
     clientConfig:
