@@ -6,17 +6,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/microerror"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func DefaultAdmissionRequestAWSControlPlane() (v1beta1.AdmissionRequest, error) {
+func DefaultAdmissionRequestAWSControlPlane() (admissionv1.AdmissionRequest, error) {
 	byt, err := json.Marshal(DefaultAWSControlPlane())
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
 
-	req := v1beta1.AdmissionRequest{
+	req := admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "AWSControlPlane",
@@ -25,7 +25,7 @@ func DefaultAdmissionRequestAWSControlPlane() (v1beta1.AdmissionRequest, error) 
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "awscontrolplanes",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    byt,
 			Object: nil,
@@ -34,13 +34,13 @@ func DefaultAdmissionRequestAWSControlPlane() (v1beta1.AdmissionRequest, error) 
 	return req, nil
 }
 
-func DefaultAdmissionRequestG8sControlPlane() (v1beta1.AdmissionRequest, error) {
+func DefaultAdmissionRequestG8sControlPlane() (admissionv1.AdmissionRequest, error) {
 	byt, err := json.Marshal(DefaultG8sControlPlane())
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
 
-	req := v1beta1.AdmissionRequest{
+	req := admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "G8sControlPlane",
@@ -49,7 +49,7 @@ func DefaultAdmissionRequestG8sControlPlane() (v1beta1.AdmissionRequest, error) 
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "g8scontrolplanes",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    byt,
 			Object: nil,
@@ -58,13 +58,13 @@ func DefaultAdmissionRequestG8sControlPlane() (v1beta1.AdmissionRequest, error) 
 	return req, nil
 }
 
-func DefaultAdmissionRequestAWSMachineDeployment() (v1beta1.AdmissionRequest, error) {
+func DefaultAdmissionRequestAWSMachineDeployment() (admissionv1.AdmissionRequest, error) {
 	byt, err := json.Marshal(DefaultAWSMachineDeployment())
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
 
-	req := v1beta1.AdmissionRequest{
+	req := admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "AWSMachineDeployment",
@@ -73,7 +73,7 @@ func DefaultAdmissionRequestAWSMachineDeployment() (v1beta1.AdmissionRequest, er
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "awsmachinedeployments",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    byt,
 			Object: nil,

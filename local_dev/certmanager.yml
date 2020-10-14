@@ -7137,7 +7137,7 @@ spec:
             {}
 ---
 # Source: cert-manager/templates/webhook-mutating-webhook.yaml
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: cert-manager-webhook
@@ -7174,7 +7174,7 @@ webhooks:
         path: /mutate
 ---
 # Source: cert-manager/templates/webhook-validating-webhook.yaml
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: cert-manager-webhook
