@@ -60,7 +60,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &networkPool); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse networkpool: %v", err)
 	}
-	allowed, err := v.networkPoolOverlapping(networkPool)
+	allowed, err := v.networkPoolAllowed(networkPool)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -68,7 +68,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	return allowed, nil
 }
 
-func (v *Validator) networkPoolOverlapping(np infrastructurev1alpha2.NetworkPool) (bool, error) {
+func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) (bool, error) {
 	var err error
 	var fetch func() error
 	var networkCIDRs []string
