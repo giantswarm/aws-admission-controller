@@ -29,7 +29,10 @@ Validating Webhook:
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are a valid count (Right now either 1 or 3).
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are matching the number of Availability Zones in the `AWSControlPlane` resource.
 
-- In a `AWSControlPlane` resource, it validates the Control Plane ID is matching against `G8sControlPlane` resource.
+- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are valid AZs for the installation.
+- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
+- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
+
 - In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 
 - In a `NetworkPool` resource, it validates the .Spec.CIDRBlock from other NetworkPools and also checks if there's overlapping from Docker CIDR, Kubernetes cluster IP range or tenant cluster CIDR.

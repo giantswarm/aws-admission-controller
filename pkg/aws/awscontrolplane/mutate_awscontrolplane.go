@@ -34,10 +34,10 @@ type Mutator struct {
 
 func NewMutator(config config.Config) (*Mutator, error) {
 	if config.K8sClient == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
 	if config.Logger == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
@@ -60,11 +60,11 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 
 	awsControlPlaneCR := &infrastructurev1alpha2.AWSControlPlane{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
-		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse awscontrol plane: %v", err)
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 	releaseVersion, err := releaseVersion(awsControlPlaneCR)
 	if err != nil {
-		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse release version from AWSControlPlane")
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
@@ -92,7 +92,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 					g8sControlPlane,
 				)
 				if err != nil {
-					return microerror.Maskf(aws.NotFoundError, "failed to fetch G8sControlplane: %v", err)
+					return microerror.Maskf(notFoundError, "failed to fetch G8sControlplane: %v", err)
 				}
 			}
 			numberOfAZs = g8sControlPlane.Spec.Replicas
@@ -121,7 +121,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the g8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
-		if aws.IsNotFound(err) {
+		if IsNotFound(err) {
 			m.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		} else if err != nil {
 			return nil, err
@@ -161,7 +161,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 						Namespace: namespace},
 					AWSCluster)
 				if err != nil {
-					return microerror.Maskf(aws.NotFoundError, "failed to fetch AWSCluster: %v", err)
+					return microerror.Maskf(notFoundError, "failed to fetch AWSCluster: %v", err)
 				}
 			}
 			availabilityZone = append(availabilityZone, AWSCluster.Spec.Provider.Master.AvailabilityZone)
@@ -217,7 +217,7 @@ func (m *Mutator) Resource() string {
 func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version, error) {
 	version, ok := cr.Labels[label.ReleaseVersion]
 	if !ok {
-		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to get release version from AWSControlplane %s", cr.Name)
+		return nil, microerror.Maskf(parsingFailedError, "unable to get release version from AWSControlplane %s", cr.Name)
 	}
 
 	return semver.New(version)
@@ -226,7 +226,7 @@ func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version
 func clusterID(cr *infrastructurev1alpha2.AWSControlPlane) (string, error) {
 	clusterID, ok := cr.Labels[label.Cluster]
 	if !ok {
-		return "", microerror.Maskf(aws.ParsingFailedError, "unable to get cluster ID from AWSControlplane %s", cr.Name)
+		return "", microerror.Maskf(parsingFailedError, "unable to get cluster ID from AWSControlplane %s", cr.Name)
 	}
 
 	return clusterID, nil
