@@ -10,7 +10,7 @@ Installation:
           - eu-central-1c
         EC2:
           Instance:
-            :
+            Allowed:
               - c5.xlarge
               - c5.2xlarge
               - c5.4xlarge
