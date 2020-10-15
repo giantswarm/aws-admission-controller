@@ -140,6 +140,12 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 		patch := mutator.PatchReplace("/spec/replicas", replicas)
 		result = append(result, patch)
 	}
+	// Change replicas when updating from Single to HA
+	if g8sControlPlaneOldCR.Spec.Replicas == 1 && g8sControlPlaneNewCR.Spec.Replicas == 3 {
+		m.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s updating replicas from 1 to 3", g8sControlPlaneNewCR.ObjectMeta.Name))
+		patch := mutator.PatchReplace("/spec/replicas", replicas)
+		result = append(result, patch)
+	}
 	// If the infrastructure reference is not set, we do it here
 	if request.Operation == aws.CreateOperation && g8sControlPlaneNewCR.Spec.InfrastructureRef.Name != infrastructureCRRef.Name {
 		m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlaneNewCR.Name))
