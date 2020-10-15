@@ -42,12 +42,15 @@ spec:
               value: {{ .Values.Installation.V1.Guest.IPAM.NetworkCIDR }}
             - name: DEFAULT_KUBERNETES_CLUSTER_IP_RANGE
               value: {{ .Values.Installation.V1.Guest.Kubernetes.API.ClusterIPRange }}
+            - name: DEFAULT_AWS_INSTANCE_TYPES
+              value: {{ join "," .Values.Installation.V1.Provider.AWS.EC2.Instance.Allowed }}
           args:
             - ./aws-admission-controller
             - --availability-zones=$(DEFAULT_AWS_AZS)
             - --docker-cidr=$(DEFAULT_DOCKER_CIDR)
             - --ipam-network-cidr=$(DEFAULT_IPAM_NETWORKCIDR)
             - --kubernetes-cluster-ip-range=$(DEFAULT_KUBERNETES_CLUSTER_IP_RANGE)
+            - --master-instance-types=$(DEFAULT_AWS_INSTANCE_TYPES)
             - --tls-cert-file=/certs/ca.crt
             - --tls-key-file=/certs/tls.key
           volumeMounts:

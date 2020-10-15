@@ -16,6 +16,9 @@ const (
 func DefaultAvailabilityZones() []string {
 	return []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}
 }
+func DefaultInstanceTypes() []string {
+	return []string{"c5.xlarge", "c5.2xlarge", "m5.xlarge", "m4.xlarge"}
+}
 
 func DefaultAWSControlPlane() infrastructurev1alpha2.AWSControlPlane {
 	cr := infrastructurev1alpha2.AWSControlPlane{
