@@ -24,6 +24,7 @@ type Config struct {
 	DockerCIDR               string
 	IPAMNetworkCIDR          string
 	KubernetesClusterIPRange string
+	MasterInstanceTypes      string
 	Logger                   micrologger.Logger
 	K8sClient                k8sclient.Interface
 	KeyFile                  string
@@ -73,6 +74,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("docker-cidr", "Default CIDR from Docker").Required().StringVar(&config.DockerCIDR)
 	kingpin.Flag("ipam-network-cidr", "Default CIDR from tenant cluster").Required().StringVar(&config.IPAMNetworkCIDR)
 	kingpin.Flag("kubernetes-cluster-ip-range", "Default CIDR from Kubernetes").Required().StringVar(&config.KubernetesClusterIPRange)
+	kingpin.Flag("master-instance-types", "List of AWS master instance types").Required().StringVar(&config.MasterInstanceTypes)
 	kingpin.Flag("metrics-address", "The metrics address for Prometheus").Default(defaultMetricsAddress).StringVar(&config.MetricsAddress)
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)

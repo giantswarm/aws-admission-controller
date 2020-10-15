@@ -26,6 +26,7 @@ type Validator struct {
 	logger    micrologger.Logger
 
 	validAvailabilityZones []string
+	validInstanceTypes     []string
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
@@ -37,11 +38,14 @@ func NewValidator(config config.Config) (*Validator, error) {
 	}
 
 	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
+	var instanceTypes []string = strings.Split(config.MasterInstanceTypes, ",")
+
 	validator := &Validator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
 		validAvailabilityZones: availabilityZones,
+		validInstanceTypes:     instanceTypes,
 	}
 
 	return validator, nil
@@ -53,11 +57,6 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	controlPlaneLabelMatches, err := v.ControlPlaneLabelMatch(awsControlPlane)
-	if err != nil {
-		return false, microerror.Mask(err)
-
-	}
 	azAllowed, err := v.AZValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -68,13 +67,23 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 		return false, microerror.Mask(err)
 
 	}
+	instanceTypeAllowed, err := v.InstanceTypeValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+	controlPlaneLabelMatches, err := v.ControlPlaneLabelMatch(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
 	azReplicaMatches, err := v.AZReplicaMatch(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
 
-	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azReplicaMatches, nil
+	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azReplicaMatches && instanceTypeAllowed, nil
 }
 
 func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
@@ -214,6 +223,22 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 			label.ControlPlane,
 			key.ControlPlane(&awsControlPlane),
 			key.Cluster(&g8sControlPlane)),
+		)
+	}
+
+	return true, nil
+}
+func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+	if !contains(v.validInstanceTypes, awsControlPlane.Spec.InstanceType) {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlane.Spec.InstanceType,
+			v.validInstanceTypes),
+		)
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlane.Spec.InstanceType,
+			v.validInstanceTypes),
 		)
 	}
 

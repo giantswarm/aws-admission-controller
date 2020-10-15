@@ -40,6 +40,7 @@ func TestAZReplicaMatch(t *testing.T) {
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
+				validInstanceTypes:     unittest.DefaultInstanceTypes(),
 				k8sClient:              fakeK8sClient,
 				logger:                 microloggertest.New(),
 			}
@@ -102,6 +103,7 @@ func TestAZCount(t *testing.T) {
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
+				validInstanceTypes:     unittest.DefaultInstanceTypes(),
 				k8sClient:              fakeK8sClient,
 				logger:                 microloggertest.New(),
 			}
@@ -149,6 +151,54 @@ func TestAZValid(t *testing.T) {
 			fakeK8sClient := unittest.FakeK8sClient()
 			validate := &Validator{
 				validAvailabilityZones: tc.validAZs,
+				validInstanceTypes:     unittest.DefaultInstanceTypes(),
+				k8sClient:              fakeK8sClient,
+				logger:                 microloggertest.New(),
+			}
+
+			admissionRequest, err := unittest.DefaultAdmissionRequestAWSControlPlane()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			allowed, _ := validate.Validate(&admissionRequest)
+			if allowed != tc.allowed {
+				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
+			}
+		})
+	}
+}
+func TestInstanceTypeValid(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		allowed            bool
+		validInstanceTypes []string
+	}{
+		{
+			ctx:  context.Background(),
+			name: "case 0",
+
+			allowed:            false,
+			validInstanceTypes: []string{"c5.xlarge", "c5.2xlarge", "m4.xlarge"},
+		},
+		{
+			ctx:  context.Background(),
+			name: "case 1",
+
+			allowed:            true,
+			validInstanceTypes: unittest.DefaultInstanceTypes(),
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			validate := &Validator{
+				validInstanceTypes:     tc.validInstanceTypes,
+				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
 				k8sClient:              fakeK8sClient,
 				logger:                 microloggertest.New(),
 			}
