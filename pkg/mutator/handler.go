@@ -11,7 +11,6 @@ import (
 	"github.com/giantswarm/microerror"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
@@ -95,7 +94,7 @@ func extractName(request *admissionv1.AdmissionRequest) string {
 		return request.Name
 	}
 
-	obj := metav1beta1.PartialObjectMetadata{}
+	obj := metav1.PartialObjectMetadata{}
 	if _, _, err := Deserializer.Decode(request.Object.Raw, nil, &obj); err != nil {
 		return "<unknown>"
 	}
@@ -111,6 +110,10 @@ func extractName(request *admissionv1.AdmissionRequest) string {
 
 func writeResponse(mutator Mutator, writer http.ResponseWriter, response *admissionv1.AdmissionResponse) {
 	resp, err := json.Marshal(admissionv1.AdmissionReview{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AdmissionReview",
+			APIVersion: "admission.k8s.io/v1",
+		},
 		Response: response,
 	})
 	if err != nil {
