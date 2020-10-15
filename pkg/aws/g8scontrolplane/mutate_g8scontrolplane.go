@@ -117,6 +117,9 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 					if err != nil {
 						return microerror.Mask(err)
 					}
+					m.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s Replicas are 1 and will updated to 3", g8sControlPlaneNewCR.ObjectMeta.Name))
+					patch := mutator.PatchReplace("/spec/replicas", replicas)
+					result = append(result, patch)
 				}
 				return nil
 			}
