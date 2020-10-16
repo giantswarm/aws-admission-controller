@@ -11,7 +11,7 @@ require (
 	github.com/giantswarm/micrologger v0.3.3
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.3.0
-	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/client_golang v1.8.0
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/tools v0.0.0-20200706234117-b22de6825cf7 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
