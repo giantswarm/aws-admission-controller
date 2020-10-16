@@ -9,7 +9,7 @@ import (
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -95,12 +95,12 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func g8sControlPlaneNoReferenceAdmissionRequest() (*v1beta1.AdmissionRequest, error) {
+func g8sControlPlaneNoReferenceAdmissionRequest() (*admissionv1.AdmissionRequest, error) {
 	g8scontrolplane, err := getG8sControlPlaneNoRefRAWByte()
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	req := &v1beta1.AdmissionRequest{
+	req := &admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "G8sControlPlane",
@@ -109,7 +109,7 @@ func g8sControlPlaneNoReferenceAdmissionRequest() (*v1beta1.AdmissionRequest, er
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "g8scontrolplanes",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    g8scontrolplane,
 			Object: nil,

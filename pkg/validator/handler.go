@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/giantswarm/microerror"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -20,7 +20,7 @@ import (
 type Validator interface {
 	Log(keyVals ...interface{})
 	Resource() string
-	Validate(review *v1beta1.AdmissionRequest) (bool, error)
+	Validate(review *admissionv1.AdmissionRequest) (bool, error)
 }
 
 var (
@@ -49,7 +49,7 @@ func Handler(validator Validator) http.HandlerFunc {
 			return
 		}
 
-		review := v1beta1.AdmissionReview{}
+		review := admissionv1.AdmissionReview{}
 		if _, _, err := Deserializer.Decode(data, nil, &review); err != nil {
 			validator.Log("level", "error", "message", "unable to parse admission review request")
 			metrics.InvalidRequests.WithLabelValues("validating", validator.Resource()).Inc()
@@ -66,15 +66,15 @@ func Handler(validator Validator) http.HandlerFunc {
 
 		metrics.SuccessfulRequests.WithLabelValues("validating", validator.Resource()).Inc()
 
-		writeResponse(validator, writer, &v1beta1.AdmissionResponse{
+		writeResponse(validator, writer, &admissionv1.AdmissionResponse{
 			Allowed: allowed,
 			UID:     review.Request.UID,
 		})
 	}
 }
 
-func writeResponse(validator Validator, writer http.ResponseWriter, response *v1beta1.AdmissionResponse) {
-	resp, err := json.Marshal(v1beta1.AdmissionReview{
+func writeResponse(validator Validator, writer http.ResponseWriter, response *admissionv1.AdmissionResponse) {
+	resp, err := json.Marshal(admissionv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AdmissionReview",
 			APIVersion: "admission.k8s.io/v1",
@@ -92,8 +92,8 @@ func writeResponse(validator Validator, writer http.ResponseWriter, response *v1
 	}
 }
 
-func errorResponse(uid types.UID, err error) *v1beta1.AdmissionResponse {
-	return &v1beta1.AdmissionResponse{
+func errorResponse(uid types.UID, err error) *admissionv1.AdmissionResponse {
+	return &admissionv1.AdmissionResponse{
 		Allowed: false,
 		UID:     uid,
 		Result: &metav1.Status{

@@ -23,7 +23,7 @@ To satisfy the `Admitter` interface you need to add an `Admit` method.
 Example:
 
 ```go
-func (admitter *Admitter) Admit(request *v1beta1.AdmissionRequest) ([]admission.PatchOperation, error) {
+func (admitter *Admitter) Admit(request *v1admission.AdmissionRequest) ([]admission.PatchOperation, error) {
 	if request.Resource != exampleResource {
 		log.Errorf("invalid resource: %s (expected %s)", request.Resource, exampleResource)
 		return nil, admission.InternalError
