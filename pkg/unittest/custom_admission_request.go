@@ -6,18 +6,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/microerror"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func CustomAdmissionRequestAWSControlPlane(AZs []string) (v1beta1.AdmissionRequest, error) {
+func CustomAdmissionRequestAWSControlPlane(AZs []string) (admissionv1.AdmissionRequest, error) {
 	awsControlplane := DefaultAWSControlPlane()
 	awsControlplane.Spec.AvailabilityZones = AZs
 	byt, err := json.Marshal(awsControlplane)
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
-	req := v1beta1.AdmissionRequest{
+	req := admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "AWSControlPlane",
@@ -26,7 +26,7 @@ func CustomAdmissionRequestAWSControlPlane(AZs []string) (v1beta1.AdmissionReque
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "awscontrolplanes",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    byt,
 			Object: nil,
@@ -35,21 +35,21 @@ func CustomAdmissionRequestAWSControlPlane(AZs []string) (v1beta1.AdmissionReque
 	return req, nil
 }
 
-func CustomAdmissionRequestAWSControlPlaneUpdate(oldAZs []string, newAZs []string) (v1beta1.AdmissionRequest, error) {
+func CustomAdmissionRequestAWSControlPlaneUpdate(oldAZs []string, newAZs []string) (admissionv1.AdmissionRequest, error) {
 	// creating the old and new object for update operation
 	awsControlplane := DefaultAWSControlPlane()
 	awsControlplane.Spec.AvailabilityZones = oldAZs
 	oldByt, err := json.Marshal(awsControlplane)
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
 	awsControlplane.Spec.AvailabilityZones = newAZs
 	newByt, err := json.Marshal(awsControlplane)
 	if err != nil {
-		return v1beta1.AdmissionRequest{}, microerror.Mask(err)
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
 	}
 
-	req := v1beta1.AdmissionRequest{
+	req := admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "AWSControlPlane",
@@ -58,7 +58,7 @@ func CustomAdmissionRequestAWSControlPlaneUpdate(oldAZs []string, newAZs []strin
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "awscontrolplanes",
 		},
-		Operation: v1beta1.Update,
+		Operation: admissionv1.Update,
 		Object: runtime.RawExtension{
 			Raw:    oldByt,
 			Object: nil,

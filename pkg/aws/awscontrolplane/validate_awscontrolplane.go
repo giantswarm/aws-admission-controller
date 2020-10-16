@@ -166,7 +166,7 @@ func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPla
 
 	return true, nil
 }
-func (v *Validator) AZOrder(request *v1beta1.AdmissionRequest) (bool, error) {
+func (v *Validator) AZOrder(request *admissionv1.AdmissionRequest) (bool, error) {
 	// Order can only change on update
 	if request.Operation != aws.UpdateOperation {
 		return true, nil
