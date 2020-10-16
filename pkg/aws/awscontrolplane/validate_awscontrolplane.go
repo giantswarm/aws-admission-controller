@@ -72,6 +72,16 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 		return false, microerror.Mask(err)
 
 	}
+	azOrderKept, err := v.AZOrder(request)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+	azUnique, err := v.AZUnique(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
 	controlPlaneLabelMatches, err := v.ControlPlaneLabelMatch(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -83,7 +93,7 @@ func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
 
 	}
 
-	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azReplicaMatches && instanceTypeAllowed, nil
+	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azUnique && azOrderKept && azReplicaMatches && instanceTypeAllowed, nil
 }
 
 func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
@@ -155,6 +165,50 @@ func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPla
 	}
 
 	return true, nil
+}
+func (v *Validator) AZOrder(request *v1beta1.AdmissionRequest) (bool, error) {
+	// Order can only change on update
+	if request.Operation != aws.UpdateOperation {
+		return true, nil
+	}
+	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
+	var awsControlPlaneOld infrastructurev1alpha2.AWSControlPlane
+	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
+	}
+	if _, _, err := validator.Deserializer.Decode(request.OldObject.Raw, nil, &awsControlPlaneOld); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse old awscontrol plane: %v", err)
+	}
+	if orderChanged(awsControlPlaneOld.Spec.AvailabilityZones, awsControlPlane.Spec.AvailabilityZones) {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s order of AZs has changed from %v to %v.",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlaneOld.Spec.AvailabilityZones,
+			awsControlPlane.Spec.AvailabilityZones),
+		)
+		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s order of AZs has changed from %v to %v.",
+			key.ControlPlane(&awsControlPlane),
+			awsControlPlaneOld.Spec.AvailabilityZones,
+			awsControlPlane.Spec.AvailabilityZones),
+		)
+	}
+	return true, nil
+}
+func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+	// We always want to select as many distinct AZs as possible
+	distinctAZs := countUniqueValues(awsControlPlane.Spec.AvailabilityZones)
+	if distinctAZs == len(v.validAvailabilityZones) || distinctAZs == len(awsControlPlane.Spec.AvailabilityZones) {
+		return true, nil
+	}
+	v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
+		key.ControlPlane(&awsControlPlane),
+		awsControlPlane.Spec.AvailabilityZones,
+		v.validAvailabilityZones),
+	)
+	return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
+		key.ControlPlane(&awsControlPlane),
+		awsControlPlane.Spec.AvailabilityZones,
+		v.validAvailabilityZones),
+	)
 }
 
 func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
@@ -257,6 +311,28 @@ func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true
+		}
+	}
+	return false
+}
+func countUniqueValues(s []string) int {
+	counter := make(map[string]int)
+	for _, a := range s {
+		counter[a]++
+	}
+	return len(counter)
+}
+func orderChanged(old []string, new []string) bool {
+	if len(old) > len(new) {
+		temp := old
+		old = new
+		new = temp
+	}
+	for i, o := range old {
+		for _, n := range new {
+			if o == n && o != new[i] {
+				return true
+			}
 		}
 	}
 	return false

@@ -30,6 +30,8 @@ Validating Webhook:
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are matching the number of Availability Zones in the `AWSControlPlane` resource.
 
 - In a `AWSControlPlane` resource, it validates the Master Instance Type is a valid Instance Type for the installation.
+- In a `AWSControlPlane` resource, it validates that the order of Master Node Availability Zones does not change on update.
+- In a `AWSControlPlane` resource, it validates that the number of distinct Master Node Availability Zones is maximal.
 - In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are valid AZs for the installation.
 - In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
 - In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
