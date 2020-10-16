@@ -11,7 +11,7 @@ import (
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/config"
@@ -51,7 +51,7 @@ func NewValidator(config config.Config) (*Validator, error) {
 	return validator, nil
 }
 
-func (v *Validator) Validate(request *v1beta1.AdmissionRequest) (bool, error) {
+func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {

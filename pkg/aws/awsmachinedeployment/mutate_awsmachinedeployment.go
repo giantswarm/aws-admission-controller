@@ -8,7 +8,7 @@ import (
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 
 	"github.com/giantswarm/aws-admission-controller/config"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws"
@@ -48,7 +48,7 @@ func NewMutator(config config.Config) (*Mutator, error) {
 }
 
 // Mutate is the function executed for every matching webhook request.
-func (m *Mutator) Mutate(request *v1beta1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 
 	if request.DryRun != nil && *request.DryRun {

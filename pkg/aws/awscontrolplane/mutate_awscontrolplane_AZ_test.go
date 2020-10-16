@@ -10,7 +10,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/ruleengine"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -164,13 +164,13 @@ func TestAZAWSControlPlaneAdmit(t *testing.T) {
 	}
 }
 
-func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release string) (*v1beta1.AdmissionRequest, error) {
+func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release string) (*admissionv1.AdmissionRequest, error) {
 	awscontrolplane, err := getAWSControlPlaneRAWByte(AZs, instanceType, release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
-	req := &v1beta1.AdmissionRequest{
+	req := &admissionv1.AdmissionRequest{
 		Kind: metav1.GroupVersionKind{
 			Version: "infrastructure.giantswarm.io/v1alpha2",
 			Kind:    "AWSControlPlane",
@@ -179,7 +179,7 @@ func awsControlPlaneAdmissionRequest(AZs []string, instanceType string, release 
 			Version:  "infrastructure.giantswarm.io/v1alpha2",
 			Resource: "awscontrolplanes",
 		},
-		Operation: v1beta1.Create,
+		Operation: admissionv1.Create,
 		Object: runtime.RawExtension{
 			Raw:    awscontrolplane,
 			Object: nil,

@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/giantswarm/microerror"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
@@ -21,7 +20,7 @@ import (
 
 type Mutator interface {
 	Log(keyVals ...interface{})
-	Mutate(review *v1beta1.AdmissionRequest) ([]PatchOperation, error)
+	Mutate(review *admissionv1.AdmissionRequest) ([]PatchOperation, error)
 	Resource() string
 }
 
@@ -53,7 +52,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 			return
 		}
 
-		review := v1beta1.AdmissionReview{}
+		review := admissionv1.AdmissionReview{}
 		if _, _, err := Deserializer.Decode(data, nil, &review); err != nil {
 			mutator.Log("level", "error", "message", "unable to parse admission review request")
 			metrics.InvalidRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
@@ -80,8 +79,8 @@ func Handler(mutator Mutator) http.HandlerFunc {
 		mutator.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
 		metrics.SuccessfulRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 
-		pt := v1beta1.PatchTypeJSONPatch
-		writeResponse(mutator, writer, &v1beta1.AdmissionResponse{
+		pt := admissionv1.PatchTypeJSONPatch
+		writeResponse(mutator, writer, &admissionv1.AdmissionResponse{
 			Allowed:   true,
 			UID:       review.Request.UID,
 			Patch:     patchData,
@@ -90,12 +89,12 @@ func Handler(mutator Mutator) http.HandlerFunc {
 	}
 }
 
-func extractName(request *v1beta1.AdmissionRequest) string {
+func extractName(request *admissionv1.AdmissionRequest) string {
 	if request.Name != "" {
 		return request.Name
 	}
 
-	obj := metav1beta1.PartialObjectMetadata{}
+	obj := metav1.PartialObjectMetadata{}
 	if _, _, err := Deserializer.Decode(request.Object.Raw, nil, &obj); err != nil {
 		return "<unknown>"
 	}
@@ -109,8 +108,12 @@ func extractName(request *v1beta1.AdmissionRequest) string {
 	return "<unknown>"
 }
 
-func writeResponse(mutator Mutator, writer http.ResponseWriter, response *v1beta1.AdmissionResponse) {
-	resp, err := json.Marshal(v1beta1.AdmissionReview{
+func writeResponse(mutator Mutator, writer http.ResponseWriter, response *admissionv1.AdmissionResponse) {
+	resp, err := json.Marshal(admissionv1.AdmissionReview{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AdmissionReview",
+			APIVersion: "admission.k8s.io/v1",
+		},
 		Response: response,
 	})
 	if err != nil {
@@ -123,8 +126,8 @@ func writeResponse(mutator Mutator, writer http.ResponseWriter, response *v1beta
 	}
 }
 
-func errorResponse(uid types.UID, err error) *v1beta1.AdmissionResponse {
-	return &v1beta1.AdmissionResponse{
+func errorResponse(uid types.UID, err error) *admissionv1.AdmissionResponse {
+	return &admissionv1.AdmissionResponse{
 		Allowed: false,
 		UID:     uid,
 		Result: &metav1.Status{
