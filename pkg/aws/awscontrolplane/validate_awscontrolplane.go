@@ -321,15 +321,20 @@ func countUniqueValues(s []string) int {
 	return len(counter)
 }
 func orderChanged(old []string, new []string) bool {
-	if len(old) > len(new) {
-		temp := old
-		old = new
-		new = temp
-	}
-	for i, o := range old {
-		for _, n := range new {
-			if o == n && o != new[i] {
-				return true
+	if len(old) <= len(new) {
+		for i, o := range old {
+			for _, n := range new {
+				if o == n && o != new[i] {
+					return true
+				}
+			}
+		}
+	} else {
+		for i, o := range new {
+			for _, n := range old {
+				if o == n && o != old[i] {
+					return true
+				}
 			}
 		}
 	}

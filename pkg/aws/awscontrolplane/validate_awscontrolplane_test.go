@@ -163,7 +163,7 @@ func TestAZOrder(t *testing.T) {
 		},
 		{
 			ctx:  context.Background(),
-			name: "case 3",
+			name: "case 4",
 
 			allowed: false,
 			oldAZs:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
