@@ -78,7 +78,6 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	_, err = v.AZUnique(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 	_, err = v.ControlPlaneLabelMatch(awsControlPlane)
 	if err != nil {
