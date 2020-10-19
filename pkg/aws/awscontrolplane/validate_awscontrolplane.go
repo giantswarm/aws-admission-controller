@@ -91,7 +91,7 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
-
+	}
 	return true, nil
 }
 
