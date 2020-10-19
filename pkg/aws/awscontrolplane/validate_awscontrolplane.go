@@ -91,11 +91,8 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
-	} else {
-		azReplicaMatches = true
-	}
 
-	return controlPlaneLabelMatches && azAllowed && azCountAllowed && azUnique && azOrderKept && azReplicaMatches && instanceTypeAllowed, nil
+	return true, nil
 }
 
 func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
