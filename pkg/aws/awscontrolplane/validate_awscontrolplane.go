@@ -53,41 +53,40 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
-	var azReplicaMatches bool
 	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	azAllowed, err := v.AZValid(awsControlPlane)
+	_, err = v.AZValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	azCountAllowed, err := v.AZCount(awsControlPlane)
+	_, err = v.AZCount(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	instanceTypeAllowed, err := v.InstanceTypeValid(awsControlPlane)
+	_, err = v.InstanceTypeValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	azOrderKept, err := v.AZOrder(request)
-	if err != nil {
-		return false, microerror.Mask(err)
-
-	}
-	azUnique, err := v.AZUnique(awsControlPlane)
+	_, err = v.AZOrder(request)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
-	controlPlaneLabelMatches, err := v.ControlPlaneLabelMatch(awsControlPlane)
+	_, err = v.AZUnique(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+	_, err = v.ControlPlaneLabelMatch(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
 	// when updating from single to HA validation of AZ replicas has to be ignored
 	if request.Operation == aws.CreateOperation {
-		azReplicaMatches, err = v.AZReplicaMatch(awsControlPlane)
+		_, err = v.AZReplicaMatch(awsControlPlane)
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
