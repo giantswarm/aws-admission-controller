@@ -44,21 +44,21 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment
-	var allowed bool
+	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
 		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
-	allowed, err := v.MachineDeploymentLabelMatch(awsMachineDeployment)
+	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
 
-	return allowed, nil
+	return true, nil
 }
 
-func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) (bool, error) {
+func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
 	var machineDeployment v1alpha2.MachineDeployment
 	var err error
 	var fetch func() error
@@ -87,9 +87,9 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 		// Note that while we do log the error, we don't fail if the MachineDeployment doesn't exist yet. That is okay because the order of CR creation can vary.
 		if aws.IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No MachineDeployment %s could be found: %v", awsMachineDeployment.GetName(), err))
-			return true, nil
+			return nil
 		} else if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 	}
 
@@ -101,7 +101,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 			key.MachineDeployment(&awsMachineDeployment),
 			key.Cluster(&awsMachineDeployment)),
 		)
-		return false, microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("MachineDeployment %s=%s label does not match with AWSMachineDeployment %s=%s label for cluster %s",
+		return microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("MachineDeployment %s=%s label does not match with AWSMachineDeployment %s=%s label for cluster %s",
 			label.MachineDeployment,
 			key.MachineDeployment(&machineDeployment),
 			label.MachineDeployment,
@@ -110,7 +110,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 		)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {

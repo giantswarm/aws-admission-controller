@@ -58,34 +58,34 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	_, err = v.AZValid(awsControlPlane)
+	err = v.AZValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	_, err = v.AZCount(awsControlPlane)
+	err = v.AZCount(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	_, err = v.InstanceTypeValid(awsControlPlane)
+	err = v.InstanceTypeValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	_, err = v.AZOrder(request)
+	err = v.AZOrder(request)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
-	_, err = v.AZUnique(awsControlPlane)
+	err = v.AZUnique(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	_, err = v.ControlPlaneLabelMatch(awsControlPlane)
+	err = v.ControlPlaneLabelMatch(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
 	// when updating from single to HA validation of AZ replicas has to be ignored
 	if request.Operation == aws.CreateOperation {
-		_, err = v.AZReplicaMatch(awsControlPlane)
+		err = v.AZReplicaMatch(awsControlPlane)
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
@@ -93,7 +93,7 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	return true, nil
 }
 
-func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
 	var err error
 	var fetch func() error
@@ -122,9 +122,9 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
-			return true, nil
+			return nil
 		} else if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 	}
 
@@ -136,7 +136,7 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
 			key.ControlPlane(&awsControlPlane),
@@ -145,36 +145,36 @@ func (v *Validator) AZReplicaMatch(awsControlPlane infrastructurev1alpha2.AWSCon
 		)
 	}
 
-	return true, nil
+	return nil
 }
-func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) AZCount(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	if !aws.IsValidMasterReplicas(len(awsControlPlane.Spec.AvailabilityZones)) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s has an invalid count of %v availability zones. Valid AZ counts are: %v",
 			key.ControlPlane(&awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			aws.ValidMasterReplicas()),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s has an invalid count of %v availability zones. Valid AZ counts are: %v",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s has an invalid count of %v availability zones. Valid AZ counts are: %v",
 			key.ControlPlane(&awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			aws.ValidMasterReplicas()),
 		)
 	}
 
-	return true, nil
+	return nil
 }
-func (v *Validator) AZOrder(request *admissionv1.AdmissionRequest) (bool, error) {
+func (v *Validator) AZOrder(request *admissionv1.AdmissionRequest) error {
 	// Order can only change on update
 	if request.Operation != aws.UpdateOperation {
-		return true, nil
+		return nil
 	}
 	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
 	var awsControlPlaneOld infrastructurev1alpha2.AWSControlPlane
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
-		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
+		return microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 	if _, _, err := validator.Deserializer.Decode(request.OldObject.Raw, nil, &awsControlPlaneOld); err != nil {
-		return false, microerror.Maskf(parsingFailedError, "unable to parse old awscontrol plane: %v", err)
+		return microerror.Maskf(parsingFailedError, "unable to parse old awscontrol plane: %v", err)
 	}
 	if orderChanged(awsControlPlaneOld.Spec.AvailabilityZones, awsControlPlane.Spec.AvailabilityZones) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s order of AZs has changed from %v to %v.",
@@ -182,50 +182,50 @@ func (v *Validator) AZOrder(request *admissionv1.AdmissionRequest) (bool, error)
 			awsControlPlaneOld.Spec.AvailabilityZones,
 			awsControlPlane.Spec.AvailabilityZones),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s order of AZs has changed from %v to %v.",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s order of AZs has changed from %v to %v.",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlaneOld.Spec.AvailabilityZones,
 			awsControlPlane.Spec.AvailabilityZones),
 		)
 	}
-	return true, nil
+	return nil
 }
-func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	// We always want to select as many distinct AZs as possible
 	distinctAZs := countUniqueValues(awsControlPlane.Spec.AvailabilityZones)
 	if distinctAZs == len(v.validAvailabilityZones) || distinctAZs == len(awsControlPlane.Spec.AvailabilityZones) {
-		return true, nil
+		return nil
 	}
 	v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
 		key.ControlPlane(&awsControlPlane),
 		awsControlPlane.Spec.AvailabilityZones,
 		v.validAvailabilityZones),
 	)
-	return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
+	return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
 		key.ControlPlane(&awsControlPlane),
 		awsControlPlane.Spec.AvailabilityZones,
 		v.validAvailabilityZones),
 	)
 }
 
-func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	if !v.isValidMasterAvailabilityZones(awsControlPlane.Spec.AvailabilityZones) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.AvailabilityZones,
 			v.validAvailabilityZones),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.AvailabilityZones,
 			v.validAvailabilityZones),
 		)
 	}
 
-	return true, nil
+	return nil
 }
 
-func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
 	var err error
 	var fetch func() error
@@ -254,9 +254,9 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
-			return true, nil
+			return nil
 		} else if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 	}
 
@@ -268,7 +268,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 			key.ControlPlane(&awsControlPlane),
 			key.Cluster(&g8sControlPlane)),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s=%s label does not match with AWSControlPlane %s=%s label for cluster %s",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s=%s label does not match with AWSControlPlane %s=%s label for cluster %s",
 			label.ControlPlane,
 			key.ControlPlane(&g8sControlPlane),
 			label.ControlPlane,
@@ -277,23 +277,23 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 		)
 	}
 
-	return true, nil
+	return nil
 }
-func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (bool, error) {
+func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	if !contains(v.validInstanceTypes, awsControlPlane.Spec.InstanceType) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.InstanceType,
 			v.validInstanceTypes),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.InstanceType,
 			v.validInstanceTypes),
 		)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {
