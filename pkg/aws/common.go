@@ -17,7 +17,7 @@ const (
 	// CreateOperation is the string attribute in an admission request for creation
 	CreateOperation = "CREATE"
 
-	// UpdateOperation is the string attribute in an admission request for creation
+	// UpdateOperation is the string attribute in an admission request for update
 	UpdateOperation = "UPDATE"
 )
 
