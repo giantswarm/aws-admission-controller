@@ -13,12 +13,6 @@ const (
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
-
-	// CreateOperation is the string attribute in an admission request for creation
-	CreateOperation = "CREATE"
-
-	// UpdateOperation is the string attribute in an admission request for update
-	UpdateOperation = "UPDATE"
 )
 
 // ValidMasterReplicas are the allowed number of master node replicas

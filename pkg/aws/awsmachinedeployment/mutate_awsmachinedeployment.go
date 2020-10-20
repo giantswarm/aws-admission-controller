@@ -11,7 +11,6 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 
 	"github.com/giantswarm/aws-admission-controller/config"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
@@ -33,10 +32,10 @@ type Mutator struct {
 
 func NewMutator(config config.Config) (*Mutator, error) {
 	if config.K8sClient == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
 	if config.Logger == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	mutator := &Mutator{
@@ -59,10 +58,10 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
-		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
-		return nil, microerror.Maskf(aws.ParsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
 
 	// Default the OnDemandPercentageAboveBaseCapacity.
