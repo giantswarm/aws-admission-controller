@@ -41,25 +41,26 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
+	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &g8sControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	replicaCountAllowed, err := v.ReplicaCount(g8sControlPlane)
+	err = v.ReplicaCount(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
-	replicaAZMatches, err := v.ReplicaAZMatch(g8sControlPlane)
+	err = v.ReplicaAZMatch(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 
 	}
 
-	return replicaCountAllowed && replicaAZMatches, nil
+	return true, nil
 }
 
-func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) (bool, error) {
+func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) error {
 	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
 	var err error
 	var fetch func() error
@@ -88,9 +89,9 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlane.GetName(), err))
-			return true, nil
+			return nil
 		} else if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 	}
 
@@ -102,7 +103,7 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
 			key.ControlPlane(&awsControlPlane),
@@ -111,23 +112,23 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 		)
 	}
 
-	return true, nil
+	return nil
 }
-func (v *Validator) ReplicaCount(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) (bool, error) {
+func (v *Validator) ReplicaCount(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) error {
 	if !aws.IsValidMasterReplicas(g8sControlPlane.Spec.Replicas) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s has an invalid count of %v replicas. Valid replica counts are: %v",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
 			aws.ValidMasterReplicas()),
 		)
-		return false, microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s has an invalid count of %v replicas. Valid replica counts are: %v",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s has an invalid count of %v replicas. Valid replica counts are: %v",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
 			aws.ValidMasterReplicas()),
 		)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (m *Validator) Log(keyVals ...interface{}) {

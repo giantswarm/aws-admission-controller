@@ -55,20 +55,20 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var networkPool infrastructurev1alpha2.NetworkPool
-	var allowed bool
+	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &networkPool); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse networkpool: %v", err)
 	}
-	allowed, err := v.networkPoolAllowed(networkPool)
+	err = v.networkPoolAllowed(networkPool)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
 
-	return allowed, nil
+	return true, nil
 }
 
-func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) (bool, error) {
+func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) error {
 	var err error
 	var fetch func() error
 	var networkCIDRs []string
@@ -98,7 +98,7 @@ func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) (b
 		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No NetworkPool could be found: %v", err))
 		} else if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 	}
 
@@ -117,22 +117,22 @@ func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) (b
 	// parse CIDRBlock from NetworkPool
 	customNet, err := mustParseCIDR(np.Spec.CIDRBlock)
 	if err != nil {
-		return false, microerror.Mask(err)
+		return microerror.Mask(err)
 	}
 
 	for _, cidr := range networkCIDRs {
 		net, err := mustParseCIDR(cidr)
 		if err != nil {
-			return false, microerror.Mask(err)
+			return microerror.Mask(err)
 		}
 		// in case of overlapping network ranges we do not allow creating this NetworkPool
 		if intersect(customNet, net) {
-			return false, microerror.Maskf(intersectFailedError, fmt.Sprintf("network pool %s intersect with an existing CIDR %s", customNet.String(), net.String()))
+			return microerror.Maskf(intersectFailedError, fmt.Sprintf("network pool %s intersect with an existing CIDR %s", customNet.String(), net.String()))
 		}
 
 	}
 
-	return true, nil
+	return nil
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {
