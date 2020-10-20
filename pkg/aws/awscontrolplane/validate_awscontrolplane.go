@@ -76,7 +76,6 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		err = v.AZOrder(awsControlPlane, awsControlPlaneOld)
 		if err != nil {
 			return false, microerror.Mask(err)
-
 		}
 	}
 	err = v.AZUnique(awsControlPlane)
