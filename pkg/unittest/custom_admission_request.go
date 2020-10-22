@@ -3,12 +3,40 @@ package unittest
 import (
 	"encoding/json"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/giantswarm/microerror"
 	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	"github.com/giantswarm/microerror"
 )
+
+func CustomAdmissionRequestAWSCluster(podCIDRBlock string) (admissionv1.AdmissionRequest, error) {
+	awsCluster := DefaultAWSCluster()
+	awsCluster.Spec.Provider.Pods = infrastructurev1alpha2.AWSClusterSpecProviderPods{
+		CIDRBlock: podCIDRBlock,
+	}
+	byt, err := json.Marshal(awsCluster)
+	if err != nil {
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
+	}
+	req := admissionv1.AdmissionRequest{
+		Kind: metav1.GroupVersionKind{
+			Version: "infrastructure.giantswarm.io/v1alpha2",
+			Kind:    "AWSCluster",
+		},
+		Resource: metav1.GroupVersionResource{
+			Version:  "infrastructure.giantswarm.io/v1alpha2",
+			Resource: "awsclusters",
+		},
+		Operation: admissionv1.Create,
+		Object: runtime.RawExtension{
+			Raw:    byt,
+			Object: nil,
+		},
+	}
+	return req, nil
+}
 
 func CustomAdmissionRequestAWSControlPlane(AZs []string) (admissionv1.AdmissionRequest, error) {
 	awsControlplane := DefaultAWSControlPlane()

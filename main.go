@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/giantswarm/aws-admission-controller/config"
+	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscluster"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
 	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
@@ -27,6 +28,11 @@ func main() {
 	}
 
 	// Setup handler for mutating webhook
+	awsclusterMutator, err := awscluster.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	awscontrolplaneMutator, err := awscontrolplane.NewMutator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
@@ -65,6 +71,7 @@ func main() {
 
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
+	handler.Handle("/mutate/awscluster", mutator.Handler(awsclusterMutator))
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
 	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
