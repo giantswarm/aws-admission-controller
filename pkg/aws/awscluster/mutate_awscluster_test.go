@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/giantswarm/micrologger/microloggertest"
+
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
-	"github.com/giantswarm/micrologger/microloggertest"
 )
 
 func TestAWSClusterPodCIDR(t *testing.T) {
