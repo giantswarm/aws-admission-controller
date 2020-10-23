@@ -35,12 +35,11 @@ func NewMutator(config config.Config) (*Mutator, error) {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
-	var cidrBlock string = fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR)
 	mutator := &Mutator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
-		podCIDRBlock: cidrBlock,
+		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
 	}
 
 	return mutator, nil
@@ -57,7 +56,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
 	}
-	if &awsCluster.Spec.Provider.Pods != nil {
+	if awsCluster.Spec.Provider.Pods != nil {
 		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
 			return result, nil
 		}
@@ -78,5 +77,5 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 }
 
 func (m *Mutator) Resource() string {
-	return "awsmachinedeployment"
+	return "awscluster"
 }
