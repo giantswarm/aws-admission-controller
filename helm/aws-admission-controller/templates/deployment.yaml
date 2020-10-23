@@ -45,9 +45,9 @@ spec:
             - name: DEFAULT_AWS_INSTANCE_TYPES
               value: {{ join "," .Values.Installation.V1.Provider.AWS.EC2.Instance.Allowed }}
             - name: DEFAULT_AWS_POD_CIDR
-              value: {{ join "," .Values.Installation.V1.Guest.Calico.CIDR }}
+              value: {{ .Values.Installation.V1.Guest.Calico.CIDR }}
             - name: DEFAULT_AWS_POD_SUBNET
-              value: {{ join "," .Values.Installation.V1.Guest.Calico.Subnet }}
+              value: {{ .Values.Installation.V1.Guest.Calico.Subnet }}
           args:
             - ./aws-admission-controller
             - --availability-zones=$(DEFAULT_AWS_AZS)
