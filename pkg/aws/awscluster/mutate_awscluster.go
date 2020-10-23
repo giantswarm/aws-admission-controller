@@ -56,7 +56,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
 	}
-	if awsCluster.Spec.Provider.Pods != nil {
+	if &awsCluster.Spec.Provider.Pods != nil {
 		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
 			return result, nil
 		}
