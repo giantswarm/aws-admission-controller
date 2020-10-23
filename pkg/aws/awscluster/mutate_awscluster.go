@@ -66,7 +66,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 		awsCluster.ObjectMeta.Name,
 		m.podCIDRBlock),
 	)
-	patch := mutator.PatchAdd("/spec/provider/pods/cidrBlock", m.podCIDRBlock)
+	patch := mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
 	result = append(result, patch)
 
 	return result, nil

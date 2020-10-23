@@ -39,7 +39,7 @@ func TestAWSClusterPodCIDR(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
-			var updatedCIDR string
+			var updatedCIDR map[string]string
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			mutate := &Mutator{
@@ -60,12 +60,12 @@ func TestAWSClusterPodCIDR(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == "/spec/provider/pods/cidrBlock" {
-					updatedCIDR = p.Value.(string)
+				if p.Path == "/spec/provider/pods" {
+					updatedCIDR = p.Value.(map[string]string)
 				}
 			}
 			// check if the pod CIDR is as expected
-			if tc.expectedPodCIDR != updatedCIDR {
+			if tc.expectedPodCIDR != updatedCIDR["cidrBlock"] {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPodCIDR, updatedCIDR)
 			}
 		})
