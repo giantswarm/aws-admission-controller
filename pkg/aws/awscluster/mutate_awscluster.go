@@ -58,20 +58,22 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	}
 	if &awsCluster.Spec.Provider.Pods == nil {
 		// If the Pods attribute is missing we need to patch it, too
-		patch := mutator.PatchAdd("/spec/provider/pods", map[string]string{})
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
+			awsCluster.ObjectMeta.Name,
+			m.podCIDRBlock),
+		)
+		patch := mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
 		result = append(result, patch)
-	} else if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
-		// Return if pod CIDR is already set
-		return result, nil
-	}
-	// If the Pod CIDR is not set we default it here
-	m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
-		awsCluster.ObjectMeta.Name,
-		m.podCIDRBlock),
-	)
-	patch := mutator.PatchAdd("/spec/provider/pods/cidrBlock", m.podCIDRBlock)
-	result = append(result, patch)
 
+	} else if awsCluster.Spec.Provider.Pods.CIDRBlock == "" {
+		// If the Pod CIDR is not set we default it here
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
+			awsCluster.ObjectMeta.Name,
+			m.podCIDRBlock),
+		)
+		patch := mutator.PatchAdd("/spec/provider/pods/cidrBlock", m.podCIDRBlock)
+		result = append(result, patch)
+	}
 	return result, nil
 }
 

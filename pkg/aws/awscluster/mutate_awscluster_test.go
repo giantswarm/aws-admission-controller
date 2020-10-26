@@ -63,6 +63,10 @@ func TestAWSClusterPodCIDR(t *testing.T) {
 				if p.Path == "/spec/provider/pods/cidrBlock" {
 					updatedCIDR = p.Value.(string)
 				}
+				if p.Path == "/spec/provider/pods" {
+					pods := p.Value.(map[string]string)
+					updatedCIDR = pods["cidrBlock"]
+				}
 			}
 			// check if the pod CIDR is as expected
 			if tc.expectedPodCIDR != updatedCIDR {
