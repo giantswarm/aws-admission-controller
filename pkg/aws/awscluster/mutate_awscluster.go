@@ -60,13 +60,27 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
 			return result, nil
 		}
+		if awsCluster.Spec.Provider.Pods.ExternalSNAT != nil {
+			// If the Pod CIDR is not set but the pods attribute exists, we default here
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
+				awsCluster.ObjectMeta.Name,
+				m.podCIDRBlock),
+			)
+			patch := mutator.PatchAdd("/spec/provider/pods/", "cidrBlock")
+			result = append(result, patch)
+			patch = mutator.PatchAdd("/spec/provider/pods/cidrBlock", m.podCIDRBlock)
+			result = append(result, patch)
+			return result, nil
+		}
 	}
 	// If the Pod CIDR is not set we default it here
 	m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
 		awsCluster.ObjectMeta.Name,
 		m.podCIDRBlock),
 	)
-	patch := mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
+	patch := mutator.PatchAdd("/spec/provider/", "pods")
+	result = append(result, patch)
+	patch = mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
 	result = append(result, patch)
 
 	return result, nil
