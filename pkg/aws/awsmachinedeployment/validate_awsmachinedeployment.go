@@ -15,7 +15,6 @@ import (
 	"sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/aws-admission-controller/config"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/pkg/validator"
@@ -28,10 +27,10 @@ type Validator struct {
 
 func NewValidator(config config.Config) (*Validator, error) {
 	if config.K8sClient == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.K8sClient must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.K8sClient must not be empty", config)
 	}
 	if config.Logger == nil {
-		return nil, microerror.Maskf(aws.InvalidConfigError, "%T.Logger must not be empty", config)
+		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
 	validator := &Validator{
@@ -47,7 +46,7 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
-		return false, microerror.Maskf(aws.ParsingFailedError, "unable to parse awsmachinedeployment: %v", err)
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
 	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
@@ -75,7 +74,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 				&machineDeployment,
 			)
 			if err != nil {
-				return microerror.Maskf(aws.NotFoundError, "failed to fetch MachineDeployment: %v", err)
+				return microerror.Maskf(notFoundError, "failed to fetch MachineDeployment: %v", err)
 			}
 			return nil
 		}
@@ -85,7 +84,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 		b := backoff.NewMaxRetries(3, 1*time.Second)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the MachineDeployment doesn't exist yet. That is okay because the order of CR creation can vary.
-		if aws.IsNotFound(err) {
+		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No MachineDeployment %s could be found: %v", awsMachineDeployment.GetName(), err))
 			return nil
 		} else if err != nil {
@@ -101,7 +100,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 			key.MachineDeployment(&awsMachineDeployment),
 			key.Cluster(&awsMachineDeployment)),
 		)
-		return microerror.Maskf(aws.NotAllowedError, fmt.Sprintf("MachineDeployment %s=%s label does not match with AWSMachineDeployment %s=%s label for cluster %s",
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("MachineDeployment %s=%s label does not match with AWSMachineDeployment %s=%s label for cluster %s",
 			label.MachineDeployment,
 			key.MachineDeployment(&machineDeployment),
 			label.MachineDeployment,

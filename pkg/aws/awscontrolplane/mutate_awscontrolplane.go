@@ -73,11 +73,11 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	var numberOfAZs int
 
 	// We only need to manipulate if attributes are not set or it's a create operation
-	if awsControlPlaneCR.Spec.AvailabilityZones != nil && awsControlPlaneCR.Spec.InstanceType != "" && request.Operation != aws.CreateOperation {
+	if awsControlPlaneCR.Spec.AvailabilityZones != nil && awsControlPlaneCR.Spec.InstanceType != "" && request.Operation != admissionv1.Create {
 		return result, nil
 	}
 	// We need to fetch the G8sControlPlane in case AZs need to be defaulted or the awscontrolplane is just created
-	if (aws.IsHAVersion(releaseVersion) && awsControlPlaneCR.Spec.AvailabilityZones == nil) || request.Operation == aws.CreateOperation {
+	if (aws.IsHAVersion(releaseVersion) && awsControlPlaneCR.Spec.AvailabilityZones == nil) || request.Operation == admissionv1.Create {
 		numberOfAZs = aws.DefaultMasterReplicas
 		fetch := func() error {
 			ctx := context.Background()
@@ -98,7 +98,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 			numberOfAZs = g8sControlPlane.Spec.Replicas
 			{
 				// If the infrastructure reference is not set, we do it here
-				if request.Operation == aws.CreateOperation && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
+				if request.Operation == admissionv1.Create && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
 					m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
 					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlaneCR)
 					if infrastructureCRRef.Namespace == "" {

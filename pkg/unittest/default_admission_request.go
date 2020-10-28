@@ -10,6 +10,30 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+func DefaultAdmissionRequestAWSCluster() (admissionv1.AdmissionRequest, error) {
+	awsCluster := DefaultAWSCluster()
+	byt, err := json.Marshal(awsCluster)
+	if err != nil {
+		return admissionv1.AdmissionRequest{}, microerror.Mask(err)
+	}
+	req := admissionv1.AdmissionRequest{
+		Kind: metav1.GroupVersionKind{
+			Version: "infrastructure.giantswarm.io/v1alpha2",
+			Kind:    "AWSCluster",
+		},
+		Resource: metav1.GroupVersionResource{
+			Version:  "infrastructure.giantswarm.io/v1alpha2",
+			Resource: "awsclusters",
+		},
+		Operation: admissionv1.Create,
+		Object: runtime.RawExtension{
+			Raw:    byt,
+			Object: nil,
+		},
+	}
+	return req, nil
+}
+
 func DefaultAdmissionRequestAWSControlPlane() (admissionv1.AdmissionRequest, error) {
 	byt, err := json.Marshal(DefaultAWSControlPlane())
 	if err != nil {

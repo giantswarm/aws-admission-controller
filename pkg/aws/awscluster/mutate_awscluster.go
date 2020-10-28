@@ -1,5 +1,5 @@
 // Package awsmachinedeployment intercepts write activity to AWSMachineDeployment objects.
-package awsmachinedeployment
+package awscluster
 
 import (
 	"fmt"
@@ -14,11 +14,6 @@ import (
 	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
 )
 
-var (
-	// If not specified otherwise, node pools should have 100% on-demand instances.
-	defaultOnDemandPercentageAboveBaseCapacity int = 100
-)
-
 type Config struct {
 	K8sClient k8sclient.Interface
 	Logger    micrologger.Logger
@@ -28,6 +23,8 @@ type Config struct {
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
+
+	podCIDRBlock string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -41,6 +38,8 @@ func NewMutator(config config.Config) (*Mutator, error) {
 	mutator := &Mutator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
+
+		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
 	}
 
 	return mutator, nil
@@ -53,25 +52,36 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
-
-	// Parse incoming objects
-	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
-	awsMachineDeploymentOldCR := &infrastructurev1alpha2.AWSMachineDeployment{}
-	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+	awsCluster := &infrastructurev1alpha2.AWSCluster{}
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
 	}
-	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+	if &awsCluster.Spec.Provider.Pods != nil {
+		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
+			return result, nil
+		}
+		if awsCluster.Spec.Provider.Pods.ExternalSNAT != nil {
+			// If the Pod CIDR is not set but the pods attribute exists, we default here
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
+				awsCluster.ObjectMeta.Name,
+				m.podCIDRBlock),
+			)
+			patch := mutator.PatchAdd("/spec/provider/pods/", "cidrBlock")
+			result = append(result, patch)
+			patch = mutator.PatchAdd("/spec/provider/pods/cidrBlock", m.podCIDRBlock)
+			result = append(result, patch)
+			return result, nil
+		}
 	}
-
-	// Default the OnDemandPercentageAboveBaseCapacity.
-	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
-	// attribute defined. Otherwise the request to create/modify the CR will fail.
-	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
-		patch := mutator.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
-		result = append(result, patch)
-	}
+	// If the Pod CIDR is not set we default it here
+	m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Pod CIDR Block is not set and will be defaulted to %s",
+		awsCluster.ObjectMeta.Name,
+		m.podCIDRBlock),
+	)
+	patch := mutator.PatchAdd("/spec/provider/", "pods")
+	result = append(result, patch)
+	patch = mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
+	result = append(result, patch)
 
 	return result, nil
 }
@@ -81,5 +91,5 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 }
 
 func (m *Mutator) Resource() string {
-	return "awsmachinedeployment"
+	return "awscluster"
 }
