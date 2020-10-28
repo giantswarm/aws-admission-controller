@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2020-10-28
+
 ### Added
 
 - Added defaulting for the Pod CIDR in the `AWSCluster` CR
@@ -94,7 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/giantswarm/aws-admission-controller/compare/v1.5.2...v1.6.0
