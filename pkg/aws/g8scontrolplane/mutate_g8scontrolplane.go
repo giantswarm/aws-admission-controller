@@ -20,9 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/reference"
 
-	"github.com/giantswarm/aws-admission-controller/config"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws"
-	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
 type Mutator struct {

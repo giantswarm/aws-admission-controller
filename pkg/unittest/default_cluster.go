@@ -6,7 +6,7 @@ import (
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
 
 const (

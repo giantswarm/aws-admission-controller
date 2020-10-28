@@ -1,7 +1,7 @@
 package key
 
 import (
-	"github.com/giantswarm/aws-admission-controller/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
 
 func Cluster(getter LabelsGetter) string {
