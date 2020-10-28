@@ -38,6 +38,9 @@ Installation:
               - p3.2xlarge
               - p3.8xlarge
     Guest:
+      Calico:
+        CIDR: '16'
+        Subnet: '10.3.0.0'
       Docker:
         CIDR: "172.18.224.1/19"
       IPAM:

@@ -6,6 +6,8 @@ Giant Swarm Control Plane admission controller that implements the following rul
 
 Mutating Webhook:
 
+- In an `AWSCluster` resource, the Pod CIDR is defaulted if it is not set. 
+
 - In a `G8sControlPlane` resource, when the `.spec.replicas` is changed from 1 to 3, the Availability Zones of the according `AWSControlPlane` will be defaulted if needed.
 - In a `G8sControlPlane` resource, the replicas attribute will be defaulted if it is not defined.
   - For HA-Versions, in case the matching `AWSControlPlane` already exists, the number of AZs determines the value of `replicas`.

@@ -40,8 +40,9 @@ workflows:
             - build-aws-admission-controller
           filters:
             # Do this on every commit to master and when a new tag is created.
-            branches:
-              only: master
+            # REVERT: test in china
+            #branches:
+            #  only: master
             tags:
               only: /^v.*/
 
