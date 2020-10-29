@@ -1,4 +1,4 @@
-module github.com/giantswarm/aws-admission-controller/v2
+module github.com/giantswarm/aws-admission-controller/v2/v2
 
 go 1.15
 
