@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/metrics"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/metrics"
 )
 
 type Validator interface {

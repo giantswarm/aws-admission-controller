@@ -8,8 +8,8 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
 
 func TestMachineDeploymentLabelMatch(t *testing.T) {

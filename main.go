@@ -11,14 +11,14 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/giantswarm/aws-admission-controller/config"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscluster"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/g8scontrolplane"
-	"github.com/giantswarm/aws-admission-controller/pkg/aws/networkpool"
-	"github.com/giantswarm/aws-admission-controller/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscluster"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscontrolplane"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/networkpool"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 )
 
 func main() {

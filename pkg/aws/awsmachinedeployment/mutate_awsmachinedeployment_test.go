@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/giantswarm/aws-admission-controller/pkg/unittest"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
 
 var (
