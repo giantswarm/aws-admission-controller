@@ -52,10 +52,60 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
+	if request.Operation == admissionv1.Create {
+		return m.MutateCreate(request)
+	}
+	if request.Operation == admissionv1.Update {
+		return m.MutateUpdate(request)
+	}
+	return result, nil
+}
+
+// MutateCreate is the function executed for every create webhook request.
+func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
 	awsCluster := &infrastructurev1alpha2.AWSCluster{}
-	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
+	if _, _, err = mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
 	}
+	patch, err = m.MutatePodCIDR(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+// MutateUpdate is the function executed for every update webhook request.
+func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	awsCluster := &infrastructurev1alpha2.AWSCluster{}
+	if _, _, err = mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
+	}
+	awsClusterOld := &infrastructurev1alpha2.AWSCluster{}
+	if _, _, err = mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsClusterOld); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse old AWSCluster: %v", err)
+	}
+	patch, err = m.MutatePodCIDR(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+// MutatePodCIDR defaults the Pod CIDR if it is not set.
+func (m *Mutator) MutatePodCIDR(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
 	if &awsCluster.Spec.Provider.Pods != nil {
 		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
 			return result, nil
