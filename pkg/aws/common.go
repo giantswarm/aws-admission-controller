@@ -5,6 +5,9 @@ import (
 )
 
 const (
+	// DefaultClusterDescription is the default name for a cluster
+	DefaultClusterDescription = "Unnamed cluster"
+
 	// DefaultMasterReplicas is the default number of master node replicas
 	DefaultMasterReplicas = 3
 

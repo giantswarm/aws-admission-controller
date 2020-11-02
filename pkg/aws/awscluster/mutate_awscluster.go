@@ -11,6 +11,7 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -71,7 +72,14 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err = mutator.Deserializer.Decode(request.Object.Raw, nil, awsCluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSCluster: %v", err)
 	}
+
 	patch, err = m.MutatePodCIDR(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateDescription(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -133,6 +141,21 @@ func (m *Mutator) MutatePodCIDR(awsCluster infrastructurev1alpha2.AWSCluster) ([
 	patch = mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
 	result = append(result, patch)
 
+	return result, nil
+}
+
+//  MutateDescription defaults the cluster description if it is not set.
+func (m *Mutator) MutateDescription(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	if awsCluster.Spec.Cluster.Description == "" {
+		// If the cluster description is not set, we default here
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s Description is not set and will be defaulted to %s",
+			awsCluster.ObjectMeta.Name,
+			aws.DefaultClusterDescription),
+		)
+		patch := mutator.PatchAdd("/spec/cluster/description", aws.DefaultClusterDescription)
+		result = append(result, patch)
+	}
 	return result, nil
 }
 
