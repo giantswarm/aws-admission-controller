@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use cert-manager v1 API
 
+### Added
+
+- Added defaulting for the Cluster description in the `AWSCluster` CR
+
 ## [2.1.0] - 2020-10-29
 
 ### Added

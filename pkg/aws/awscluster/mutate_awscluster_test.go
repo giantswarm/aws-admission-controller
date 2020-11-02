@@ -7,6 +7,7 @@ import (
 
 	"github.com/giantswarm/micrologger/microloggertest"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
@@ -67,6 +68,65 @@ func TestAWSClusterPodCIDR(t *testing.T) {
 			// check if the pod CIDR is as expected
 			if tc.expectedPodCIDR != updatedCIDR["cidrBlock"] {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPodCIDR, updatedCIDR)
+			}
+		})
+	}
+}
+
+func TestAWSClusterDescription(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentDescription string
+		expectedPatch      string
+	}{
+		{
+			// Don't default the Cluster Description if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentDescription: "My cluster",
+			expectedPatch:      "",
+		},
+		{
+			// Default the Cluster Description if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentDescription: "",
+			expectedPatch:      aws.DefaultClusterDescription,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedDescription string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				podCIDRBlock: unittest.DefaultPodCIDR,
+				k8sClient:    fakeK8sClient,
+				logger:       microloggertest.New(),
+			}
+
+			// run mutate function to default AWSCluster Description
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Spec.Cluster.Description = tc.currentDescription
+			patch, err = mutate.MutateDescription(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/cluster/description" {
+					updatedDescription = p.Value.(string)
+				}
+			}
+			// check if the pod CIDR is as expected
+			if tc.expectedPatch != updatedDescription {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedDescription)
 			}
 		})
 	}
