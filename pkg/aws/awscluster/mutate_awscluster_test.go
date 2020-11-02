@@ -131,3 +131,61 @@ func TestAWSClusterDescription(t *testing.T) {
 		})
 	}
 }
+func TestAWSClusterDomain(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentDomain string
+		expectedPatch string
+	}{
+		{
+			// Don't default the Cluster DNS Domain if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentDomain: unittest.DefaultClusterDNSDomain,
+			expectedPatch: "",
+		},
+		{
+			// Default the Cluster DNS Domain if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentDomain: "",
+			expectedPatch: unittest.DefaultClusterDNSDomain,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedDomain string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				dnsDomain: unittest.DefaultClusterDNSDomain,
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+
+			// run mutate function to default AWSCluster Description
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Spec.Cluster.DNS.Domain = tc.currentDomain
+			patch, err = mutate.MutateDomain(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/cluster/dns/domain" {
+					updatedDomain = p.Value.(string)
+				}
+			}
+			// check if the pod CIDR is as expected
+			if tc.expectedPatch != updatedDomain {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedDomain)
+			}
+		})
+	}
+}

@@ -22,6 +22,7 @@ type Config struct {
 	AvailabilityZones        string
 	CertFile                 string
 	DockerCIDR               string
+	Endpoint                 string
 	IPAMNetworkCIDR          string
 	KubernetesClusterIPRange string
 	MasterInstanceTypes      string
@@ -74,6 +75,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
 	kingpin.Flag("availability-zones", "List of AWS availability zones").Required().StringVar(&config.AvailabilityZones)
 	kingpin.Flag("docker-cidr", "Default CIDR from Docker").Required().StringVar(&config.DockerCIDR)
+	kingpin.Flag("endpoint", "Default kubernetes endpoint").Required().StringVar(&config.Endpoint)
 	kingpin.Flag("ipam-network-cidr", "Default CIDR from tenant cluster").Required().StringVar(&config.IPAMNetworkCIDR)
 	kingpin.Flag("kubernetes-cluster-ip-range", "Default CIDR from Kubernetes").Required().StringVar(&config.KubernetesClusterIPRange)
 	kingpin.Flag("master-instance-types", "List of AWS master instance types").Required().StringVar(&config.MasterInstanceTypes)

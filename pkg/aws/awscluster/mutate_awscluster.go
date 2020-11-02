@@ -3,6 +3,7 @@ package awscluster
 
 import (
 	"fmt"
+	"strings"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
@@ -26,6 +27,7 @@ type Mutator struct {
 	logger    micrologger.Logger
 
 	podCIDRBlock string
+	dnsDomain    string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -41,6 +43,7 @@ func NewMutator(config config.Config) (*Mutator, error) {
 		logger:    config.Logger,
 
 		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
+		dnsDomain:    strings.TrimPrefix(config.Endpoint, "k8s."),
 	}
 
 	return mutator, nil
@@ -85,6 +88,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateDomain(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	return result, nil
 }
 
@@ -102,7 +111,20 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err = mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsClusterOld); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse old AWSCluster: %v", err)
 	}
+
 	patch, err = m.MutatePodCIDR(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateDescription(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateDomain(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -154,6 +176,21 @@ func (m *Mutator) MutateDescription(awsCluster infrastructurev1alpha2.AWSCluster
 			aws.DefaultClusterDescription),
 		)
 		patch := mutator.PatchAdd("/spec/cluster/description", aws.DefaultClusterDescription)
+		result = append(result, patch)
+	}
+	return result, nil
+}
+
+//  MutateDomain defaults the cluster dns domain if it is not set.
+func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	if awsCluster.Spec.Cluster.DNS.Domain == "" {
+		// If the dns domain is not set, we default here
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s DNS domain is not set and will be defaulted to %s",
+			awsCluster.ObjectMeta.Name,
+			m.dnsDomain),
+		)
+		patch := mutator.PatchAdd("/spec/cluster/dns/domain", m.dnsDomain)
 		result = append(result, patch)
 	}
 	return result, nil
