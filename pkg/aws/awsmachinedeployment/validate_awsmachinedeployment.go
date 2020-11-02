@@ -54,6 +54,16 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 
 	}
 
+	err = v.MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -109,6 +119,36 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 		)
 	}
 
+	return nil
+}
+
+func (v *Validator) MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
+	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[key.AnnotationUpdateMaxBatchSize]; ok {
+		if !key.MaxBatchSizeIsValid(maxBatchSize, awsMachineDeployment.Spec.NodePool.Scaling.Max) {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
+				key.AnnotationUpdateMaxBatchSize,
+				maxBatchSize),
+			)
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
+				maxBatchSize),
+			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
+	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[key.AnnotationUpdatePauseTime]; ok {
+		if !key.PauseTimeIsValid(maxBatchSize) {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '$s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+				key.AnnotationUpdatePauseTime,
+				maxBatchSize),
+			)
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+				maxBatchSize),
+			)
+		}
+	}
 	return nil
 }
 
