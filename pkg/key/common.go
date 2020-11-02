@@ -1,9 +1,9 @@
 package key
 
 import (
-	"github.com/dylanmei/iso8601"
 	"strconv"
 
+	"github.com/dylanmei/iso8601"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
 
