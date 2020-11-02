@@ -11,6 +11,8 @@ import (
 
 const (
 	DefaultPodCIDR = "10.2.0.0/16"
+
+	DefaultClusterDNSDomain = "gauss.eu-west-1.aws.gigantic.io"
 )
 
 func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {
