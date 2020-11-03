@@ -2,14 +2,16 @@ package awscluster
 
 import (
 	"fmt"
+
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+
+	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 )
 
 type Validator struct {
