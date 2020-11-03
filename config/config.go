@@ -28,6 +28,7 @@ type Config struct {
 	MasterInstanceTypes      string
 	PodCIDR                  string
 	PodSubnet                string
+	Region                   string
 	Logger                   micrologger.Logger
 	K8sClient                k8sclient.Interface
 	KeyFile                  string
@@ -82,6 +83,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("metrics-address", "The metrics address for Prometheus").Default(defaultMetricsAddress).StringVar(&config.MetricsAddress)
 	kingpin.Flag("pod-cidr", "Default pod CIDR").Required().StringVar(&config.PodCIDR)
 	kingpin.Flag("pod-subnet", "Default pod subnet").Required().StringVar(&config.PodSubnet)
+	kingpin.Flag("region", "Default cluster region").Required().StringVar(&config.Region)
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)
 

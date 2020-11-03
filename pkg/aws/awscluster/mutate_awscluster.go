@@ -28,6 +28,7 @@ type Mutator struct {
 
 	podCIDRBlock string
 	dnsDomain    string
+	region       string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -44,6 +45,7 @@ func NewMutator(config config.Config) (*Mutator, error) {
 
 		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
 		dnsDomain:    strings.TrimPrefix(config.Endpoint, "k8s."),
+		region:       config.Region,
 	}
 
 	return mutator, nil
@@ -94,6 +96,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateRegion(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	return result, nil
 }
 
@@ -125,6 +133,12 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	result = append(result, patch...)
 
 	patch, err = m.MutateDomain(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateRegion(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -191,6 +205,21 @@ func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 			m.dnsDomain),
 		)
 		patch := mutator.PatchAdd("/spec/cluster/dns/domain", m.dnsDomain)
+		result = append(result, patch)
+	}
+	return result, nil
+}
+
+//  MutateRegion defaults the cluster region if it is not set.
+func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	if awsCluster.Spec.Provider.Region == "" {
+		// If the region is not set, we default here
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s region is not set and will be defaulted to %s",
+			awsCluster.ObjectMeta.Name,
+			m.region),
+		)
+		patch := mutator.PatchAdd("/spec/provider/region", m.region)
 		result = append(result, patch)
 	}
 	return result, nil
