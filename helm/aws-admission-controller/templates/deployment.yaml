@@ -46,6 +46,8 @@ spec:
               value: {{ .Values.Installation.V1.Guest.Kubernetes.API.EndpointBase }}
             - name: DEFAULT_AWS_INSTANCE_TYPES
               value: {{ join "," .Values.Installation.V1.Provider.AWS.EC2.Instance.Allowed }}
+            - name: DEFAULT_AWS_REGION
+              value: {{ .Values.Installation.V1.Provider.AWS.Region }}
             - name: DEFAULT_AWS_POD_CIDR
               value: "{{ .Values.Installation.V1.Guest.Calico.CIDR }}"
             - name: DEFAULT_AWS_POD_SUBNET
@@ -60,6 +62,7 @@ spec:
             - --master-instance-types=$(DEFAULT_AWS_INSTANCE_TYPES)
             - --pod-cidr=$(DEFAULT_AWS_POD_CIDR)
             - --pod-subnet=$(DEFAULT_AWS_POD_SUBNET)
+            - --region=$(DEFAULT_AWS_REGION)
             - --tls-cert-file=/certs/ca.crt
             - --tls-key-file=/certs/tls.key
           volumeMounts:

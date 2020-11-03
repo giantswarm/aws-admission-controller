@@ -189,3 +189,62 @@ func TestAWSClusterDomain(t *testing.T) {
 		})
 	}
 }
+
+func TestAWSClusterRegion(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentRegion string
+		expectedPatch string
+	}{
+		{
+			// Don't default the Cluster Region if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentRegion: unittest.DefaultClusterRegion,
+			expectedPatch: "",
+		},
+		{
+			// Default the Cluster Region if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentRegion: "",
+			expectedPatch: unittest.DefaultClusterRegion,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedRegion string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				region:    unittest.DefaultClusterRegion,
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+
+			// run mutate function to default AWSCluster Description
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Spec.Provider.Region = tc.currentRegion
+			patch, err = mutate.MutateRegion(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/provider/region" {
+					updatedRegion = p.Value.(string)
+				}
+			}
+			// check if the pod CIDR is as expected
+			if tc.expectedPatch != updatedRegion {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedRegion)
+			}
+		})
+	}
+}
