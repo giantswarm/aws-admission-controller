@@ -1,9 +1,10 @@
 package aws
 
 import (
+	"strconv"
+
 	"github.com/blang/semver"
 	"github.com/dylanmei/iso8601"
-	"strconv"
 )
 
 const (
