@@ -49,6 +49,11 @@ func main() {
 	}
 
 	// Setup handler for validating webhook
+	awsclusterValidator, err := awscluster.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	awscontrolplaneValidator, err := awscontrolplane.NewValidator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
@@ -75,6 +80,7 @@ func main() {
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
 	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
+	handler.Handle("/validate/awscluster", validator.Handler(awsclusterValidator))
 	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
 	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
