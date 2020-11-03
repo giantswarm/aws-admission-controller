@@ -51,15 +51,15 @@ func IsValidMasterReplicas(replicas int) bool {
 
 // MaxBatchSizeIsValid will validate the value into valid maxBatchSize
 // valid values can be either:
-// an integer between 0 < x <= worker count
+// an integer bigger than 0
 // a float between 0 < x <= 1
 // float value is used as ratio of a total worker count
-func MaxBatchSizeIsValid(value string, maxWorkers int) bool {
+func MaxBatchSizeIsValid(value string) bool {
 	// try parse an integer
 	integer, err := strconv.Atoi(value)
 	if err == nil {
-		// check if the value is bigger than zero but lower-or-equal to maximum number of workers
-		if integer > 0 && integer <= maxWorkers {
+		// check if the value is bigger than zero but lower-or-equal
+		if integer > 0 {
 			// integer value can be directly used, no need for any adjustment
 			return true
 		} else {
