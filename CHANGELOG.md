@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added defaulting for the Cluster description in the `AWSCluster` CR
 - Added defaulting for the Cluster DNS domain in the `AWSCluster` CR
+- Added validation for `alpha.aws.giantswarm.io/update-max-batch-size` annotation on the `AWSMachineDeployment` CR.
+- Added validation for `alpha.aws.giantswarm.io/update-pause-time` annotation on the `AWSMachineDeployment` CR.
 
 ## [2.1.0] - 2020-10-29
 
