@@ -6,6 +6,7 @@ Giant Swarm Control Plane admission controller that implements the following rul
 
 Mutating Webhook:
 
+- In an `AWSCluster` resource, the Region is defaulted if it is not set. 
 - In an `AWSCluster` resource, the Description is defaulted if it is not set. 
 - In an `AWSCluster` resource, the DNS Domain is defaulted if it is not set. 
 - In an `AWSCluster` resource, the Pod CIDR is defaulted if it is not set. 

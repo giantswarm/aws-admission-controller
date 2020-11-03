@@ -37,6 +37,7 @@ Installation:
               - p2.xlarge
               - p3.2xlarge
               - p3.8xlarge
+        Region: eu-west-1
     Guest:
       Calico:
         CIDR: '16'

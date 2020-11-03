@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added defaulting for the Cluster region in the `AWSCluster` CR
 - Added defaulting for the Cluster description in the `AWSCluster` CR
 - Added defaulting for the Cluster DNS domain in the `AWSCluster` CR
 - Added validation for `alpha.aws.giantswarm.io/update-max-batch-size` annotation on the `AWSCluster` CR.
