@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
@@ -123,14 +124,14 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 }
 
 func (v *Validator) MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
-	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[key.AnnotationUpdateMaxBatchSize]; ok {
-		if !key.MaxBatchSizeIsValid(maxBatchSize, awsMachineDeployment.Spec.NodePool.Scaling.Max) {
+	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[aws.AnnotationUpdateMaxBatchSize]; ok {
+		if !aws.MaxBatchSizeIsValid(maxBatchSize, awsMachineDeployment.Spec.NodePool.Scaling.Max) {
 			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
-				key.AnnotationUpdateMaxBatchSize,
+				aws.AnnotationUpdateMaxBatchSize,
 				maxBatchSize),
 			)
 			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
-				key.AnnotationUpdateMaxBatchSize,
+				aws.AnnotationUpdateMaxBatchSize,
 				maxBatchSize),
 			)
 		}
@@ -139,14 +140,14 @@ func (v *Validator) MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDep
 }
 
 func (v *Validator) MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
-	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[key.AnnotationUpdatePauseTime]; ok {
-		if !key.PauseTimeIsValid(maxBatchSize) {
+	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[aws.AnnotationUpdatePauseTime]; ok {
+		if !aws.PauseTimeIsValid(maxBatchSize) {
 			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
-				key.AnnotationUpdatePauseTime,
+				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)
 			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
-				key.AnnotationUpdatePauseTime,
+				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)
 		}

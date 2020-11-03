@@ -1,4 +1,4 @@
-package key
+package aws
 
 import (
 	"strconv"
