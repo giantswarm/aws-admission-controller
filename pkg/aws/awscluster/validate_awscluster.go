@@ -36,7 +36,7 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	///var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsCluster); err != nil {
-		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
 	}
 
 	// TODO
