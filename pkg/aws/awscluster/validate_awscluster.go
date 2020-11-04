@@ -46,7 +46,6 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	err = v.AWSClusterAnnotationMaxBatchSizeIsValid(awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	err = v.AWSClusterAnnotationPauseTimeIsValid(awsCluster)
