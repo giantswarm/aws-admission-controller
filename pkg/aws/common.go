@@ -58,7 +58,7 @@ func MaxBatchSizeIsValid(value string) bool {
 	// try parse an integer
 	integer, err := strconv.Atoi(value)
 	if err == nil {
-		// check if the value is bigger than zero but lower-or-equal
+		// check if the value is bigger than zero
 		if integer > 0 {
 			// integer value can be directly used, no need for any adjustment
 			return true
