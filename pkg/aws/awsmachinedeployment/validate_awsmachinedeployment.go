@@ -125,12 +125,12 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 
 func (v *Validator) MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
 	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[aws.AnnotationUpdateMaxBatchSize]; ok {
-		if !aws.MaxBatchSizeIsValid(maxBatchSize, awsMachineDeployment.Spec.NodePool.Scaling.Max) {
-			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
+		if !aws.MaxBatchSizeIsValid(maxBatchSize) {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either integer bigger than zero or decimal number between 0 and 1.0 defining percentage of nodes",
 				aws.AnnotationUpdateMaxBatchSize,
 				maxBatchSize),
 			)
-			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either positive integer number smaller than number of nodes or decimal number between 0 and 1.0 defining percentage of nodes",
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Allowed value is either integer bigger than zero or decimal number between 0 and 1.0 defining percentage of nodes",
 				aws.AnnotationUpdateMaxBatchSize,
 				maxBatchSize),
 			)
