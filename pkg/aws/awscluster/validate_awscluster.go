@@ -51,7 +51,6 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	err = v.AWSClusterAnnotationPauseTimeIsValid(awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	return true, nil
