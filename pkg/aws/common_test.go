@@ -7,70 +7,54 @@ import (
 
 func Test_MaxBatchSizeIsValid(t *testing.T) {
 	testCases := []struct {
-		name    string
-		input   string
-		workers int
-		valid   bool
+		name  string
+		input string
+		valid bool
 	}{
 		{
-			name:    "case 0: int - simple value",
-			input:   "5",
-			workers: 5,
-			valid:   true,
+			name:  "case 0: int - simple value",
+			input: "5",
+			valid: true,
 		},
 		{
-			name:    "case 1: int - big value",
-			input:   "200",
-			workers: 300,
-			valid:   true,
+			name:  "case 1: int - big value",
+			input: "200",
+			valid: true,
 		},
 		{
-			name:    "case 2: int - invalid value - negative number",
-			input:   "-10",
-			workers: 5,
-			valid:   false,
+			name:  "case 2: int - invalid value - negative number",
+			input: "-10",
+			valid: false,
 		},
 		{
-			name:    "case 2: int - invalid value - zero",
-			input:   "0",
-			workers: 5,
-			valid:   false,
+			name:  "case 2: int - invalid value - zero",
+			input: "0",
+			valid: false,
 		},
 		{
-			name:    "case 3: int - invalid value - value bigger than worker count",
-			input:   "20",
-			workers: 5,
-			valid:   false,
+			name:  "case 4: percentage - simple value",
+			input: "0.5",
+			valid: true,
 		},
 		{
-			name:    "case 4: percentage - simple value",
-			input:   "0.5",
-			workers: 10,
-			valid:   true,
+			name:  "case 5: percentage - rounding",
+			input: "0.35",
+			valid: true,
 		},
 		{
-			name:    "case 5: percentage - rounding",
-			input:   "0.35",
-			workers: 10,
-			valid:   true,
+			name:  "case 6: percentage - rounding",
+			input: "0.32",
+			valid: true,
 		},
 		{
-			name:    "case 6: percentage - rounding",
-			input:   "0.32",
-			workers: 10,
-			valid:   true,
+			name:  "case 7: percentage - invalid value - too big",
+			input: "1.5",
+			valid: false,
 		},
 		{
-			name:    "case 7: percentage - invalid value - too big",
-			input:   "1.5",
-			workers: 10,
-			valid:   false,
-		},
-		{
-			name:    "case 8: percentage - invalid value - negative",
-			input:   "-0.5",
-			workers: 10,
-			valid:   false,
+			name:  "case 8: percentage - invalid value - negative",
+			input: "-0.5",
+			valid: false,
 		},
 		{
 			name:  "case 9: invalid value - '50%'",
@@ -96,7 +80,7 @@ func Test_MaxBatchSizeIsValid(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			isValid := MaxBatchSizeIsValid(tc.input, tc.workers)
+			isValid := MaxBatchSizeIsValid(tc.input)
 
 			if isValid != tc.valid {
 				t.Fatalf("%s - expected '%t' got '%t'\n", tc.name, tc.valid, isValid)
