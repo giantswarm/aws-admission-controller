@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.1] - 2020-11-05
 
+### Fixed
+
+- Auto refresh certificate when renewed
+
 ## [2.2.0] - 2020-11-04
 
 ### Changed
