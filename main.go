@@ -106,13 +106,10 @@ func healthCheck(writer http.ResponseWriter, request *http.Request) {
 }
 
 func serveTLS(config config.Config, handler http.Handler) {
-	logger := log.New(os.Stdout, "", log.LstdFlags)
-
 	cm, err := certman.New(config.CertFile, config.KeyFile)
 	if err != nil {
 		panic(microerror.JSON(err))
 	}
-	cm.Logger(logger)
 	if err := cm.Watch(); err != nil {
 		panic(microerror.JSON(err))
 	}
