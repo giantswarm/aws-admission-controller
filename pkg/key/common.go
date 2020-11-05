@@ -15,3 +15,7 @@ func ControlPlane(getter LabelsGetter) string {
 func MachineDeployment(getter LabelsGetter) string {
 	return getter.GetLabels()[label.MachineDeployment]
 }
+
+func Organization(getter LabelsGetter) string {
+	return getter.GetLabels()[label.Organization]
+}
