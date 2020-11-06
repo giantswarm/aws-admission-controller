@@ -250,7 +250,7 @@ func (m *Mutator) fetchCredentialSecret(organization string) (corev1.Secret, err
 	if err != nil {
 		return corev1.Secret{}, microerror.Maskf(notFoundError, "Failed to fetch credential-secret: %v", err)
 	}
-	if len(secrets.Items) < 1 {
+	if len(secrets.Items) == 0 {
 		return corev1.Secret{}, microerror.Maskf(notFoundError, "Could not find credential-secret for organization %s", organization)
 	}
 	if len(secrets.Items) > 1 {
