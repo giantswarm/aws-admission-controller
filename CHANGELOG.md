@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added defaulting for the Cluster credential secret in the `AWSCluster` CR
 
+## [2.2.1] - 2020-11-05
+
+### Fixed
+
+- Auto refresh certificate when renewed
+
 ## [2.2.0] - 2020-11-04
 
 ### Changed
@@ -116,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.0.0...v2.0.1
