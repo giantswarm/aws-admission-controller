@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/giantswarm/micrologger/microloggertest"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
@@ -68,6 +69,85 @@ func TestAWSClusterPodCIDR(t *testing.T) {
 			// check if the pod CIDR is as expected
 			if tc.expectedPodCIDR != updatedCIDR["cidrBlock"] {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPodCIDR, updatedCIDR)
+			}
+		})
+	}
+}
+func TestAWSClusterCredentials(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentCredential types.NamespacedName
+		secretExists      bool
+		expectedPatch     types.NamespacedName
+	}{
+		{
+			// Don't default the Credential if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentCredential: unittest.DefaultClusterCredentialSecretLocation(),
+			expectedPatch:     types.NamespacedName{},
+		},
+		{
+			// Default the Credential if it is not set and no org credential secret exists
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentCredential: types.NamespacedName{},
+			expectedPatch:     aws.DefaultCredentialSecret(),
+		},
+		{
+			// Default the Credential if it is not set and an org credential secret exists
+			name: "case 2",
+			ctx:  context.Background(),
+
+			currentCredential: types.NamespacedName{},
+			secretExists:      true,
+			expectedPatch:     unittest.DefaultClusterCredentialSecretLocation(),
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedCredential map[string]string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+			if tc.secretExists {
+				secret := unittest.DefaultClusterCredentialSecret()
+
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &secret)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			// run mutate function to default AWSCluster Credential
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Spec.Provider.CredentialSecret.Name = tc.currentCredential.Name
+			awscluster.Spec.Provider.CredentialSecret.Namespace = tc.currentCredential.Namespace
+			patch, err = mutate.MutateCredential(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/cluster/credentialSecret" {
+					updatedCredential = p.Value.(map[string]string)
+				}
+			}
+			// check if the pod CIDR is as expected
+			if tc.expectedPatch.Name != updatedCredential["name"] || tc.expectedPatch.Namespace != updatedCredential["namespace"] {
+				t.Fatalf("expected %#q/%#q to be equal to %#q/%#q",
+					tc.expectedPatch.Namespace,
+					tc.expectedPatch.Name,
+					updatedCredential["namespace"],
+					updatedCredential["name"])
 			}
 		})
 	}

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added defaulting for the Cluster credential secret in the `AWSCluster` CR
+
 ## [2.2.0] - 2020-11-04
 
 ### Changed

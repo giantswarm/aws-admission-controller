@@ -22,6 +22,7 @@ func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {
 				label.Cluster:         DefaultClusterID,
 				label.OperatorVersion: "7.3.0",
 				label.Release:         "100.0.0",
+				label.Organization:    "example-organization",
 			},
 			Name:      DefaultClusterID,
 			Namespace: metav1.NamespaceDefault,

@@ -12,8 +12,8 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -231,30 +231,26 @@ func (m *Mutator) MutateCredential(awsCluster infrastructurev1alpha2.AWSCluster)
 	result = append(result, patch)
 	return result, nil
 }
-func (m *Mutator) fetchCredentialSecret(organization string) (*corev1.Secret, error) {
+func (m *Mutator) fetchCredentialSecret(organization string) (corev1.Secret, error) {
 	var err error
-	o := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", label.Organization, organization),
-	}
-	secrets := &corev1.SecretList{}
-
+	secrets := corev1.SecretList{}
 	// Fetch the credential secret
 	m.Log("level", "debug", "message", fmt.Sprintf("Fetching credential secret for organization %s", organization))
 	err = m.k8sClient.CtrlClient().List(
 		context.Background(),
-		secrets,
-		o,
+		&secrets,
+		client.MatchingLabels{label.Organization: organization, label.ManagedBy: "credentiald"},
 	)
 	if err != nil {
-		return nil, microerror.Maskf(notFoundError, "Failed to fetch credential-secret: %v", err)
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Failed to fetch credential-secret: %v", err)
 	}
 	if len(secrets.Items) < 1 {
-		return nil, microerror.Maskf(notFoundError, "Could not find credential-secret for organization %s", organization)
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Could not find credential-secret for organization %s", organization)
 	}
 	if len(secrets.Items) > 1 {
-		return nil, microerror.Maskf(notFoundError, "Found more than one credential secret for organization %s", len(secrets.Items), organization)
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Found %v credential secrets instead of one for organization %s", len(secrets.Items), organization)
 	}
-	return &secrets.Items[0], nil
+	return secrets.Items[0], nil
 }
 
 //  MutateDescription defaults the cluster description if it is not set.
