@@ -234,6 +234,12 @@ func (m *Mutator) MutateCredential(awsCluster infrastructurev1alpha2.AWSCluster)
 func (m *Mutator) fetchCredentialSecret(organization string) (corev1.Secret, error) {
 	var err error
 	secrets := corev1.SecretList{}
+
+	// return early if no org is given
+	if organization == "" {
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Could not find secret because organization is unknown.")
+	}
+
 	// Fetch the credential secret
 	m.Log("level", "debug", "message", fmt.Sprintf("Fetching credential secret for organization %s", organization))
 	err = m.k8sClient.CtrlClient().List(
