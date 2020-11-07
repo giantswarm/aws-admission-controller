@@ -75,11 +75,11 @@ func (v *Validator) AWSClusterAnnotationMaxBatchSizeIsValid(awsCluster infrastru
 func (v *Validator) AWSClusterAnnotationPauseTimeIsValid(awsCluster infrastructurev1alpha2.AWSCluster) error {
 	if maxBatchSize, ok := awsCluster.GetAnnotations()[aws.AnnotationUpdatePauseTime]; ok {
 		if !aws.PauseTimeIsValid(maxBatchSize) {
-			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format and cannot be longer than 1 hour.",
 				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)
-			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format and cannot be longer than 1 hour.",
 				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)

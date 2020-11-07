@@ -83,8 +83,17 @@ func MaxBatchSizeIsValid(value string) bool {
 }
 
 // PauseTimeIsValid checks if the value is in proper ISO 8601 duration format
+// and ensure the duration is not bigger than 1 Hour (AWS limitation)
 func PauseTimeIsValid(value string) bool {
+	d, err := iso8601.ParseDuration(value)
+	if err != nil {
+		return false
+	}
 
-	_, err := iso8601.ParseDuration(value)
-	return err == nil
+	if d.Hours() > 1.0 {
+		// AWS allows maximum of 1 hour
+		return false
+	}
+
+	return true
 }
