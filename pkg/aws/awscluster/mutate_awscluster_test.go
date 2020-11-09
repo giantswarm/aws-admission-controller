@@ -137,7 +137,7 @@ func TestAWSClusterCredentials(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == "/spec/cluster/credentialSecret" {
+				if p.Path == "/spec/provider/credentialSecret" {
 					updatedCredential = p.Value.(map[string]string)
 				}
 			}

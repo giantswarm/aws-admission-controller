@@ -224,10 +224,10 @@ func (m *Mutator) MutateCredential(awsCluster infrastructurev1alpha2.AWSCluster)
 	}
 	m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s credential secret is not set and will be defaulted to %s/%s",
 		awsCluster.ObjectMeta.Name,
-		secretName.Name,
-		secretName.Namespace),
+		secretName.Namespace,
+		secretName.Name),
 	)
-	patch := mutator.PatchAdd("/spec/cluster/credentialSecret", map[string]string{"name": secretName.Name, "namespace": secretName.Namespace})
+	patch := mutator.PatchAdd("/spec/provider/credentialSecret", map[string]string{"name": secretName.Name, "namespace": secretName.Namespace})
 	result = append(result, patch)
 	return result, nil
 }
