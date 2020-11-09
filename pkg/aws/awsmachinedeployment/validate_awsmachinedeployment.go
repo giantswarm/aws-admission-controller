@@ -142,11 +142,11 @@ func (v *Validator) MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDep
 func (v *Validator) MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
 	if maxBatchSize, ok := awsMachineDeployment.GetAnnotations()[aws.AnnotationUpdatePauseTime]; ok {
 		if !aws.PauseTimeIsValid(maxBatchSize) {
-			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format and cannot be bigger than 1 hour.",
 				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)
-			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format",
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format and cannot be bigger than 1 hour.",
 				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
 			)

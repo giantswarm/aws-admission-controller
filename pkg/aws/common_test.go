@@ -107,7 +107,7 @@ func Test_PauseTimeIsValid(t *testing.T) {
 		},
 		{
 			name:  "case 3: simple value",
-			value: "PT1H2M10S",
+			value: "PT2M10S",
 			valid: true,
 		},
 		{
@@ -143,6 +143,11 @@ func Test_PauseTimeIsValid(t *testing.T) {
 		{
 			name:  "case 10: invalid value value",
 			value: "",
+			valid: false,
+		},
+		{
+			name:  "case 11: duration too big",
+			value: "PT1H2M",
 			valid: false,
 		},
 	}
