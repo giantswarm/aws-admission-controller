@@ -5,6 +5,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/dylanmei/iso8601"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -27,6 +28,14 @@ const (
 	AnnotationUpdateMaxBatchSize = "alpha.aws.giantswarm.io/update-max-batch-size"
 	AnnotationUpdatePauseTime    = "alpha.aws.giantswarm.io/update-pause-time"
 )
+
+// DefaultCredentialSecret returns the default credentials for clusters
+func DefaultCredentialSecret() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      "credential-default",
+		Namespace: "giantswarm",
+	}
+}
 
 // ValidMasterReplicas are the allowed number of master node replicas
 func ValidMasterReplicas() []int {
