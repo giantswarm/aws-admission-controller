@@ -2,6 +2,7 @@
 package awscluster
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -10,9 +11,14 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -84,6 +90,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateCredential(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateDescription(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -121,6 +133,12 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 
 	patch, err = m.MutatePodCIDR(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateCredential(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -178,6 +196,67 @@ func (m *Mutator) MutatePodCIDR(awsCluster infrastructurev1alpha2.AWSCluster) ([
 	result = append(result, patch)
 
 	return result, nil
+}
+
+//  MutateCredential defaults the cluster credential if it is not set.
+func (m *Mutator) MutateCredential(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	if awsCluster.Spec.Provider.CredentialSecret.Name != "" && awsCluster.Spec.Provider.CredentialSecret.Namespace != "" {
+		return result, nil
+	}
+	// If the cluster credential secret attribute is not set or incomplete, we default here
+
+	var secretName types.NamespacedName
+	{
+		secret, err := m.fetchCredentialSecret(key.Organization(&awsCluster))
+		if IsNotFound(err) {
+			// if the credential secret can not be found we do no fail but use the default one
+			m.Log("level", "debug", "message", fmt.Sprintf("Could not fetch credential-secret. Using default secret instead: %v", err))
+			secretName = aws.DefaultCredentialSecret()
+		} else if err != nil {
+			return nil, microerror.Mask(err)
+		} else {
+			secretName = types.NamespacedName{
+				Name:      secret.GetName(),
+				Namespace: secret.GetNamespace(),
+			}
+		}
+	}
+	m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster %s credential secret is not set and will be defaulted to %s/%s",
+		awsCluster.ObjectMeta.Name,
+		secretName.Namespace,
+		secretName.Name),
+	)
+	patch := mutator.PatchAdd("/spec/provider/credentialSecret", map[string]string{"name": secretName.Name, "namespace": secretName.Namespace})
+	result = append(result, patch)
+	return result, nil
+}
+func (m *Mutator) fetchCredentialSecret(organization string) (corev1.Secret, error) {
+	var err error
+	secrets := corev1.SecretList{}
+
+	// return early if no org is given
+	if organization == "" {
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Could not find secret because organization is unknown.")
+	}
+
+	// Fetch the credential secret
+	m.Log("level", "debug", "message", fmt.Sprintf("Fetching credential secret for organization %s", organization))
+	err = m.k8sClient.CtrlClient().List(
+		context.Background(),
+		&secrets,
+		client.MatchingLabels{label.Organization: organization, label.ManagedBy: "credentiald"},
+	)
+	if err != nil {
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Failed to fetch credential-secret: %v", err)
+	}
+	if len(secrets.Items) == 0 {
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Could not find credential-secret for organization %s", organization)
+	}
+	if len(secrets.Items) > 1 {
+		return corev1.Secret{}, microerror.Maskf(notFoundError, "Found %v credential secrets instead of one for organization %s", len(secrets.Items), organization)
+	}
+	return secrets.Items[0], nil
 }
 
 //  MutateDescription defaults the cluster description if it is not set.
