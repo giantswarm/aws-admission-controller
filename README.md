@@ -30,6 +30,7 @@ Mutating Webhook:
 - On creation of an `AWSControlPlane` resource, the infrastructure reference of the according `G8sControlPlane` will be set if needed.
 
 - When a new `AWSMachineDeployment` is created, details are logged.
+- In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 
 Validating Webhook:
 
