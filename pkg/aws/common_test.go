@@ -1,8 +1,15 @@
 package aws
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 	"testing"
+
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
+	"github.com/giantswarm/micrologger/microloggertest"
 )
 
 func Test_MaxBatchSizeIsValid(t *testing.T) {
@@ -158,6 +165,69 @@ func Test_PauseTimeIsValid(t *testing.T) {
 
 			if result != tc.valid {
 				t.Fatalf("%s -  expected '%t' got '%t'\n", tc.name, tc.valid, result)
+			}
+		})
+	}
+}
+
+func TestReleaseVersion(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentRelease string
+		expectedPatch  string
+	}{
+		{
+			// Don't default the Release Label if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentRelease: unittest.DefaultReleaseVersion,
+			expectedPatch:  "",
+		},
+		{
+			// Default the Release Label if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentRelease: "",
+			expectedPatch:  unittest.DefaultReleaseVersion,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedRelease string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				K8sClient: fakeK8sClient,
+				Logger:    microloggertest.New(),
+			}
+			// Create Cluster
+			cluster := unittest.DefaultCluster()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &cluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// run mutate function to default AWSCluster ReleaseVersion label
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.SetLabels(map[string]string{label.Release: tc.currentRelease, label.Cluster: unittest.DefaultClusterID})
+			patch, err = MutateReleaseVersionLabel(mutate, awscluster.GetObjectMeta())
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", escapeJSONPatchString(label.Release)) {
+					updatedRelease = p.Value.(string)
+				}
+			}
+			// check if the release label is as expected
+			if tc.expectedPatch != updatedRelease {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedRelease)
 			}
 		})
 	}

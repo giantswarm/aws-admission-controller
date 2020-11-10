@@ -108,6 +108,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateReleaseVersion(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateRegion(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -287,6 +293,10 @@ func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 		result = append(result, patch)
 	}
 	return result, nil
+}
+
+func (m *Mutator) MutateReleaseVersion(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster)
 }
 
 //  MutateRegion defaults the cluster region if it is not set.

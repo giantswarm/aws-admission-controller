@@ -19,3 +19,6 @@ func MachineDeployment(getter LabelsGetter) string {
 func Organization(getter LabelsGetter) string {
 	return getter.GetLabels()[label.Organization]
 }
+func Release(getter LabelsGetter) string {
+	return getter.GetLabels()[label.Release]
+}

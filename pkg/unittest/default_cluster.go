@@ -5,6 +5,7 @@ import (
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	capiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
@@ -13,6 +14,7 @@ const (
 	DefaultPodCIDR          = "10.2.0.0/16"
 	DefaultClusterDNSDomain = "gauss.eu-west-1.aws.gigantic.io"
 	DefaultClusterRegion    = "eu-west-1"
+	DefaultReleaseVersion   = "100.0.0"
 )
 
 func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {
@@ -86,4 +88,25 @@ func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {
 	}
 
 	return cr
+}
+
+func DefaultCluster() capiv1alpha2.Cluster {
+	cluster := capiv1alpha2.Cluster{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Cluster",
+			APIVersion: "cluster.x-k8s.io/v1alpha2",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      DefaultClusterID,
+			Namespace: metav1.NamespaceDefault,
+			Labels: map[string]string{
+				label.Cluster:         DefaultClusterID,
+				label.OperatorVersion: "1.2.3",
+				label.Release:         "100.0.0",
+				label.Organization:    "example-organization",
+			},
+		},
+	}
+
+	return cluster
 }
