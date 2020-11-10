@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added defaulting for the Cluster credential secret in the `AWSCluster` CR
 
+### Fixed
+
+- Fix validation of `alpha.aws.giantswarm.io/update-pause-time` to allow maximum value of 1 hour.
+
 ## [2.2.1] - 2020-11-05
 
 ### Fixed
