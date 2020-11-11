@@ -32,6 +32,8 @@ Mutating Webhook:
 - When a new `AWSMachineDeployment` is created, details are logged.
 - In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 
+- In a `Machinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
+
 Validating Webhook:
 
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are a valid count (Right now either 1 or 3).
