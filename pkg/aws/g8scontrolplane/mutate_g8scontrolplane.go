@@ -11,7 +11,6 @@ import (
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/backoff"
-	"github.com/giantswarm/cluster-operator/v3/pkg/label"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -21,6 +20,7 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -318,7 +318,7 @@ func releaseVersion(cr *infrastructurev1alpha2.G8sControlPlane, patch []mutator.
 			version = patch[0].Value.(string)
 		}
 	} else {
-		version, ok = cr.Labels[label.ReleaseVersion]
+		version, ok = cr.Labels[label.Release]
 		if !ok {
 			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from G8sControlplane %s", cr.Name)
 		}
