@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Default the Release Version Label in the `AWSCluster` CR based on the `Cluster`CR
+- Default the Release Version Label in the `AWSCluster`, `MachineDeployment` and `AWSMachineDeployment` CRs based on the `Cluster`CR
 
 ## [2.2.2] - 2020-11-10
 
