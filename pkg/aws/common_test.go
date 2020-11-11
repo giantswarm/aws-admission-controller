@@ -222,7 +222,7 @@ func TestReleaseVersion(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", escapeJSONPatchString(label.Release)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
 					updatedRelease = p.Value.(string)
 				}
 			}

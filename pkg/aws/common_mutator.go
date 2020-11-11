@@ -55,7 +55,7 @@ func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchO
 		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Release label is not set and will be defaulted to %s from Cluster %s.",
 			release,
 			cluster.GetName()))
-		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", escapeJSONPatchString(label.Release)), release)
+		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)), release)
 		result = append(result, patch)
 	}
 
@@ -63,7 +63,7 @@ func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchO
 }
 
 // Ensure the needed escapes are in place. See https://tools.ietf.org/html/rfc6901#section-3 .
-func escapeJSONPatchString(input string) string {
+func EscapeJSONPatchString(input string) string {
 	input = strings.ReplaceAll(input, "~", "~0")
 	input = strings.ReplaceAll(input, "/", "~1")
 
