@@ -16,7 +16,6 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/reference"
 
@@ -187,13 +186,11 @@ func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha
 
 func (m *Mutator) MutateInfraRef(awsControlPlane infrastructurev1alpha2.AWSControlPlane, g8sControlPlane infrastructurev1alpha2.G8sControlPlane) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
-	var err error
 	if g8sControlPlane.Spec.InfrastructureRef.Name != "" && g8sControlPlane.Spec.InfrastructureRef.Namespace != "" {
 		return result, nil
 	}
 	// We get the infrastructure reference
-	infrastructureCRRef := &v1.ObjectReference{}
-	infrastructureCRRef, err = reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlane)
+	infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlane)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
