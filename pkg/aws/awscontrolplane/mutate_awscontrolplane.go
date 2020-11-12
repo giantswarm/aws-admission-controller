@@ -57,6 +57,20 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
+	if request.Operation == admissionv1.Create {
+		return m.MutateCreate(request)
+	}
+	if request.Operation == admissionv1.Update {
+		return m.MutateUpdate(request)
+	}
+	return result, nil
+}
+
+// MutateCreate is the function executed for every create webhook request.
+func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
 
 	awsControlPlaneCR := &infrastructurev1alpha2.AWSControlPlane{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
@@ -66,6 +80,42 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
+
+	patch, err = m.MutateAWSControlPlane(request, *awsControlPlaneCR, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+// MutateUpdate is the function executed for every update webhook request.
+func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	awsControlPlaneCR := &infrastructurev1alpha2.AWSControlPlane{}
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
+	}
+	releaseVersion, err := releaseVersion(awsControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
+	}
+
+	patch, err = m.MutateAWSControlPlane(request, *awsControlPlaneCR, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
 		namespace = "default"
@@ -100,7 +150,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 				// If the infrastructure reference is not set, we do it here
 				if request.Operation == admissionv1.Create && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
 					m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
-					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, awsControlPlaneCR)
+					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlaneCR)
 					if infrastructureCRRef.Namespace == "" {
 						infrastructureCRRef.Namespace = namespace
 					}
@@ -119,7 +169,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 			return nil
 		}
 		b := backoff.NewMaxRetries(3, 1*time.Second)
-		err = backoff.Retry(fetch, b)
+		err := backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the g8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {
 			m.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
@@ -150,7 +200,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 
 			// We try to fetch the AWSCluster CR.
 			AWSCluster := &infrastructurev1alpha2.AWSCluster{}
-			clusterID, err := clusterID(awsControlPlaneCR)
+			clusterID, err := clusterID(&awsControlPlaneCR)
 			if err != nil {
 				return err
 			}
@@ -169,7 +219,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 			return nil
 		}
 		b := backoff.NewMaxRetries(3, 1*time.Second)
-		err = backoff.Retry(fetch, b)
+		err := backoff.Retry(fetch, b)
 		if err != nil {
 			m.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		}
