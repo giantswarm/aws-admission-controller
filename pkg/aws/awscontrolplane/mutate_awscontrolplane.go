@@ -25,6 +25,8 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
+const defaultnamespace = "default"
+
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
@@ -136,7 +138,7 @@ func (m *Mutator) MutateAvailabilityZones(awsControlPlaneCR infrastructurev1alph
 	var result []mutator.PatchOperation
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
-		namespace = "default"
+		namespace = defaultnamespace
 	}
 	var numberOfAZs int
 
@@ -223,7 +225,7 @@ func (m *Mutator) MutateInfraRef(awsControlPlaneCR infrastructurev1alpha2.AWSCon
 	var result []mutator.PatchOperation
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
-		namespace = "default"
+		namespace = defaultnamespace
 	}
 
 	fetch := func() error {
@@ -279,7 +281,7 @@ func (m *Mutator) MutateInstanceType(awsControlPlaneCR infrastructurev1alpha2.AW
 	var result []mutator.PatchOperation
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
-		namespace = "default"
+		namespace = defaultnamespace
 	}
 
 	// We only need to manipulate if instance type is not set
