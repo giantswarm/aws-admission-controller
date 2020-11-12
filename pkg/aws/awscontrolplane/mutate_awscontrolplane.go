@@ -25,6 +25,8 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
+const defaultnamespace = "default"
+
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
@@ -81,7 +83,19 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
 
-	patch, err = m.MutateAWSControlPlane(request, *awsControlPlaneCR, releaseVersion)
+	patch, err = m.MutateInfraRef(*awsControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateInstanceType(*awsControlPlaneCR, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateAvailabilityZones(*awsControlPlaneCR, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -105,7 +119,13 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
 
-	patch, err = m.MutateAWSControlPlane(request, *awsControlPlaneCR, releaseVersion)
+	patch, err = m.MutateInstanceType(*awsControlPlaneCR, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateAvailabilityZones(*awsControlPlaneCR, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -114,20 +134,20 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	return result, nil
 }
 
-func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateAvailabilityZones(awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	namespace := awsControlPlaneCR.GetNamespace()
 	if namespace == "" {
-		namespace = "default"
+		namespace = defaultnamespace
 	}
 	var numberOfAZs int
 
 	// We only need to manipulate if attributes are not set or it's a create operation
-	if awsControlPlaneCR.Spec.AvailabilityZones != nil && awsControlPlaneCR.Spec.InstanceType != "" && request.Operation != admissionv1.Create {
+	if awsControlPlaneCR.Spec.AvailabilityZones != nil {
 		return result, nil
 	}
-	// We need to fetch the G8sControlPlane in case AZs need to be defaulted or the awscontrolplane is just created
-	if (aws.IsHAVersion(releaseVersion) && awsControlPlaneCR.Spec.AvailabilityZones == nil) || request.Operation == admissionv1.Create {
+	// We need to fetch the G8sControlPlane in case AZs need to be defaulted
+	if aws.IsHAVersion(releaseVersion) {
 		numberOfAZs = aws.DefaultMasterReplicas
 		fetch := func() error {
 			ctx := context.Background()
@@ -146,26 +166,6 @@ func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, a
 				}
 			}
 			numberOfAZs = g8sControlPlane.Spec.Replicas
-			{
-				// If the infrastructure reference is not set, we do it here
-				if request.Operation == admissionv1.Create && g8sControlPlane.Spec.InfrastructureRef.Name == "" {
-					m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
-					infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlaneCR)
-					if infrastructureCRRef.Namespace == "" {
-						infrastructureCRRef.Namespace = namespace
-					}
-					if err != nil {
-						return microerror.Mask(err)
-					}
-
-					// We update the reference in the CR
-					g8sControlPlane.Spec.InfrastructureRef = *infrastructureCRRef
-					err = m.k8sClient.CtrlClient().Update(ctx, g8sControlPlane)
-					if err != nil {
-						return microerror.Mask(err)
-					}
-				}
-			}
 			return nil
 		}
 		b := backoff.NewMaxRetries(3, 1*time.Second)
@@ -176,25 +176,14 @@ func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, a
 		} else if err != nil {
 			return nil, err
 		}
-	}
-	if aws.IsHAVersion(releaseVersion) {
-		// Trigger defaulting of the master instance type
-		if awsControlPlaneCR.Spec.InstanceType == "" {
-			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			patch := mutator.PatchAdd("/spec/instanceType", aws.DefaultMasterInstanceType)
-			result = append(result, patch)
-		}
 		// Trigger defaulting of the master availability zones
-		if awsControlPlaneCR.Spec.AvailabilityZones == nil {
-			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			// We default the AZs
-			defaultedAZs := m.getNavailabilityZones(numberOfAZs, m.validAvailabilityZones)
-			patch := mutator.PatchAdd("/spec/availabilityZones", defaultedAZs)
-			result = append(result, patch)
-		}
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+		// We default the AZs
+		defaultedAZs := m.getNavailabilityZones(numberOfAZs, m.validAvailabilityZones)
+		patch := mutator.PatchAdd("/spec/availabilityZones", defaultedAZs)
+		result = append(result, patch)
 	} else {
 		var availabilityZone []string
-		var instanceType string
 		fetch := func() error {
 			ctx := context.Background()
 
@@ -215,6 +204,114 @@ func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, a
 				}
 			}
 			availabilityZone = append(availabilityZone, AWSCluster.Spec.Provider.Master.AvailabilityZone)
+			return nil
+		}
+		b := backoff.NewMaxRetries(3, 1*time.Second)
+		err := backoff.Retry(fetch, b)
+		if err != nil {
+			m.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
+		}
+		// Trigger defaulting of the master availability zone
+		if awsControlPlaneCR.Spec.AvailabilityZones == nil {
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+			patch := mutator.PatchAdd("/spec/availabilityZones", availabilityZone)
+			result = append(result, patch)
+		}
+	}
+	return result, nil
+}
+
+func (m *Mutator) MutateInfraRef(awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	namespace := awsControlPlaneCR.GetNamespace()
+	if namespace == "" {
+		namespace = defaultnamespace
+	}
+
+	fetch := func() error {
+		ctx := context.Background()
+
+		// We try to fetch the G8sControlPlane CR.
+		g8sControlPlane := &infrastructurev1alpha2.G8sControlPlane{}
+		{
+			m.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlaneCR.Name))
+			err := m.k8sClient.CtrlClient().Get(
+				ctx,
+				types.NamespacedName{Name: awsControlPlaneCR.GetName(), Namespace: namespace},
+				g8sControlPlane,
+			)
+			if err != nil {
+				return microerror.Maskf(notFoundError, "failed to fetch G8sControlplane: %v", err)
+			}
+		}
+		{
+			// If the infrastructure reference is not set, we do it here
+			if g8sControlPlane.Spec.InfrastructureRef.Name == "" || g8sControlPlane.Spec.InfrastructureRef.Namespace == "" {
+				m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
+				infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlaneCR)
+				if infrastructureCRRef.Namespace == "" {
+					infrastructureCRRef.Namespace = namespace
+				}
+				if err != nil {
+					return microerror.Mask(err)
+				}
+
+				// We update the reference in the CR
+				g8sControlPlane.Spec.InfrastructureRef = *infrastructureCRRef
+				err = m.k8sClient.CtrlClient().Update(ctx, g8sControlPlane)
+				if err != nil {
+					return microerror.Mask(err)
+				}
+			}
+		}
+		return nil
+	}
+	b := backoff.NewMaxRetries(3, 1*time.Second)
+	err := backoff.Retry(fetch, b)
+	// Note that while we do log the error, we don't fail if the g8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
+	if IsNotFound(err) {
+		m.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
+	} else if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (m *Mutator) MutateInstanceType(awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	namespace := awsControlPlaneCR.GetNamespace()
+	if namespace == "" {
+		namespace = defaultnamespace
+	}
+
+	// We only need to manipulate if instance type is not set
+	if awsControlPlaneCR.Spec.InstanceType != "" {
+		return result, nil
+	}
+	if aws.IsHAVersion(releaseVersion) {
+		// Trigger defaulting of the master instance type
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+		patch := mutator.PatchAdd("/spec/instanceType", aws.DefaultMasterInstanceType)
+		result = append(result, patch)
+	} else {
+		var instanceType string
+		fetch := func() error {
+			ctx := context.Background()
+
+			// We try to fetch the AWSCluster CR.
+			AWSCluster := &infrastructurev1alpha2.AWSCluster{}
+			clusterID, err := clusterID(&awsControlPlaneCR)
+			if err != nil {
+				return err
+			}
+			m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
+			err = m.k8sClient.CtrlClient().Get(ctx,
+				types.NamespacedName{Name: clusterID,
+					Namespace: namespace},
+				AWSCluster)
+			if err != nil {
+				return microerror.Maskf(notFoundError, "failed to fetch AWSCluster: %v", err)
+			}
 			instanceType = AWSCluster.Spec.Provider.Master.InstanceType
 			return nil
 		}
@@ -224,17 +321,9 @@ func (m *Mutator) MutateAWSControlPlane(request *admissionv1.AdmissionRequest, a
 			m.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster for AWSControlPlane %s could be found: %v", awsControlPlaneCR.Name, err))
 		}
 		// Trigger defaulting of the master instance type
-		if awsControlPlaneCR.Spec.InstanceType == "" {
-			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			patch := mutator.PatchAdd("/spec/instanceType", instanceType)
-			result = append(result, patch)
-		}
-		// Trigger defaulting of the master availability zone
-		if awsControlPlaneCR.Spec.AvailabilityZones == nil {
-			m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
-			patch := mutator.PatchAdd("/spec/availabilityZones", availabilityZone)
-			result = append(result, patch)
-		}
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s InstanceType is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
+		patch := mutator.PatchAdd("/spec/instanceType", instanceType)
+		result = append(result, patch)
 	}
 
 	return result, nil
