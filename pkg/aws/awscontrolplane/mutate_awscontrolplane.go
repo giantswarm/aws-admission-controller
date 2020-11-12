@@ -396,12 +396,3 @@ func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version
 
 	return semver.New(version)
 }
-
-func clusterID(cr *infrastructurev1alpha2.AWSControlPlane) (string, error) {
-	clusterID, ok := cr.Labels[label.Cluster]
-	if !ok {
-		return "", microerror.Maskf(parsingFailedError, "unable to get cluster ID from AWSControlplane %s", cr.Name)
-	}
-
-	return clusterID, nil
-}
