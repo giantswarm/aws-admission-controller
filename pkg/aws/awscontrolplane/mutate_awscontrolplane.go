@@ -85,7 +85,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	releaseVersion, err := releaseVersion(awsControlPlaneCR, patch)
 	if err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from G8sControlPlane")
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
 	result = append(result, patch...)
 
