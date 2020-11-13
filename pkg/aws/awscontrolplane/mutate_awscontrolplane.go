@@ -3,12 +3,9 @@ package awscontrolplane
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"sort"
 	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/backoff"
@@ -21,7 +18,6 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -83,7 +79,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	releaseVersion, err := releaseVersion(awsControlPlaneCR, patch)
+	releaseVersion, err := aws.ReleaseVersion(awsControlPlaneCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
@@ -140,7 +136,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	releaseVersion, err := releaseVersion(awsControlPlaneCR, patch)
+	releaseVersion, err := aws.ReleaseVersion(awsControlPlaneCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
@@ -191,7 +187,19 @@ func (m *Mutator) MutatePreHA(awsControlPlane infrastructurev1alpha2.AWSControlP
 	awsCluster, err := m.fetchAWSCluster(awsControlPlane)
 	if IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSCluster doesn't exist yet. That is okay because the order of CR creation can vary.
-		m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
+		// In this case we simply default as usual with one AZ.
+		m.Log("level", "debug", "message", fmt.Sprintf("No AWSCluster %s could be found: %v", awsControlPlane.GetName(), err))
+		patch, err = m.MutateAvailabilityZones(1, awsControlPlane)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		result = append(result, patch...)
+
+		patch, err = m.MutateInstanceType(awsControlPlane)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		result = append(result, patch...)
 	} else if err != nil {
 		return nil, microerror.Mask(err)
 	} else {
@@ -293,7 +301,7 @@ func (m *Mutator) MutateAvailabilityZones(replicas int, awsControlPlaneCR infras
 	// Trigger defaulting of the master availability zones
 	m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
 	// We default the AZs
-	defaultedAZs := m.getNavailabilityZones(numberOfAZs, m.validAvailabilityZones)
+	defaultedAZs := aws.GetNavailabilityZones(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, numberOfAZs, m.validAvailabilityZones)
 	patch := mutator.PatchAdd("/spec/availabilityZones", defaultedAZs)
 	result = append(result, patch)
 	return result, nil
@@ -374,42 +382,10 @@ func (m *Mutator) MutateReleaseVersion(awsControlPlane infrastructurev1alpha2.AW
 	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
 }
 
-func (m *Mutator) getNavailabilityZones(n int, azs []string) []string {
-	randomAZs := azs
-	// In case there are not enough distinct AZs, we repeat them
-	for len(randomAZs) < n {
-		randomAZs = append(randomAZs, azs...)
-	}
-	// We shuffle the AZs, pick the first n and sort them alphabetically
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(randomAZs), func(i, j int) { randomAZs[i], randomAZs[j] = randomAZs[j], randomAZs[i] })
-	randomAZs = randomAZs[:n]
-	sort.Strings(randomAZs)
-	m.Log("level", "debug", "message", fmt.Sprintf("available AZ's: %v, selected AZ's: %v", azs, randomAZs))
-
-	return randomAZs
-}
-
 func (m *Mutator) Log(keyVals ...interface{}) {
 	m.logger.Log(keyVals...)
 }
 
 func (m *Mutator) Resource() string {
 	return "awscontrolplane"
-}
-
-func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane, patch []mutator.PatchOperation) (*semver.Version, error) {
-	var version string
-	var ok bool
-	if len(patch) > 0 {
-		if patch[0].Path == fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)) {
-			version = patch[0].Value.(string)
-		}
-	} else {
-		version, ok = cr.Labels[label.Release]
-		if !ok {
-			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from AWSControlplane %s", cr.Name)
-		}
-	}
-	return semver.New(version)
 }

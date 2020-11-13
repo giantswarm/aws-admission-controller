@@ -11,10 +11,12 @@ import (
 )
 
 const (
-	DefaultPodCIDR          = "10.2.0.0/16"
-	DefaultClusterDNSDomain = "gauss.eu-west-1.aws.gigantic.io"
-	DefaultClusterRegion    = "eu-west-1"
-	DefaultReleaseVersion   = "100.0.0"
+	DefaultPodCIDR                = "10.2.0.0/16"
+	DefaultClusterDNSDomain       = "gauss.eu-west-1.aws.gigantic.io"
+	DefaultClusterRegion          = "eu-west-1"
+	DefaultReleaseVersion         = "100.0.0"
+	DefaultMasterInstanceType     = "m4.xlarge"
+	DefaultMasterAvailabilityZone = "eu-central-1b"
 )
 
 func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {

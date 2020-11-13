@@ -32,9 +32,10 @@ type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 
-	podCIDRBlock string
-	dnsDomain    string
-	region       string
+	podCIDRBlock           string
+	dnsDomain              string
+	region                 string
+	validAvailabilityZones []string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -45,13 +46,15 @@ func NewMutator(config config.Config) (*Mutator, error) {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
+	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
 	mutator := &Mutator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
-		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
-		dnsDomain:    strings.TrimPrefix(config.Endpoint, "k8s."),
-		region:       config.Region,
+		podCIDRBlock:           fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
+		dnsDomain:              strings.TrimPrefix(config.Endpoint, "k8s."),
+		region:                 config.Region,
+		validAvailabilityZones: availabilityZones,
 	}
 
 	return mutator, nil
@@ -108,17 +111,29 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
-	patch, err = m.MutateReleaseVersion(*awsCluster)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
-	result = append(result, patch...)
-
 	patch, err = m.MutateRegion(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
+
+	patch, err = m.MutateReleaseVersion(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	releaseVersion, err := aws.ReleaseVersion(awsCluster, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSCluster")
+	}
+	result = append(result, patch...)
+
+	if aws.IsHAVersion(releaseVersion) {
+		patch, err = m.MutateMasterPreHA(*awsCluster)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		result = append(result, patch...)
+	}
 
 	return result, nil
 }
@@ -201,6 +216,43 @@ func (m *Mutator) MutatePodCIDR(awsCluster infrastructurev1alpha2.AWSCluster) ([
 	patch = mutator.PatchAdd("/spec/provider/pods", map[string]string{"cidrBlock": m.podCIDRBlock})
 	result = append(result, patch)
 
+	return result, nil
+}
+
+// MutateMasterPreHA is there to mutate the master instance attributes of the AWSCluster CR in legacy versions.
+// This can be deprecated once no versions < 11.4.0 are in use anymore
+func (m *Mutator) MutateMasterPreHA(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	var availabilityZone string
+	var instanceType string
+	{
+		if &awsCluster.Spec.Provider.Master != nil {
+			if awsCluster.Spec.Provider.Master.AvailabilityZone != "" && awsCluster.Spec.Provider.Master.InstanceType != "" {
+				return result, nil
+			}
+			availabilityZone = awsCluster.Spec.Provider.Master.AvailabilityZone
+			instanceType = awsCluster.Spec.Provider.Master.InstanceType
+		} else {
+			patch := mutator.PatchAdd("/spec/provider/", "master")
+			result = append(result, patch)
+		}
+	}
+	if instanceType == "" {
+		instanceType = aws.DefaultMasterInstanceType
+	}
+	if availabilityZone == "" {
+		defaultedAZs := aws.GetNavailabilityZones(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, 1, m.validAvailabilityZones)
+		availabilityZone = defaultedAZs[0]
+	}
+	// If the Master attributes are not set, we default them here
+	m.Log("level", "debug", "message", fmt.Sprintf("Pre-HA AWSCluster %s Master attributes will be defaulted to availabilityZone %s and instanceType %s",
+		awsCluster.ObjectMeta.Name,
+		availabilityZone,
+		instanceType),
+	)
+	patch := mutator.PatchAdd("/spec/provider/master", map[string]string{"availabilityZone": availabilityZone, "instanceType": instanceType})
+	result = append(result, patch)
 	return result, nil
 }
 
