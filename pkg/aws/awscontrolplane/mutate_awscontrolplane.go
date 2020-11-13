@@ -11,7 +11,6 @@ import (
 	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
-	"github.com/giantswarm/apiextensions/v2/pkg/label"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -78,10 +78,16 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	releaseVersion, err := releaseVersion(awsControlPlaneCR)
+
+	patch, err = m.MutateReleaseVersion(*awsControlPlaneCR)
 	if err != nil {
-		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
+		return nil, microerror.Mask(err)
 	}
+	releaseVersion, err := releaseVersion(awsControlPlaneCR, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from G8sControlPlane")
+	}
+	result = append(result, patch...)
 
 	// We try to fetch the G8sControlPlane belonging to the AWSControlPlane here.
 	replicas := 0
@@ -134,7 +140,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsControlPlaneCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
-	releaseVersion, err := releaseVersion(awsControlPlaneCR)
+	releaseVersion, err := releaseVersion(awsControlPlaneCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
@@ -364,6 +370,10 @@ func (m *Mutator) MutateInstanceTypePreHA(instanceType string, awsControlPlaneCR
 	return result, nil
 }
 
+func (m *Mutator) MutateReleaseVersion(awsControlPlane infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
+	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
+}
+
 func (m *Mutator) getNavailabilityZones(n int, azs []string) []string {
 	randomAZs := azs
 	// In case there are not enough distinct AZs, we repeat them
@@ -388,11 +398,18 @@ func (m *Mutator) Resource() string {
 	return "awscontrolplane"
 }
 
-func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane) (*semver.Version, error) {
-	version, ok := cr.Labels[label.ReleaseVersion]
-	if !ok {
-		return nil, microerror.Maskf(parsingFailedError, "unable to get release version from AWSControlplane %s", cr.Name)
+func releaseVersion(cr *infrastructurev1alpha2.AWSControlPlane, patch []mutator.PatchOperation) (*semver.Version, error) {
+	var version string
+	var ok bool
+	if len(patch) > 0 {
+		if patch[0].Path == fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)) {
+			version = patch[0].Value.(string)
+		}
+	} else {
+		version, ok = cr.Labels[label.Release]
+		if !ok {
+			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from AWSControlplane %s", cr.Name)
+		}
 	}
-
 	return semver.New(version)
 }
