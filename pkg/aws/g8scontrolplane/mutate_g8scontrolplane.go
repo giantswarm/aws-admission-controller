@@ -20,7 +20,6 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -80,7 +79,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse g8scontrol plane: %v", err)
 	}
 
-	releaseVersion, err := releaseVersion(g8sControlPlaneNewCR, patch)
+	releaseVersion, err := aws.ReleaseVersion(g8sControlPlaneNewCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from G8sControlPlane")
 	}
@@ -127,7 +126,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	releaseVersion, err := releaseVersion(g8sControlPlaneCR, patch)
+	releaseVersion, err := aws.ReleaseVersion(g8sControlPlaneCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from G8sControlPlane")
 	}
@@ -308,22 +307,6 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 
 func (m *Mutator) Resource() string {
 	return "g8scontrolplane"
-}
-
-func releaseVersion(cr *infrastructurev1alpha2.G8sControlPlane, patch []mutator.PatchOperation) (*semver.Version, error) {
-	var version string
-	var ok bool
-	if len(patch) > 0 {
-		if patch[0].Path == fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)) {
-			version = patch[0].Value.(string)
-		}
-	} else {
-		version, ok = cr.Labels[label.Release]
-		if !ok {
-			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from G8sControlplane %s", cr.Name)
-		}
-	}
-	return semver.New(version)
 }
 
 func isUpdateFromSingleToHA(g8sControlPlaneNewCR infrastructurev1alpha2.G8sControlPlane, g8sControlPlaneOldCR infrastructurev1alpha2.G8sControlPlane, awsControlPlane infrastructurev1alpha2.AWSControlPlane) bool {

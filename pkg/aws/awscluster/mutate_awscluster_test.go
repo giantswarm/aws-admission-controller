@@ -270,6 +270,97 @@ func TestAWSClusterDomain(t *testing.T) {
 	}
 }
 
+func TestAWSClusterMaster(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentAZ     string
+		currentIT     string
+		expectedPatch map[string]string
+	}{
+		{
+			// Don't default the Master if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentAZ:     unittest.DefaultMasterAvailabilityZone,
+			currentIT:     unittest.DefaultMasterInstanceType,
+			expectedPatch: map[string]string{},
+		},
+		{
+			// Default the Master if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentAZ: "",
+			currentIT: "",
+			expectedPatch: map[string]string{
+				"availabilityZone": unittest.DefaultMasterAvailabilityZone,
+				"instanceType":     aws.DefaultMasterInstanceType},
+		},
+		{
+			// Default the Availability Zone if it is not set
+			name: "case 2",
+			ctx:  context.Background(),
+
+			currentAZ: "",
+			currentIT: unittest.DefaultMasterInstanceType,
+			expectedPatch: map[string]string{
+				"availabilityZone": unittest.DefaultMasterAvailabilityZone,
+				"instanceType":     unittest.DefaultMasterInstanceType},
+		},
+		{
+			// Default the Instance Type if it is not set
+			name: "case 3",
+			ctx:  context.Background(),
+
+			currentAZ: "eu-central-1a",
+			currentIT: "",
+			expectedPatch: map[string]string{
+				"availabilityZone": "eu-central-1a",
+				"instanceType":     aws.DefaultMasterInstanceType},
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedMaster map[string]string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				k8sClient:              fakeK8sClient,
+				logger:                 microloggertest.New(),
+				validAvailabilityZones: []string{unittest.DefaultMasterAvailabilityZone},
+			}
+
+			// run mutate function to default AWSCluster Master attributes
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Spec.Provider.Master.AvailabilityZone = tc.currentAZ
+			awscluster.Spec.Provider.Master.InstanceType = tc.currentIT
+			patch, err = mutate.MutateMasterPreHA(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/spec/provider/master" {
+					updatedMaster = p.Value.(map[string]string)
+				}
+			}
+			// check if the Master attribute is as expected
+			if tc.expectedPatch["availabilityZone"] != updatedMaster["availabilityZone"] || tc.expectedPatch["instanceType"] != updatedMaster["instanceType"] {
+				t.Fatalf("expected %#q/%#q to be equal to %#q/%#q",
+					tc.expectedPatch["availabilityZone"],
+					tc.expectedPatch["instanceType"],
+					updatedMaster["availabilityZone"],
+					updatedMaster["instanceType"])
+			}
+		})
+	}
+}
+
 func TestAWSClusterRegion(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context

@@ -3,8 +3,12 @@ package aws
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"sort"
 	"strings"
+	"time"
 
+	"github.com/blang/semver"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -60,6 +64,38 @@ func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchO
 	}
 
 	return result, nil
+}
+
+func GetNavailabilityZones(m *Mutator, n int, azs []string) []string {
+	randomAZs := azs
+	// In case there are not enough distinct AZs, we repeat them
+	for len(randomAZs) < n {
+		randomAZs = append(randomAZs, azs...)
+	}
+	// We shuffle the AZs, pick the first n and sort them alphabetically
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(randomAZs), func(i, j int) { randomAZs[i], randomAZs[j] = randomAZs[j], randomAZs[i] })
+	randomAZs = randomAZs[:n]
+	sort.Strings(randomAZs)
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("available AZ's: %v, selected AZ's: %v", azs, randomAZs))
+
+	return randomAZs
+}
+
+func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver.Version, error) {
+	var version string
+	var ok bool
+	if len(patch) > 0 {
+		if patch[0].Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
+			version = patch[0].Value.(string)
+		}
+	} else {
+		version, ok = meta.GetLabels()[label.Release]
+		if !ok {
+			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from Object %s", meta.GetName())
+		}
+	}
+	return semver.New(version)
 }
 
 // Ensure the needed escapes are in place. See https://tools.ietf.org/html/rfc6901#section-3 .
