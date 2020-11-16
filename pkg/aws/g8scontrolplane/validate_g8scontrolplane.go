@@ -84,7 +84,7 @@ func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sCon
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 1*time.Second)
+		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {
