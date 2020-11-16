@@ -40,6 +40,11 @@ func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchO
 			return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't detect release version.", label.Cluster)
 		}
 
+		namespace := meta.GetNamespace()
+		if namespace == "" {
+			namespace = metav1.NamespaceDefault
+		}
+
 		// Retrieve the `Cluster` CR related to this object.
 		cluster := &capiv1alpha2.Cluster{}
 		{

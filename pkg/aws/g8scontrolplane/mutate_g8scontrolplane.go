@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/reference"
 
@@ -232,6 +233,11 @@ func (m *Mutator) fetchAWSControlPlane(g8sControlPlane infrastructurev1alpha2.G8
 	var err error
 	var fetch func() error
 
+	namespace := g8sControlPlane.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+
 	// Fetch the AWSControlPlane.
 	{
 		m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlane.Name))
@@ -240,7 +246,7 @@ func (m *Mutator) fetchAWSControlPlane(g8sControlPlane infrastructurev1alpha2.G8
 
 			err = m.k8sClient.CtrlClient().Get(
 				ctx,
-				types.NamespacedName{Name: g8sControlPlane.GetName(), Namespace: g8sControlPlane.GetNamespace()},
+				types.NamespacedName{Name: g8sControlPlane.GetName(), Namespace: namespace},
 				&awsControlPlane,
 			)
 			if err != nil {

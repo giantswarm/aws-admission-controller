@@ -13,6 +13,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/reference"
 
@@ -223,6 +224,11 @@ func (m *Mutator) fetchG8sControlPlane(awsControlPlane infrastructurev1alpha2.AW
 	var err error
 	var fetch func() error
 
+	namespace := awsControlPlane.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+
 	// Fetch the G8sControlPlane.
 	{
 		m.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlane.Name))
@@ -231,7 +237,7 @@ func (m *Mutator) fetchG8sControlPlane(awsControlPlane infrastructurev1alpha2.AW
 
 			err = m.k8sClient.CtrlClient().Get(
 				ctx,
-				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: awsControlPlane.GetNamespace()},
+				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: namespace},
 				&g8sControlPlane,
 			)
 			if err != nil {
@@ -256,6 +262,11 @@ func (m *Mutator) fetchAWSCluster(awsControlPlane infrastructurev1alpha2.AWSCont
 	var err error
 	var fetch func() error
 
+	namespace := awsControlPlane.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+
 	// Fetch the AWSCluster
 	{
 		m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", awsControlPlane.Name))
@@ -264,7 +275,7 @@ func (m *Mutator) fetchAWSCluster(awsControlPlane infrastructurev1alpha2.AWSCont
 
 			err = m.k8sClient.CtrlClient().Get(
 				ctx,
-				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: awsControlPlane.GetNamespace()},
+				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: namespace},
 				&awsCluster,
 			)
 			if err != nil {
