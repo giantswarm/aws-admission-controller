@@ -48,7 +48,7 @@ func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchO
 		// Retrieve the `Cluster` CR related to this object.
 		cluster := &capiv1alpha2.Cluster{}
 		{
-			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: meta.GetNamespace()}, cluster)
+			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, cluster)
 			if IsNotFound(err) {
 				return nil, microerror.Maskf(notFoundError, "Looking for Cluster named %s but it was not found.", clusterID)
 			} else if err != nil {
