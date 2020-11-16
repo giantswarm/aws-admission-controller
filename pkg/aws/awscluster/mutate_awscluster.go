@@ -127,7 +127,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
-	if aws.IsHAVersion(releaseVersion) {
+	if !aws.IsHAVersion(releaseVersion) {
 		patch, err = m.MutateMasterPreHA(*awsCluster)
 		if err != nil {
 			return nil, microerror.Mask(err)
@@ -151,6 +151,10 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	awsClusterOld := &infrastructurev1alpha2.AWSCluster{}
 	if _, _, err = mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsClusterOld); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse old AWSCluster: %v", err)
+	}
+	releaseVersion, err := aws.ReleaseVersion(awsCluster, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSCluster")
 	}
 
 	patch, err = m.MutatePodCIDR(*awsCluster)
@@ -182,6 +186,14 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
+
+	if !aws.IsHAVersion(releaseVersion) {
+		patch, err = m.MutateMasterPreHA(*awsCluster)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+		result = append(result, patch...)
+	}
 
 	return result, nil
 }
