@@ -10,6 +10,8 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -75,7 +77,34 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 }
 
 func (m *Mutator) MutateReleaseVersion(machineDeployment capiv1alpha2.MachineDeployment) ([]mutator.PatchOperation, error) {
-	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment)
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.Release(&machineDeployment) != "" && key.ClusterOperator(&machineDeployment) != "" {
+		return result, nil
+	}
+	// Retrieve the `Cluster` CR related to this object.
+	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the release label
+	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.Release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.ClusterOperatorVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
 }
 
 func (m *Mutator) Log(keyVals ...interface{}) {

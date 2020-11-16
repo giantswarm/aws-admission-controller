@@ -216,7 +216,7 @@ func TestReleaseVersion(t *testing.T) {
 			var patch []mutator.PatchOperation
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.SetLabels(map[string]string{label.Release: tc.currentRelease, label.Cluster: unittest.DefaultClusterID})
-			patch, err = MutateReleaseVersionLabel(mutate, awscluster.GetObjectMeta())
+			patch, err = MutateLabelFromCluster(mutate, awscluster.GetObjectMeta(), cluster, label.Release)
 			if err != nil {
 				t.Fatal(err)
 			}

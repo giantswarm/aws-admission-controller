@@ -23,10 +23,10 @@ func DefaultMachineDeployment() apiv1alpha2.MachineDeployment {
 			Name:      DefaultMachineDeploymentID,
 			Namespace: metav1.NamespaceDefault,
 			Labels: map[string]string{
-				label.Cluster:           DefaultClusterID,
-				label.MachineDeployment: DefaultMachineDeploymentID,
-				label.OperatorVersion:   "7.3.0",
-				label.Release:           "100.0.0",
+				label.Cluster:                DefaultClusterID,
+				label.MachineDeployment:      DefaultMachineDeploymentID,
+				label.ClusterOperatorVersion: "7.3.0",
+				label.Release:                "100.0.0",
 			},
 		},
 		Status: apiv1alpha2.MachineDeploymentStatus{
@@ -46,10 +46,10 @@ func DefaultAWSMachineDeployment() infrastructurev1alpha2.AWSMachineDeployment {
 	cr := infrastructurev1alpha2.AWSMachineDeployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				label.Cluster:           DefaultClusterID,
-				label.MachineDeployment: DefaultMachineDeploymentID,
-				label.OperatorVersion:   "7.3.0",
-				label.Release:           "100.0.0",
+				label.Cluster:            DefaultClusterID,
+				label.MachineDeployment:  DefaultMachineDeploymentID,
+				label.AWSOperatorVersion: "7.3.0",
+				label.Release:            "100.0.0",
 			},
 			Name:      DefaultMachineDeploymentID,
 			Namespace: metav1.NamespaceDefault,
