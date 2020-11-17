@@ -23,6 +23,7 @@ Mutating Webhook:
   - For pre-HA versions, replicas is always set to 1 for a single master cluster.
 - In a `G8sControlPlane` resource, the infrastructure reference will be set to point to the matching `AWSControlPlane` resource if it already exists.
 
+- In an `AWSControlplane` resource, the AWS Operator Version is defaulted based on the `AWSCluster` CR if it is not set. 
 - In an `AWSControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 - In an `AWSControlPlane` resource, the Availability Zones will be defaulted if they are `nil`. 
   - For HA-Versions, in case the matching `G8sControlPlane` already exists, the number of AZs is determined by the number of `replicas` defined there. 
@@ -33,6 +34,7 @@ Mutating Webhook:
   - For Pre-HA-Versions, in case the matching `AWSCluster` already exists, the Instance Type is taken from there. 
 - On creation of an `AWSControlPlane` resource, the infrastructure reference of the according `G8sControlPlane` will be set if needed.
 
+- In an `AWSMachinedeployment` resource, the AWS Operator Version is defaulted based on the `AWSCluster` CR if it is not set. 
 - When a new `AWSMachineDeployment` is created, details are logged.
 - In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 

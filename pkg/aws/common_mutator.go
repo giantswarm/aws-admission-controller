@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -25,6 +26,28 @@ import (
 type Mutator struct {
 	K8sClient k8sclient.Interface
 	Logger    micrologger.Logger
+}
+
+func MutateLabelFromAWSCluster(m *Mutator, meta metav1.Object, awsCluster infrastructurev1alpha2.AWSCluster, label string) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if meta.GetLabels()[label] != "" {
+		return result, nil
+	}
+
+	// Extract release from Cluster.
+	value := awsCluster.GetLabels()[label]
+	if value == "" {
+		return nil, microerror.Maskf(notFoundError, "AWSCluster %s did not have the label %s set.", awsCluster.GetName(), label)
+	}
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from AWSCluster %s.",
+		label,
+		value,
+		awsCluster.GetName()))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	result = append(result, patch)
+
+	return result, nil
 }
 
 func MutateLabelFromCluster(m *Mutator, meta metav1.Object, cluster capiv1alpha2.Cluster, label string) ([]mutator.PatchOperation, error) {
@@ -47,6 +70,46 @@ func MutateLabelFromCluster(m *Mutator, meta metav1.Object, cluster capiv1alpha2
 	result = append(result, patch)
 
 	return result, nil
+}
+
+func FetchAWSCluster(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AWSCluster, error) {
+	var awsCluster infrastructurev1alpha2.AWSCluster
+	var err error
+	var fetch func() error
+
+	namespace := meta.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+
+	// Retrieve the Cluster ID.
+	clusterID := key.Cluster(meta)
+	if clusterID == "" {
+		return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't fetch AWSCluster.", label.Cluster)
+	}
+
+	// Fetch the AWSCluster CR
+	{
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
+		fetch = func() error {
+			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, &awsCluster)
+			if IsNotFound(err) {
+				return microerror.Maskf(notFoundError, "Looking for AWSCluster named %s but it was not found.", clusterID)
+			} else if err != nil {
+				return microerror.Mask(err)
+			}
+			return nil
+		}
+	}
+
+	{
+		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		err = backoff.Retry(fetch, b)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+	return &awsCluster, nil
 }
 
 func FetchCluster(m *Mutator, meta metav1.Object) (*capiv1alpha2.Cluster, error) {
