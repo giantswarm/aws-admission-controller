@@ -206,14 +206,9 @@ func TestReleaseVersion(t *testing.T) {
 				K8sClient: fakeK8sClient,
 				Logger:    microloggertest.New(),
 			}
-			// Create Cluster
-			cluster := unittest.DefaultCluster()
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &cluster)
-			if err != nil {
-				t.Fatal(err)
-			}
 			// run mutate function to default AWSCluster ReleaseVersion label
 			var patch []mutator.PatchOperation
+			cluster := unittest.DefaultCluster()
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.SetLabels(map[string]string{label.Release: tc.currentRelease, label.Cluster: unittest.DefaultClusterID})
 			patch, err = MutateLabelFromCluster(mutate, awscluster.GetObjectMeta(), cluster, label.Release)

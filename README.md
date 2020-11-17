@@ -14,7 +14,8 @@ Mutating Webhook:
 - In an `AWSCluster` resource, the Pod CIDR is defaulted if it is not set. 
 - In an `AWSCluster` resource, in a pre-HA version, the Master attribute is defaulted if it is not set.
 
-- In an `G8sControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
+- In a `G8sControlplane` resource, the Cluster Operator Version is defaulted based on the `Cluster` CR if it is not set. 
+- In a `G8sControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 - In a `G8sControlPlane` resource, when the `.spec.replicas` is changed from 1 to 3, the Availability Zones of the according `AWSControlPlane` will be defaulted if needed.
 - In a `G8sControlPlane` resource, the replicas attribute will be defaulted if it is not defined.
   - For HA-Versions, in case the matching `AWSControlPlane` already exists, the number of AZs determines the value of `replicas`.
@@ -36,6 +37,7 @@ Mutating Webhook:
 - In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 
 - In a `Machinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
+- In a `Machinedeployment` resource, the Cluster Operator Version is defaulted based on the `Cluster` CR if it is not set. 
 
 Validating Webhook:
 
