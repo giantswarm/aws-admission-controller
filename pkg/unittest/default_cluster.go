@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	DefaultAWSOperatorVersion     = "7.3.0"
 	DefaultPodCIDR                = "10.2.0.0/16"
 	DefaultClusterDNSDomain       = "gauss.eu-west-1.aws.gigantic.io"
 	DefaultClusterRegion          = "eu-west-1"
@@ -23,10 +24,10 @@ func DefaultAWSCluster() infrastructurev1alpha2.AWSCluster {
 	cr := infrastructurev1alpha2.AWSCluster{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				label.Cluster:         DefaultClusterID,
-				label.OperatorVersion: "7.3.0",
-				label.Release:         "100.0.0",
-				label.Organization:    "example-organization",
+				label.Cluster:            DefaultClusterID,
+				label.AWSOperatorVersion: "7.3.0",
+				label.Release:            "100.0.0",
+				label.Organization:       "example-organization",
 			},
 			Name:      DefaultClusterID,
 			Namespace: metav1.NamespaceDefault,
@@ -102,10 +103,10 @@ func DefaultCluster() capiv1alpha2.Cluster {
 			Name:      DefaultClusterID,
 			Namespace: metav1.NamespaceDefault,
 			Labels: map[string]string{
-				label.Cluster:         DefaultClusterID,
-				label.OperatorVersion: "1.2.3",
-				label.Release:         "100.0.0",
-				label.Organization:    "example-organization",
+				label.Cluster:                DefaultClusterID,
+				label.ClusterOperatorVersion: "1.2.3",
+				label.Release:                "100.0.0",
+				label.Organization:           "example-organization",
 			},
 		},
 	}

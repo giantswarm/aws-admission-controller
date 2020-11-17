@@ -19,6 +19,8 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -83,6 +85,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	releaseVersion, err := aws.ReleaseVersion(awsControlPlaneCR, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateOperatorVersion(*awsControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
 
@@ -185,7 +193,7 @@ func (m *Mutator) MutatePreHA(awsControlPlane infrastructurev1alpha2.AWSControlP
 	var patch []mutator.PatchOperation
 	var err error
 
-	awsCluster, err := m.fetchAWSCluster(awsControlPlane)
+	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
 	if IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSCluster doesn't exist yet. That is okay because the order of CR creation can vary.
 		// In this case we simply default as usual with one AZ.
@@ -255,44 +263,6 @@ func (m *Mutator) fetchG8sControlPlane(awsControlPlane infrastructurev1alpha2.AW
 		}
 	}
 	return &g8sControlPlane, nil
-}
-
-func (m *Mutator) fetchAWSCluster(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (*infrastructurev1alpha2.AWSCluster, error) {
-	var awsCluster infrastructurev1alpha2.AWSCluster
-	var err error
-	var fetch func() error
-
-	namespace := awsControlPlane.GetNamespace()
-	if namespace == "" {
-		namespace = metav1.NamespaceDefault
-	}
-
-	// Fetch the AWSCluster
-	{
-		m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", awsControlPlane.Name))
-		fetch = func() error {
-			ctx := context.Background()
-
-			err = m.k8sClient.CtrlClient().Get(
-				ctx,
-				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: namespace},
-				&awsCluster,
-			)
-			if err != nil {
-				return microerror.Maskf(notFoundError, "failed to fetch AWSCluster: %v", err)
-			}
-			return nil
-		}
-	}
-
-	{
-		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
-		err = backoff.Retry(fetch, b)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-	return &awsCluster, nil
 }
 
 func (m *Mutator) MutateAvailabilityZones(replicas int, awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
@@ -389,8 +359,52 @@ func (m *Mutator) MutateInstanceTypePreHA(instanceType string, awsControlPlaneCR
 	return result, nil
 }
 
+func (m *Mutator) MutateOperatorVersion(awsControlPlane infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.AWSOperator(&awsControlPlane) != "" {
+		return result, nil
+	}
+	// Retrieve the `AWSCluster` CR related to this object.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane, *awsCluster, label.AWSOperatorVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
 func (m *Mutator) MutateReleaseVersion(awsControlPlane infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
-	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.Release(&awsControlPlane) != "" {
+		return result, nil
+	}
+	// Retrieve the `Cluster` CR related to this object.
+	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the release label
+	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane, *cluster, label.Release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
 }
 
 func (m *Mutator) Log(keyVals ...interface{}) {

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -26,49 +28,127 @@ type Mutator struct {
 	Logger    micrologger.Logger
 }
 
-func MutateReleaseVersionLabel(m *Mutator, meta metav1.Object) ([]mutator.PatchOperation, error) {
+func MutateLabelFromAWSCluster(m *Mutator, meta metav1.Object, awsCluster infrastructurev1alpha2.AWSCluster, label string) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 
-	if key.Release(meta) != "" {
+	if meta.GetLabels()[label] != "" {
 		return result, nil
 	}
-	// If the release version label is not set, we default it here
-	{
-		// Retrieve the Cluster ID.
-		clusterID := key.Cluster(meta)
-		if clusterID == "" {
-			return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't detect release version.", label.Cluster)
-		}
 
-		namespace := meta.GetNamespace()
-		if namespace == "" {
-			namespace = metav1.NamespaceDefault
-		}
-
-		// Retrieve the `Cluster` CR related to this object.
-		cluster := &capiv1alpha2.Cluster{}
-		{
-			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, cluster)
-			if IsNotFound(err) {
-				return nil, microerror.Maskf(notFoundError, "Looking for Cluster named %s but it was not found.", clusterID)
-			} else if err != nil {
-				return nil, microerror.Mask(err)
-			}
-		}
-
-		// Extract release from Cluster.
-		release := key.Release(cluster)
-		if release == "" {
-			return nil, microerror.Maskf(notFoundError, "Cluster %s did not have a release label set.", clusterID)
-		}
-		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Release label is not set and will be defaulted to %s from Cluster %s.",
-			release,
-			cluster.GetName()))
-		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)), release)
-		result = append(result, patch)
+	// Extract release from Cluster.
+	value := awsCluster.GetLabels()[label]
+	if value == "" {
+		return nil, microerror.Maskf(notFoundError, "AWSCluster %s did not have the label %s set.", awsCluster.GetName(), label)
 	}
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from AWSCluster %s.",
+		label,
+		value,
+		awsCluster.GetName()))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	result = append(result, patch)
 
 	return result, nil
+}
+
+func MutateLabelFromCluster(m *Mutator, meta metav1.Object, cluster capiv1alpha2.Cluster, label string) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if meta.GetLabels()[label] != "" {
+		return result, nil
+	}
+
+	// Extract release from Cluster.
+	value := cluster.GetLabels()[label]
+	if value == "" {
+		return nil, microerror.Maskf(notFoundError, "Cluster %s did not have the label %s set.", cluster.GetName(), label)
+	}
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from Cluster %s.",
+		label,
+		value,
+		cluster.GetName()))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	result = append(result, patch)
+
+	return result, nil
+}
+
+func FetchAWSCluster(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AWSCluster, error) {
+	var awsCluster infrastructurev1alpha2.AWSCluster
+	var err error
+	var fetch func() error
+
+	namespace := meta.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+
+	// Retrieve the Cluster ID.
+	clusterID := key.Cluster(meta)
+	if clusterID == "" {
+		return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't fetch AWSCluster.", label.Cluster)
+	}
+
+	// Fetch the AWSCluster CR
+	{
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSCluster %s", clusterID))
+		fetch = func() error {
+			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, &awsCluster)
+			if IsNotFound(err) {
+				return microerror.Maskf(notFoundError, "Looking for AWSCluster named %s but it was not found.", clusterID)
+			} else if err != nil {
+				return microerror.Mask(err)
+			}
+			return nil
+		}
+	}
+
+	{
+		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		err = backoff.Retry(fetch, b)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+	return &awsCluster, nil
+}
+
+func FetchCluster(m *Mutator, meta metav1.Object) (*capiv1alpha2.Cluster, error) {
+	var cluster capiv1alpha2.Cluster
+	var err error
+	var fetch func() error
+
+	namespace := meta.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+	// Retrieve the Cluster ID.
+	clusterID := key.Cluster(meta)
+	if clusterID == "" {
+		return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't fetch cluster.", label.Cluster)
+	}
+
+	// Fetch the Cluster CR
+	{
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching Cluster %s", clusterID))
+		fetch = func() error {
+			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, &cluster)
+			if IsNotFound(err) {
+				return microerror.Maskf(notFoundError, "Looking for Cluster named %s but it was not found.", clusterID)
+			} else if err != nil {
+				return microerror.Mask(err)
+			}
+			return nil
+		}
+	}
+
+	{
+		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		err = backoff.Retry(fetch, b)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+	return &cluster, nil
 }
 
 func GetNavailabilityZones(m *Mutator, n int, azs []string) []string {

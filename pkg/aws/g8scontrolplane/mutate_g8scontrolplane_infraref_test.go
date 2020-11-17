@@ -128,9 +128,10 @@ func getG8sControlPlaneNoRefRAWByte() ([]byte, error) {
 			Name:      controlPlaneName,
 			Namespace: controlPlaneNameSpace,
 			Labels: map[string]string{
-				"giantswarm.io/control-plane":   controlPlaneName,
-				"giantswarm.io/organization":    "giantswarm",
-				"release.giantswarm.io/version": "11.5.0",
+				"giantswarm.io/control-plane":            controlPlaneName,
+				"cluster-operator.giantswarm.io/version": "1.2.3",
+				"giantswarm.io/organization":             "giantswarm",
+				"release.giantswarm.io/version":          "11.5.0",
 			},
 		},
 		Spec: infrastructurev1alpha2.G8sControlPlaneSpec{

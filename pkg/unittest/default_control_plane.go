@@ -25,10 +25,10 @@ func DefaultAWSControlPlane() infrastructurev1alpha2.AWSControlPlane {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "a2wax",
 			Labels: map[string]string{
-				label.Cluster:         DefaultClusterID,
-				label.ControlPlane:    DefaultControlPlaneID,
-				label.OperatorVersion: "7.3.0",
-				label.Release:         "100.0.0",
+				label.Cluster:            DefaultClusterID,
+				label.ControlPlane:       DefaultControlPlaneID,
+				label.AWSOperatorVersion: "7.3.0",
+				label.Release:            "100.0.0",
 			},
 			Namespace: metav1.NamespaceDefault,
 		},
@@ -46,10 +46,10 @@ func DefaultG8sControlPlane() infrastructurev1alpha2.G8sControlPlane {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "a2wax",
 			Labels: map[string]string{
-				label.Cluster:         DefaultClusterID,
-				label.ControlPlane:    DefaultControlPlaneID,
-				label.OperatorVersion: "7.3.0",
-				label.Release:         "100.0.0",
+				label.Cluster:                DefaultClusterID,
+				label.ControlPlane:           DefaultControlPlaneID,
+				label.ClusterOperatorVersion: "7.3.0",
+				label.Release:                "100.0.0",
 			},
 			Namespace: metav1.NamespaceDefault,
 		},

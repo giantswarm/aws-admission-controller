@@ -206,17 +206,12 @@ func TestReleaseVersion(t *testing.T) {
 				K8sClient: fakeK8sClient,
 				Logger:    microloggertest.New(),
 			}
-			// Create Cluster
-			cluster := unittest.DefaultCluster()
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &cluster)
-			if err != nil {
-				t.Fatal(err)
-			}
 			// run mutate function to default AWSCluster ReleaseVersion label
 			var patch []mutator.PatchOperation
+			cluster := unittest.DefaultCluster()
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.SetLabels(map[string]string{label.Release: tc.currentRelease, label.Cluster: unittest.DefaultClusterID})
-			patch, err = MutateReleaseVersionLabel(mutate, awscluster.GetObjectMeta())
+			patch, err = MutateLabelFromCluster(mutate, awscluster.GetObjectMeta(), cluster, label.Release)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -229,6 +224,64 @@ func TestReleaseVersion(t *testing.T) {
 			// check if the release label is as expected
 			if tc.expectedPatch != updatedRelease {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedRelease)
+			}
+		})
+	}
+}
+
+func TestAWSOperatorVersion(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentOperator string
+		expectedPatch   string
+	}{
+		{
+			// Don't default the Operator Label if it is set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			currentOperator: unittest.DefaultAWSOperatorVersion,
+			expectedPatch:   "",
+		},
+		{
+			// Default the Operator Label if it is not set
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentOperator: "",
+			expectedPatch:   unittest.DefaultAWSOperatorVersion,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedOperator string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				K8sClient: fakeK8sClient,
+				Logger:    microloggertest.New(),
+			}
+			// run mutate function to default AWSControlplane operator label
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscontrolplane := unittest.DefaultAWSControlPlane()
+			awscontrolplane.SetLabels(map[string]string{label.AWSOperatorVersion: tc.currentOperator, label.Cluster: unittest.DefaultClusterID})
+			patch, err = MutateLabelFromAWSCluster(mutate, awscontrolplane.GetObjectMeta(), awscluster, label.AWSOperatorVersion)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.AWSOperatorVersion)) {
+					updatedOperator = p.Value.(string)
+				}
+			}
+			// check if the release label is as expected
+			if tc.expectedPatch != updatedOperator {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedOperator)
 			}
 		})
 	}

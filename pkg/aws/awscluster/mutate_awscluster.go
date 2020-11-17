@@ -360,7 +360,27 @@ func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 }
 
 func (m *Mutator) MutateReleaseVersion(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
-	return aws.MutateReleaseVersionLabel(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster)
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.Release(&awsCluster) != "" {
+		return result, nil
+	}
+	// Retrieve the `Cluster` CR related to this object.
+	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the release label
+	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *cluster, label.Release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
 }
 
 //  MutateRegion defaults the cluster region if it is not set.
