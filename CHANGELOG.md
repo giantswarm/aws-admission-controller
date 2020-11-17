@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Default the AWS Operator Version Label in `AWSControlplane`, `AWSMachinedeployment` Mutators and add generic label defaulting from AWSCluster CR.
 - Default the Cluster Operator Version Label in `G8sControlplane`, `Machinedeployment` Mutators and add generic label defaulting from cluster CR.
 - Default the Master attributes in the `AWSCluster` Mutator for pre-HA versions.
 - Default the Release Version Label and refactor the `G8sControlplane` and `AWSControlPlane` Mutators.

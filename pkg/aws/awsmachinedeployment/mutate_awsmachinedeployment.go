@@ -88,6 +88,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateOperatorVersion(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	return result, nil
 }
 
@@ -128,6 +134,31 @@ func (m *Mutator) MutateOnDemandPercentage(awsMachineDeployment infrastructurev1
 
 	return result, nil
 }
+
+func (m *Mutator) MutateOperatorVersion(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.AWSOperator(&awsMachineDeployment) != "" {
+		return result, nil
+	}
+	// Retrieve the `AWSCluster` CR related to this object.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
 func (m *Mutator) MutateReleaseVersion(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var patch []mutator.PatchOperation
