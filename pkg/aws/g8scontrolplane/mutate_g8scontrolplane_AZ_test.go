@@ -21,7 +21,6 @@ import (
 
 var (
 	controlPlaneName      = "gmk24"
-	clusterName           = "gmk24"
 	controlPlaneNameSpace = "default"
 )
 
