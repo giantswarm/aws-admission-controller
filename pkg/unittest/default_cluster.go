@@ -14,6 +14,7 @@ const (
 	DefaultAWSOperatorVersion     = "7.3.0"
 	DefaultPodCIDR                = "10.2.0.0/16"
 	DefaultClusterDNSDomain       = "gauss.eu-west-1.aws.gigantic.io"
+	DefaultClusterOperatorVersion = "1.1.1"
 	DefaultClusterRegion          = "eu-west-1"
 	DefaultReleaseVersion         = "100.0.0"
 	DefaultMasterInstanceType     = "m4.xlarge"

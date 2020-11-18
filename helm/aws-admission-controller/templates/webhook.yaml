@@ -65,6 +65,25 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+  - name: clusters.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
+    failurePolicy: Ignore
+    sideEffects: None
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /mutate/cluster
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["cluster.x-k8s.io"]
+        resources:
+          - clusters
+        apiVersions:
+          - v1alpha2
+        operations:
+          - CREATE
+          - UPDATE
   - name: g8scontrolplanes.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore

@@ -6,6 +6,7 @@ Giant Swarm Control Plane admission controller that implements the following rul
 
 Mutating Webhook:
 
+- In an `AWSCluster` resource, the AWS Operator Version is defaulted based on the `Release` CR if it is not set. 
 - In an `AWSCluster` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
 - In an `AWSCluster` resource, the Credential Secret is defaulted if it is not set. 
 - In an `AWSCluster` resource, the Region is defaulted if it is not set. 
@@ -13,6 +14,8 @@ Mutating Webhook:
 - In an `AWSCluster` resource, the DNS Domain is defaulted if it is not set. 
 - In an `AWSCluster` resource, the Pod CIDR is defaulted if it is not set. 
 - In an `AWSCluster` resource, in a pre-HA version, the Master attribute is defaulted if it is not set.
+
+- In a `Cluster` resource, the Cluster Operator Version is defaulted based on the `Release` CR if it is not set. 
 
 - In a `G8sControlplane` resource, the Cluster Operator Version is defaulted based on the `Cluster` CR if it is not set. 
 - In a `G8sControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 

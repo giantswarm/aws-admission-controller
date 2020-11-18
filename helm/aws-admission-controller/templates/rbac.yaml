@@ -34,6 +34,7 @@ rules:
       - releases
     verbs:
       - "list"
+      - "get"
   - apiGroups:
       - ""
     resources:
