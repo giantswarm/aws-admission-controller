@@ -10,6 +10,7 @@ import (
 
 	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
+	releasev1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -70,6 +71,34 @@ func MutateLabelFromCluster(m *Mutator, meta metav1.Object, cluster capiv1alpha2
 	result = append(result, patch)
 
 	return result, nil
+}
+
+func MutateLabelFromRelease(m *Mutator, meta metav1.Object, release releasev1alpha1.Release, label string, component string) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if meta.GetLabels()[label] != "" {
+		return result, nil
+	}
+	// Extract version from release
+	value := GetReleaseComponentLabels(release)[component]
+	if value == "" {
+		return nil, microerror.Maskf(notFoundError, "Release %s did not specify version of %s.", release.GetName(), component)
+	}
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from Release %s.",
+		label,
+		value,
+		release.GetName()))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	result = append(result, patch)
+
+	return result, nil
+}
+func GetReleaseComponentLabels(release releasev1alpha1.Release) map[string]string {
+	components := map[string]string{}
+	for _, component := range release.Spec.Components {
+		components[component.Name] = component.Version
+	}
+	return components
 }
 
 func FetchAWSCluster(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AWSCluster, error) {
@@ -149,6 +178,31 @@ func FetchCluster(m *Mutator, meta metav1.Object) (*capiv1alpha2.Cluster, error)
 		}
 	}
 	return &cluster, nil
+}
+
+func FetchRelease(m *Mutator, version *semver.Version) (*releasev1alpha1.Release, error) {
+	var releaseName string
+	var release releasev1alpha1.Release
+	var err error
+
+	// Get release name
+	{
+		releaseName = version.String()
+		if !strings.HasPrefix(releaseName, "v") {
+			releaseName = fmt.Sprintf("v%s", releaseName)
+		}
+	}
+	// Fetch the Release CR
+	{
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching Release %s", releaseName))
+		err = m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: releaseName, Namespace: metav1.NamespaceDefault}, &release)
+		if IsNotFound(err) {
+			return nil, microerror.Maskf(notFoundError, "Looking for Release %s but it was not found.", releaseName)
+		} else if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+	return &release, nil
 }
 
 func GetNavailabilityZones(m *Mutator, n int, azs []string) []string {

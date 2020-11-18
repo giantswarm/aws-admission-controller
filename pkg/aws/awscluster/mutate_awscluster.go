@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -124,6 +125,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	releaseVersion, err := aws.ReleaseVersion(awsCluster, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSCluster")
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateOperatorVersion(*awsCluster, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
 
@@ -356,6 +363,30 @@ func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 		patch := mutator.PatchAdd("/spec/cluster/dns/domain", m.dnsDomain)
 		result = append(result, patch)
 	}
+	return result, nil
+}
+
+func (m *Mutator) MutateOperatorVersion(awsCluster infrastructurev1alpha2.AWSCluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.AWSOperator(&awsCluster) != "" {
+		return result, nil
+	}
+	// Retrieve the `Release` CR.
+	release, err := aws.FetchRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *release, label.AWSOperatorVersion, "aws-operator")
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	return result, nil
 }
 
