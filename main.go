@@ -17,6 +17,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscluster"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscontrolplane"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awsmachinedeployment"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/cluster"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/g8scontrolplane"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/machinedeployment"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/networkpool"
@@ -44,6 +45,11 @@ func main() {
 	awsmachinedeploymentMutator, err := awsmachinedeployment.NewMutator(config)
 	if err != nil {
 		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
+	}
+
+	clusterMutator, err := cluster.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
 	}
 
 	g8scontrolplaneMutator, err := g8scontrolplane.NewMutator(config)
@@ -87,6 +93,7 @@ func main() {
 	handler.Handle("/mutate/awscluster", mutator.Handler(awsclusterMutator))
 	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
 	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
+	handler.Handle("/mutate/cluster", mutator.Handler(clusterMutator))
 	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
 	handler.Handle("/mutate/machinedeployment", mutator.Handler(machinedeploymentMutator))
 	handler.Handle("/validate/awscluster", validator.Handler(awsclusterValidator))
