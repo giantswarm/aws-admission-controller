@@ -39,8 +39,8 @@ workflows:
           requires:
             - build-aws-admission-controller
           filters:
-#            branches:
-#              only: master
+            branches:
+              only: master
             tags:
               only: /^v.*/
 
