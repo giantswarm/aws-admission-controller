@@ -93,7 +93,7 @@ func (v *Validator) networkPoolAllowed(np infrastructurev1alpha2.NetworkPool) er
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		if IsNotFound(err) {
 			v.Log("level", "debug", "message", fmt.Sprintf("No NetworkPool could be found: %v", err))

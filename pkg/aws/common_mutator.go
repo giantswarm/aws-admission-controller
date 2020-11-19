@@ -132,7 +132,7 @@ func FetchAWSCluster(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AW
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
 			return nil, microerror.Mask(err)
@@ -171,7 +171,7 @@ func FetchCluster(m *Mutator, meta metav1.Object) (*capiv1alpha2.Cluster, error)
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
 			return nil, microerror.Mask(err)

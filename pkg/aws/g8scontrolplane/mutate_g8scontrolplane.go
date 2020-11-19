@@ -178,7 +178,7 @@ func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha
 		}
 		return nil
 	}
-	b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+	b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 	err := backoff.Retry(update, b)
 	if err != nil {
 		return nil, err
@@ -286,7 +286,7 @@ func (m *Mutator) fetchAWSControlPlane(g8sControlPlane infrastructurev1alpha2.G8
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 100*time.Millisecond)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
 			return nil, microerror.Mask(err)
