@@ -11,6 +11,9 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -53,6 +56,52 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if request.DryRun != nil && *request.DryRun {
 		return result, nil
 	}
+	if request.Operation == admissionv1.Create {
+		return m.MutateCreate(request)
+	}
+	if request.Operation == admissionv1.Update {
+		return m.MutateUpdate(request)
+	}
+	return result, nil
+}
+
+// MutateCreate is the function executed for every create webhook request.
+func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	// Parse incoming object
+	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
+	}
+	patch, err = m.MutateOnDemandPercentage(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateReleaseVersion(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateOperatorVersion(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+// MutateUpdate is the function executed for every update webhook request.
+func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
 
 	// Parse incoming objects
 	awsMachineDeploymentNewCR := &infrastructurev1alpha2.AWSMachineDeployment{}
@@ -63,15 +112,73 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, awsMachineDeploymentOldCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
+	patch, err = m.MutateOnDemandPercentage(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
 
-	// Default the OnDemandPercentageAboveBaseCapacity.
+	return result, nil
+}
+
+// MutateOnDemandPercentage defaults the OnDemandPercentageAboveBaseCapacity.
+func (m *Mutator) MutateOnDemandPercentage(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
 	// Note: This will only work if the incoming CR has the .spec.provider.instanceDistribution
 	// attribute defined. Otherwise the request to create/modify the CR will fail.
-	if awsMachineDeploymentNewCR.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
-		m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeploymentNewCR.ObjectMeta.Name))
+	if awsMachineDeployment.Spec.Provider.InstanceDistribution.OnDemandPercentageAboveBaseCapacity == nil {
+		m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s OnDemandPercentageAboveBaseCapacity is nil and will be set to default 100", awsMachineDeployment.ObjectMeta.Name))
 		patch := mutator.PatchReplace("/spec/provider/instanceDistribution/onDemandPercentageAboveBaseCapacity", &defaultOnDemandPercentageAboveBaseCapacity)
 		result = append(result, patch)
 	}
+
+	return result, nil
+}
+
+func (m *Mutator) MutateOperatorVersion(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.AWSOperator(&awsMachineDeployment) != "" {
+		return result, nil
+	}
+	// Retrieve the `AWSCluster` CR related to this object.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+func (m *Mutator) MutateReleaseVersion(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.Release(&awsMachineDeployment) != "" {
+		return result, nil
+	}
+	// Retrieve the `Cluster` CR related to this object.
+	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the release label
+	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *cluster, label.Release)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
 
 	return result, nil
 }

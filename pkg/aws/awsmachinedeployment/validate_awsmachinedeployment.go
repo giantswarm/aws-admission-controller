@@ -92,7 +92,7 @@ func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastruct
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 1*time.Second)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		// Note that while we do log the error, we don't fail if the MachineDeployment doesn't exist yet. That is okay because the order of CR creation can vary.
 		if IsNotFound(err) {

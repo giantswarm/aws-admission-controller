@@ -256,7 +256,7 @@ func (v *Validator) fetchG8sControlPlane(awsControlPlane infrastructurev1alpha2.
 	}
 
 	{
-		b := backoff.NewMaxRetries(3, 1*time.Second)
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
 		err = backoff.Retry(fetch, b)
 		if err != nil {
 			return nil, microerror.Mask(err)

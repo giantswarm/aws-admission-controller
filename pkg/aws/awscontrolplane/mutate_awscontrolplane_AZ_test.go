@@ -227,9 +227,10 @@ func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstance
 			Name:      controlPlaneName,
 			Namespace: controlPlaneNameSpace,
 			Labels: map[string]string{
-				"giantswarm.io/cluster":         clusterName,
-				"giantswarm.io/control-plane":   controlPlaneName,
-				"release.giantswarm.io/version": release,
+				"giantswarm.io/cluster":              clusterName,
+				"giantswarm.io/control-plane":        controlPlaneName,
+				"release.giantswarm.io/version":      release,
+				"aws-operator.giantswarm.io/version": unittest.DefaultAWSOperatorVersion,
 			},
 		},
 		Spec: infrastructurev1alpha2.AWSControlPlaneSpec{

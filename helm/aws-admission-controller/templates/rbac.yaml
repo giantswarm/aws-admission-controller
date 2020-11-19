@@ -25,6 +25,7 @@ rules:
     resources:
       - machinedeployments
       - machinedeployments/status
+      - clusters
     verbs:
       - "*"
   - apiGroups:
@@ -33,6 +34,7 @@ rules:
       - releases
     verbs:
       - "list"
+      - "get"
   - apiGroups:
       - ""
     resources:
