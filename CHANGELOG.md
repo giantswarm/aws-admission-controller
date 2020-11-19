@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3] - 2020-11-19
+
 ### Added
 
 - Default the Cluster Operator Version Label in `Cluster` from `Release` CR.
@@ -142,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.3...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.3.3...HEAD
+[2.3.3]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.3...v2.3.3
 [2.2.3]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.0...v2.2.1
