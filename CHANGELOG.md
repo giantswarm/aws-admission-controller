@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default the Release Version Label and refactor the `G8sControlplane` and `AWSControlPlane` Mutators.
 - Default the Release Version Label in the `AWSCluster`, `MachineDeployment` and `AWSMachineDeployment` CRs based on the `Cluster`CR
 
+## [2.2.3] - 2020-11-18
+
+- Set `400` status code in the validator response if a request is invalid.
+
 ## [2.2.2] - 2020-11-10
 
 ### Added
@@ -138,7 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.2...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.3...HEAD
+[2.2.3]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.1.0...v2.2.0
