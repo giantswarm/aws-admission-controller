@@ -76,6 +76,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
+	patch, err = m.MutateAvailabilityZones(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateOnDemandPercentage(*awsMachineDeploymentNewCR)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -118,6 +124,31 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	return result, nil
+}
+
+func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	// We only need to manipulate if AZs are not set
+	if awsMachineDeployment.Spec.Provider.AvailabilityZones != nil {
+		return result, nil
+	}
+
+	// Retrieve the `AWSControlPlane` CR related to this object.
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	// return early if no AZs are given
+	if len(awsControlPlane.Spec.AvailabilityZones) == 0 {
+		return nil, microerror.Maskf(invalidConfigError, "No availability zones assigned in AWSControlPlane %s.", awsControlPlane.GetName())
+	}
+	// Trigger defaulting of the worker availability zones
+	m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s AvailabilityZones is nil and will be defaulted", awsMachineDeployment.ObjectMeta.Name))
+	// We default the AZs
+	defaultedAZs := aws.GetNavailabilityZones(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, aws.DefaultNodePoolAZs, awsControlPlane.Spec.AvailabilityZones)
+	patch := mutator.PatchAdd("/spec/provider/availabilityZones", defaultedAZs)
+	result = append(result, patch)
 	return result, nil
 }
 

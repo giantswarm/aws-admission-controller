@@ -141,6 +141,51 @@ func FetchAWSCluster(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AW
 	return &awsCluster, nil
 }
 
+func FetchAWSControlPlane(m *Mutator, meta metav1.Object) (*infrastructurev1alpha2.AWSControlPlane, error) {
+	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
+	var err error
+	var fetch func() error
+
+	// Retrieve the Cluster ID.
+	clusterID := key.Cluster(meta)
+	if clusterID == "" {
+		return nil, microerror.Maskf(invalidConfigError, "Object has no %s label, can't fetch AWSControlPlane.", label.Cluster)
+	}
+
+	// Fetch the AWSControlPlane.
+	{
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane for Cluster %s", clusterID))
+		fetch = func() error {
+			awsControlPlanes := infrastructurev1alpha2.AWSControlPlaneList{}
+			err = m.K8sClient.CtrlClient().List(
+				context.Background(),
+				&awsControlPlanes,
+				client.MatchingLabels{label.Cluster: clusterID},
+			)
+			if err != nil {
+				return microerror.Maskf(notFoundError, "failed to fetch AWSControlplane for Cluster %s: %v", clusterID, err)
+			}
+			if len(awsControlPlanes.Items) == 0 {
+				return microerror.Maskf(notFoundError, "Could not find AWSControlplane for Cluster %s", clusterID)
+			}
+			if len(awsControlPlanes.Items) > 1 {
+				return microerror.Maskf(invalidConfigError, "Found %v AWSControlplanes instead of one for cluster %s", len(awsControlPlanes.Items), clusterID)
+			}
+			awsControlPlane = awsControlPlanes.Items[0]
+			return nil
+		}
+	}
+
+	{
+		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
+		err = backoff.Retry(fetch, b)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
+	return &awsControlPlane, nil
+}
+
 func FetchCluster(m *Mutator, meta metav1.Object) (*capiv1alpha2.Cluster, error) {
 	var cluster capiv1alpha2.Cluster
 	var err error

@@ -37,6 +37,8 @@ Mutating Webhook:
   - For Pre-HA-Versions, in case the matching `AWSCluster` already exists, the Instance Type is taken from there. 
 - On creation of an `AWSControlPlane` resource, the infrastructure reference of the according `G8sControlPlane` will be set if needed.
 
+- In an `AWSMachinedeployment` resource, the Availability Zones will be defaulted if they are `nil`. The default number of   
+  AZs is assigned based on the master AZs taken from the `AWSControlPlane` CR.
 - In an `AWSMachinedeployment` resource, the AWS Operator Version is defaulted based on the `AWSCluster` CR if it is not set. 
 - When a new `AWSMachineDeployment` is created, details are logged.
 - In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
