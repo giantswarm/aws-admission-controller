@@ -135,7 +135,7 @@ func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1a
 	}
 
 	// Retrieve the `AWSControlPlane` CR related to this object.
-	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -146,7 +146,7 @@ func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1a
 	// Trigger defaulting of the worker availability zones
 	m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s AvailabilityZones is nil and will be defaulted", awsMachineDeployment.ObjectMeta.Name))
 	// We default the AZs
-	defaultedAZs := aws.GetNavailabilityZones(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, aws.DefaultNodePoolAZs, awsControlPlane.Spec.AvailabilityZones)
+	defaultedAZs := aws.GetNavailabilityZones(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, aws.DefaultNodePoolAZs, awsControlPlane.Spec.AvailabilityZones)
 	patch := mutator.PatchAdd("/spec/provider/availabilityZones", defaultedAZs)
 	result = append(result, patch)
 	return result, nil
@@ -175,13 +175,13 @@ func (m *Mutator) MutateOperatorVersion(awsMachineDeployment infrastructurev1alp
 		return result, nil
 	}
 	// Retrieve the `AWSCluster` CR related to this object.
-	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
+	patch, err = aws.MutateLabelFromAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -199,13 +199,13 @@ func (m *Mutator) MutateReleaseVersion(awsMachineDeployment infrastructurev1alph
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

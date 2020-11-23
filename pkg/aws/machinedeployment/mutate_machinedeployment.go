@@ -85,20 +85,20 @@ func (m *Mutator) MutateReleaseVersion(machineDeployment capiv1alpha2.MachineDep
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.ClusterOperatorVersion)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &machineDeployment, *cluster, label.ClusterOperatorVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

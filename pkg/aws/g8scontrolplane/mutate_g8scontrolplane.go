@@ -87,8 +87,8 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 
 	// We try to fetch the AWSControlPlane belonging to the G8sControlPlane here.
 	availabilityZones := 0
-	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneNewCR)
-	if IsNotFound(err) {
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneNewCR)
+	if aws.IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneNewCR.GetName(), err))
 	} else if err != nil {
@@ -135,8 +135,8 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 
 	// We try to fetch the AWSControlPlane belonging to the G8sControlPlane here.
 	availabilityZones := 0
-	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneCR)
-	if IsNotFound(err) {
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneCR)
+	if aws.IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneCR.GetName(), err))
 	} else if err != nil {
@@ -208,20 +208,20 @@ func (m *Mutator) MutateReleaseVersion(g8sControlPlane infrastructurev1alpha2.G8
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.ClusterOperatorVersion)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.ClusterOperatorVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

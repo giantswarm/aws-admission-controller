@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	clusterID                  = "myc1"
 	machineDeploymentID        = "mymd1"
 	machineDeploymentNamespace = "mymd1"
 )
@@ -101,6 +102,7 @@ func awsMachineDeploymentRawByte() ([]byte, error) {
 			Name:      machineDeploymentID,
 			Namespace: machineDeploymentNamespace,
 			Labels: map[string]string{
+				"giantswarm.io/cluster":         clusterID,
 				"giantswarm.io/control-plane":   machineDeploymentID,
 				"giantswarm.io/organization":    "giantswarm",
 				"release.giantswarm.io/version": "11.5.0",
@@ -140,6 +142,7 @@ func awsMachineDeployment() *infrastructurev1alpha2.AWSMachineDeployment {
 			Name:      machineDeploymentID,
 			Namespace: machineDeploymentNamespace,
 			Labels: map[string]string{
+				"giantswarm.io/cluster":         clusterID,
 				"giantswarm.io/control-plane":   machineDeploymentID,
 				"giantswarm.io/organization":    "giantswarm",
 				"release.giantswarm.io/version": "11.5.0",
