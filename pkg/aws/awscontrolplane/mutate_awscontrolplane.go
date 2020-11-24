@@ -22,8 +22,6 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
-const defaultnamespace = "default"
-
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
