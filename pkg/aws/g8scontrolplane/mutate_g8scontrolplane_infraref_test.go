@@ -24,22 +24,22 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 		ctx  context.Context
 
 		expectedReferenceName string
-		awsControlPlaneExists bool
+		reference             bool
 	}{
 		{
-			// An AWSControlPlane exists
+			// Reference not set
 			name: "case 0",
 			ctx:  context.Background(),
 
-			awsControlPlaneExists: true,
+			reference:             false,
 			expectedReferenceName: controlPlaneName,
 		},
 		{
-			// No AWSControlPlane exists
+			// Reference set
 			name: "case 1",
 			ctx:  context.Background(),
 
-			awsControlPlaneExists: false,
+			reference:             true,
 			expectedReferenceName: "",
 		},
 	}
@@ -48,6 +48,8 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			var err error
 			var updatedInfraRefName string
+			var patch []mutator.PatchOperation
+			var request *admissionv1.AdmissionRequest
 
 			// Create a new logger that is used by all admitters.
 			var newLogger micrologger.Logger
@@ -63,19 +65,19 @@ func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {
 				k8sClient:              fakeK8sClient,
 				logger:                 newLogger,
 			}
-			// create AWSControlPlane if needed
-			if tc.awsControlPlaneExists {
-				err = fakeK8sClient.CtrlClient().Create(tc.ctx, awsControlPlane([]string{"eu-central-1a", "eu-central-1b", "eu-central-1c"}))
+
+			if !tc.reference {
+				// run admission request for g8sControlPlane without reference
+				request, err = g8sControlPlaneNoReferenceAdmissionRequest()
 				if err != nil {
 					t.Fatal(err)
 				}
-			}
-
-			// run admission request for g8sControlPlane without reference
-			var patch []mutator.PatchOperation
-			request, err := g8sControlPlaneNoReferenceAdmissionRequest()
-			if err != nil {
-				t.Fatal(err)
+			} else {
+				// run admission request for g8sControlPlane with reference
+				request, err = g8sControlPlaneCreateAdmissionRequest(1, "11.5.0")
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 			patch, err = mutate.Mutate(request)
 			if err != nil {

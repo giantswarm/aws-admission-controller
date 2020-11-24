@@ -9,13 +9,13 @@ import (
 
 	"github.com/blang/semver"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
-	"k8s.io/client-go/tools/reference"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -133,6 +133,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateInfraRef(*g8sControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	// We try to fetch the AWSControlPlane belonging to the G8sControlPlane here.
 	availabilityZones := 0
 	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneCR)
@@ -144,11 +150,6 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	} else {
 		// This defaulting is only done when the awscontrolplane exists
 		availabilityZones = len(awsControlPlane.Spec.AvailabilityZones)
-		patch, err = m.MutateInfraRef(*awsControlPlane, *g8sControlPlaneCR)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-		result = append(result, patch...)
 	}
 
 	patch, err = m.MutateReplicas(availabilityZones, *g8sControlPlaneCR, releaseVersion)
@@ -184,18 +185,25 @@ func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha
 	return result, nil
 }
 
-func (m *Mutator) MutateInfraRef(awsControlPlane infrastructurev1alpha2.AWSControlPlane, g8sControlPlane infrastructurev1alpha2.G8sControlPlane) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateInfraRef(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if g8sControlPlane.Spec.InfrastructureRef.Name != "" && g8sControlPlane.Spec.InfrastructureRef.Namespace != "" {
 		return result, nil
 	}
-	// We get the infrastructure reference
-	infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlane)
-	if err != nil {
-		return nil, microerror.Mask(err)
+	namespace := g8sControlPlane.GetNamespace()
+	if namespace == "" {
+		namespace = metav1.NamespaceDefault
+	}
+	// Since the AWSControlplane object likely doesn't exist yet, we are not fetching it here.
+	// Instead we make the assumption that it will be created correctly and thus has the same name as the G8sControlplane object.
+	infrastructureCRRef := v1.ObjectReference{
+		APIVersion: "infrastructure.giantswarm.io/v1alpha2",
+		Kind:       "AWSControlPlane",
+		Name:       g8sControlPlane.GetName(),
+		Namespace:  namespace,
 	}
 	m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlane.Name))
-	patch := mutator.PatchReplace("/spec/infrastructureRef", infrastructureCRRef)
+	patch := mutator.PatchReplace("/spec/infrastructureRef", &infrastructureCRRef)
 	result = append(result, patch)
 	return result, nil
 }
