@@ -176,7 +176,7 @@ func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha
 		}
 		return nil
 	}
-	b := backoff.NewMaxRetries(3, 10*time.Millisecond)
+	b := backoff.NewMaxRetries(3, 100*time.Millisecond)
 	err := backoff.Retry(update, b)
 	if err != nil {
 		return nil, err

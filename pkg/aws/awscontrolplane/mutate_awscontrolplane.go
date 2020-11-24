@@ -285,7 +285,7 @@ func (m *Mutator) MutateInfraRef(awsControlPlaneCR infrastructurev1alpha2.AWSCon
 		}
 		return nil
 	}
-	b := backoff.NewMaxRetries(3, 10*time.Millisecond)
+	b := backoff.NewMaxRetries(3, 100*time.Millisecond)
 	err := backoff.Retry(update, b)
 	if err != nil {
 		return nil, err
