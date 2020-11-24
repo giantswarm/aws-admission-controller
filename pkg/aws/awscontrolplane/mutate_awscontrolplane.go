@@ -7,7 +7,6 @@ import (
 	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	infrastructurev1alpha2scheme "github.com/giantswarm/apiextensions/v2/pkg/clientset/versioned/scheme"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -15,7 +14,6 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/reference"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -105,11 +103,6 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	} else {
 		// This defaulting is only done when the awscontrolplane exists
 		replicas = g8sControlPlane.Spec.Replicas
-		patch, err = m.MutateInfraRef(*awsControlPlaneCR, *g8sControlPlane)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-		result = append(result, patch...)
 	}
 
 	if aws.IsHAVersion(releaseVersion) {
@@ -297,39 +290,6 @@ func (m *Mutator) MutateAvailabilityZonesPreHA(availabilityZone []string, awsCon
 	m.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s AvailabilityZones is nil and will be defaulted", awsControlPlaneCR.ObjectMeta.Name))
 	patch := mutator.PatchAdd("/spec/availabilityZones", availabilityZone)
 	result = append(result, patch)
-	return result, nil
-}
-
-func (m *Mutator) MutateInfraRef(awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane, g8sControlPlane infrastructurev1alpha2.G8sControlPlane) ([]mutator.PatchOperation, error) {
-	var result []mutator.PatchOperation
-	// We only need to manipulate if the infraref is not set
-	if g8sControlPlane.Spec.InfrastructureRef.Name != "" && g8sControlPlane.Spec.InfrastructureRef.Namespace != "" {
-		return result, nil
-	}
-
-	update := func() error {
-		ctx := context.Background()
-		// If the infrastructure reference is not set, we do it here
-		m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", awsControlPlaneCR.Name))
-		infrastructureCRRef, err := reference.GetReference(infrastructurev1alpha2scheme.Scheme, &awsControlPlaneCR)
-		if err != nil {
-			return microerror.Mask(err)
-		}
-		if infrastructureCRRef.Namespace == "" {
-			infrastructureCRRef.Namespace = defaultnamespace
-		}
-		g8sControlPlane.Spec.InfrastructureRef = *infrastructureCRRef
-		err = m.k8sClient.CtrlClient().Update(ctx, &g8sControlPlane)
-		if err != nil {
-			return microerror.Mask(err)
-		}
-		return nil
-	}
-	b := backoff.NewMaxRetries(3, 10*time.Millisecond)
-	err := backoff.Retry(update, b)
-	if err != nil {
-		return nil, err
-	}
 	return result, nil
 }
 

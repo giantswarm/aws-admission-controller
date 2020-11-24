@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Changed defaulting of the Infrastructure reference in the `G8sControlPlane` to not require `AWSControlPlane`to already exist.
+
+
 ## [2.3.3] - 2020-11-19
 
 ### Added
