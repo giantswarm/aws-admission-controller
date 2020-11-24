@@ -195,7 +195,8 @@ func (m *Mutator) MutateInfraRef(g8sControlPlane infrastructurev1alpha2.G8sContr
 	if namespace == "" {
 		namespace = metav1.NamespaceDefault
 	}
-	// We get the infrastructure reference
+	// Since the AWSControlplane object likely doesn't exist yet, we are not fetching it here.
+	// Instead we make the assumption that it will be created correctly and thus has the same name as the G8sControlplane object.
 	infrastructureCRRef := v1.ObjectReference{
 		APIVersion: "infrastructure.giantswarm.io/v1alpha2",
 		Kind:       "AWSControlPlane",
