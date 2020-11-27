@@ -116,15 +116,17 @@ func GetNavailabilityZones(m *Handler, n int, azs []string) []string {
 func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver.Version, error) {
 	var version string
 	var ok bool
-	if len(patch) > 0 {
-		if patch[0].Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
-			version = patch[0].Value.(string)
+	// check first if the release version is contained in a patch
+	for _, p := range patch {
+		if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
+			version = p.Value.(string)
+			return semver.New(version)
 		}
-	} else {
-		version, ok = meta.GetLabels()[label.Release]
-		if !ok {
-			return nil, microerror.Maskf(parsingFailedError, "unable to get release version from Object %s", meta.GetName())
-		}
+	}
+	// otherwise check the labels
+	version, ok = meta.GetLabels()[label.Release]
+	if !ok {
+		return nil, microerror.Maskf(parsingFailedError, "unable to get release version from Object %s", meta.GetName())
 	}
 	return semver.New(version)
 }
