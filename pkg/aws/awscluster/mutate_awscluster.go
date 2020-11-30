@@ -261,7 +261,7 @@ func (m *Mutator) MutateMasterPreHA(awsCluster infrastructurev1alpha2.AWSCluster
 		instanceType = aws.DefaultMasterInstanceType
 	}
 	if availabilityZone == "" {
-		defaultedAZs := aws.GetNavailabilityZones(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, 1, m.validAvailabilityZones)
+		defaultedAZs := aws.GetNavailabilityZones(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, 1, m.validAvailabilityZones)
 		availabilityZone = defaultedAZs[0]
 	}
 	// If the Master attributes are not set, we default them here
@@ -375,13 +375,13 @@ func (m *Mutator) MutateOperatorVersion(awsCluster infrastructurev1alpha2.AWSClu
 		return result, nil
 	}
 	// Retrieve the `Release` CR.
-	release, err := aws.FetchRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
+	release, err := aws.FetchRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *release, label.AWSOperatorVersion, "aws-operator")
+	patch, err = aws.MutateLabelFromRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *release, label.AWSOperatorVersion, "aws-operator")
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -399,13 +399,13 @@ func (m *Mutator) MutateReleaseVersion(awsCluster infrastructurev1alpha2.AWSClus
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsCluster, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

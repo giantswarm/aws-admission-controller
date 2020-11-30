@@ -36,6 +36,8 @@ Mutating Webhook:
   - For HA-Versions, the default Instance Type is chosen. 
   - For Pre-HA-Versions, in case the matching `AWSCluster` already exists, the Instance Type is taken from there. 
 
+- In an `AWSMachinedeployment` resource, the Availability Zones will be defaulted if they are `nil`. The default number of   
+  AZs is assigned based on the master AZs taken from the `AWSControlPlane` CR.
 - In an `AWSMachinedeployment` resource, the AWS Operator Version is defaulted based on the `AWSCluster` CR if it is not set. 
 - When a new `AWSMachineDeployment` is created, details are logged.
 - In an `AWSMachinedeployment` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 

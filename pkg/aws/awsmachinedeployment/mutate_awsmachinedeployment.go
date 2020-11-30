@@ -76,6 +76,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, awsMachineDeploymentNewCR); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse AWSMachineDeployment: %v", err)
 	}
+	patch, err = m.MutateAvailabilityZones(*awsMachineDeploymentNewCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateOnDemandPercentage(*awsMachineDeploymentNewCR)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -121,6 +127,31 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	return result, nil
 }
 
+func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	// We only need to manipulate if AZs are not set
+	if len(awsMachineDeployment.Spec.Provider.AvailabilityZones) != 0 {
+		return result, nil
+	}
+
+	// Retrieve the `AWSControlPlane` CR related to this object.
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	// return early if no AZs are given
+	if len(awsControlPlane.Spec.AvailabilityZones) == 0 {
+		return nil, microerror.Maskf(invalidConfigError, "No availability zones assigned in AWSControlPlane %s.", awsControlPlane.GetName())
+	}
+	// Trigger defaulting of the worker availability zones
+	m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s AvailabilityZones are not set and will be defaulted", awsMachineDeployment.ObjectMeta.Name))
+	// We default the AZs
+	defaultedAZs := aws.GetNavailabilityZones(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, aws.DefaultNodePoolAZs, awsControlPlane.Spec.AvailabilityZones)
+	patch := mutator.PatchAdd("/spec/provider/availabilityZones", defaultedAZs)
+	result = append(result, patch)
+	return result, nil
+}
+
 // MutateOnDemandPercentage defaults the OnDemandPercentageAboveBaseCapacity.
 func (m *Mutator) MutateOnDemandPercentage(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
@@ -144,13 +175,13 @@ func (m *Mutator) MutateOperatorVersion(awsMachineDeployment infrastructurev1alp
 		return result, nil
 	}
 	// Retrieve the `AWSCluster` CR related to this object.
-	awsCluster, err := aws.FetchAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromAWSCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
+	patch, err = aws.MutateLabelFromAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *awsCluster, label.AWSOperatorVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -168,13 +199,13 @@ func (m *Mutator) MutateReleaseVersion(awsMachineDeployment infrastructurev1alph
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsMachineDeployment, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

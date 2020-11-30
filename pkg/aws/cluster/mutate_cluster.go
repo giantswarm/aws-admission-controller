@@ -91,13 +91,13 @@ func (m *Mutator) MutateOperatorVersion(cluster capiv1alpha2.Cluster, releaseVer
 		return result, nil
 	}
 	// Retrieve the `Release` CR.
-	release, err := aws.FetchRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
+	release, err := aws.FetchRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromRelease(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &cluster, *release, label.ClusterOperatorVersion, "cluster-operator")
+	patch, err = aws.MutateLabelFromRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &cluster, *release, label.ClusterOperatorVersion, "cluster-operator")
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}

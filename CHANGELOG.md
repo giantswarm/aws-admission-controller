@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Default the Availability Zones in `AWSMachinedeployment` based on `AWSControlplane` CR.
+
 ## [2.4.1] - 2020-11-24
 
 - Check all patches for a release version

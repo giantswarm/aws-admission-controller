@@ -15,6 +15,9 @@ const (
 	// DefaultMasterReplicas is the default number of master node replicas
 	DefaultMasterReplicas = 3
 
+	// DefaultNodePoolAZs is the default number of AZs used in a nodepool
+	DefaultNodePoolAZs = 1
+
 	// DefaultMasterInstanceType is the default master instance type
 	DefaultMasterInstanceType = "m5.xlarge"
 

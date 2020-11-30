@@ -1,18 +1,14 @@
 package awscontrolplane
 
 import (
-	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -87,8 +83,8 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		return false, microerror.Mask(err)
 	}
 	// We try to fetch the G8sControlPlane belonging to the AWSControlPlane here.
-	g8sControlPlane, err = v.fetchG8sControlPlane(awsControlPlane)
-	if IsNotFound(err) {
+	g8sControlPlane, err = aws.FetchG8sControlPlane(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, &awsControlPlane)
+	if aws.IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
 	} else if err != nil {
@@ -231,38 +227,6 @@ func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWS
 	}
 
 	return nil
-}
-func (v *Validator) fetchG8sControlPlane(awsControlPlane infrastructurev1alpha2.AWSControlPlane) (*infrastructurev1alpha2.G8sControlPlane, error) {
-	var g8sControlPlane infrastructurev1alpha2.G8sControlPlane
-	var err error
-	var fetch func() error
-
-	// Fetch the G8sControlPlane.
-	{
-		v.Log("level", "debug", "message", fmt.Sprintf("Fetching G8sControlPlane %s", awsControlPlane.Name))
-		fetch = func() error {
-			ctx := context.Background()
-
-			err = v.k8sClient.CtrlClient().Get(
-				ctx,
-				types.NamespacedName{Name: awsControlPlane.GetName(), Namespace: awsControlPlane.GetNamespace()},
-				&g8sControlPlane,
-			)
-			if err != nil {
-				return microerror.Maskf(notFoundError, "failed to fetch G8sControlplane: %v", err)
-			}
-			return nil
-		}
-	}
-
-	{
-		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
-		err = backoff.Retry(fetch, b)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-	return &g8sControlPlane, nil
 }
 
 func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {

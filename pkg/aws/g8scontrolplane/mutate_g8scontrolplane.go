@@ -16,7 +16,6 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -88,8 +87,8 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 
 	// We try to fetch the AWSControlPlane belonging to the G8sControlPlane here.
 	availabilityZones := 0
-	awsControlPlane, err := m.fetchAWSControlPlane(*g8sControlPlaneNewCR)
-	if IsNotFound(err) {
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneNewCR)
+	if aws.IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneNewCR.GetName(), err))
 	} else if err != nil {
@@ -142,8 +141,8 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 
 	// We try to fetch the AWSControlPlane belonging to the G8sControlPlane here.
 	availabilityZones := 0
-	awsControlPlane, err := m.fetchAWSControlPlane(*g8sControlPlaneCR)
-	if IsNotFound(err) {
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, g8sControlPlaneCR)
+	if aws.IsNotFound(err) {
 		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
 		m.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlaneCR.GetName(), err))
 	} else if err != nil {
@@ -178,7 +177,7 @@ func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha
 		}
 		return nil
 	}
-	b := backoff.NewMaxRetries(3, 10*time.Millisecond)
+	b := backoff.NewMaxRetries(3, 100*time.Millisecond)
 	err := backoff.Retry(update, b)
 	if err != nil {
 		return nil, err
@@ -217,20 +216,20 @@ func (m *Mutator) MutateReleaseVersion(g8sControlPlane infrastructurev1alpha2.G8
 		return result, nil
 	}
 	// Retrieve the `Cluster` CR related to this object.
-	cluster, err := aws.FetchCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane)
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 
 	// mutate the release label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.Release)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.Release)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
 
 	// mutate the operator label
-	patch, err = aws.MutateLabelFromCluster(&aws.Mutator{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.ClusterOperatorVersion)
+	patch, err = aws.MutateLabelFromCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, *cluster, label.ClusterOperatorVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -262,44 +261,6 @@ func (m *Mutator) MutateReplicas(availabilityZones int, g8sControlPlane infrastr
 	patch := mutator.PatchReplace("/spec/replicas", replicas)
 	result = append(result, patch)
 	return result, nil
-}
-
-func (m *Mutator) fetchAWSControlPlane(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) (*infrastructurev1alpha2.AWSControlPlane, error) {
-	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
-	var err error
-	var fetch func() error
-
-	namespace := g8sControlPlane.GetNamespace()
-	if namespace == "" {
-		namespace = metav1.NamespaceDefault
-	}
-
-	// Fetch the AWSControlPlane.
-	{
-		m.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlane.Name))
-		fetch = func() error {
-			ctx := context.Background()
-
-			err = m.k8sClient.CtrlClient().Get(
-				ctx,
-				types.NamespacedName{Name: g8sControlPlane.GetName(), Namespace: namespace},
-				&awsControlPlane,
-			)
-			if err != nil {
-				return microerror.Maskf(notFoundError, "failed to fetch AWSControlplane: %v", err)
-			}
-			return nil
-		}
-	}
-
-	{
-		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
-		err = backoff.Retry(fetch, b)
-		if err != nil {
-			return nil, microerror.Mask(err)
-		}
-	}
-	return &awsControlPlane, nil
 }
 
 func (m *Mutator) getHAavailabilityZones(firstAZ string, azs []string) []string {

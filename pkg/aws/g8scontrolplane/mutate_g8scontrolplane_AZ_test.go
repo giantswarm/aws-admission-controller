@@ -16,11 +16,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
 
 var (
 	controlPlaneName      = "gmk24"
+	clusterName           = "gmk24"
 	controlPlaneNameSpace = "default"
 )
 
@@ -183,6 +185,7 @@ func getG8sControlPlaneRAWByte(replicaNum int, release string) ([]byte, error) {
 			Namespace: controlPlaneNameSpace,
 			Labels: map[string]string{
 				"giantswarm.io/control-plane":            controlPlaneName,
+				"giantswarm.io/cluster":                  clusterName,
 				"cluster-operator.giantswarm.io/version": "1.2.3",
 				"giantswarm.io/organization":             "giantswarm",
 				"release.giantswarm.io/version":          release,
@@ -216,6 +219,7 @@ func awsControlPlane(currentAvailabilityZone []string) *infrastructurev1alpha2.A
 			Namespace: controlPlaneNameSpace,
 			Labels: map[string]string{
 				"giantswarm.io/control-plane":   controlPlaneName,
+				label.Cluster:                   clusterName,
 				"release.giantswarm.io/version": "11.5.0",
 			},
 		},

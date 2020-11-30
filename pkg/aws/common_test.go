@@ -202,7 +202,7 @@ func TestLabelFromCluster(t *testing.T) {
 			var updatedRelease string
 
 			fakeK8sClient := unittest.FakeK8sClient()
-			mutate := &Mutator{
+			mutate := &Handler{
 				K8sClient: fakeK8sClient,
 				Logger:    microloggertest.New(),
 			}
@@ -260,7 +260,7 @@ func TestLabelFromAWSCluster(t *testing.T) {
 			var updatedOperator string
 
 			fakeK8sClient := unittest.FakeK8sClient()
-			mutate := &Mutator{
+			mutate := &Handler{
 				K8sClient: fakeK8sClient,
 				Logger:    microloggertest.New(),
 			}
@@ -318,7 +318,7 @@ func TestLabelFromRelease(t *testing.T) {
 			var updatedOperator string
 
 			fakeK8sClient := unittest.FakeK8sClient()
-			mutate := &Mutator{
+			mutate := &Handler{
 				K8sClient: fakeK8sClient,
 				Logger:    microloggertest.New(),
 			}

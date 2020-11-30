@@ -1,17 +1,13 @@
 package g8scontrolplane
 
 import (
-	"context"
 	"fmt"
-	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v2/pkg/apis/infrastructure/v1alpha2"
-	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/k8sclient/v4/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
@@ -61,52 +57,30 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 }
 
 func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) error {
-	var awsControlPlane infrastructurev1alpha2.AWSControlPlane
 	var err error
-	var fetch func() error
 
-	// Fetch the AWSControlPlane.
-	{
-		v.Log("level", "debug", "message", fmt.Sprintf("Fetching AWSControlPlane %s", g8sControlPlane.Name))
-		fetch = func() error {
-			ctx := context.Background()
-
-			err = v.k8sClient.CtrlClient().Get(
-				ctx,
-				types.NamespacedName{Name: g8sControlPlane.GetName(), Namespace: g8sControlPlane.GetNamespace()},
-				&awsControlPlane,
-			)
-			if err != nil {
-				return microerror.Maskf(notFoundError, "failed to fetch AWSControlplane: %v", err)
-			}
-			return nil
-		}
-	}
-
-	{
-		b := backoff.NewMaxRetries(3, 10*time.Millisecond)
-		err = backoff.Retry(fetch, b)
-		// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
-		if IsNotFound(err) {
-			v.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlane.GetName(), err))
-			return nil
-		} else if err != nil {
-			return microerror.Mask(err)
-		}
+	// Retrieve the `AWSControlPlane` CR related to this object.
+	awsControlPlane, err := aws.FetchAWSControlPlane(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, &g8sControlPlane)
+	// Note that while we do log the error, we don't fail if the AWSControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
+	if aws.IsNotFound(err) {
+		v.Log("level", "debug", "message", fmt.Sprintf("No AWSControlPlane %s could be found: %v", g8sControlPlane.GetName(), err))
+		return nil
+	} else if err != nil {
+		return microerror.Mask(err)
 	}
 
 	if g8sControlPlane.Spec.Replicas != len(awsControlPlane.Spec.AvailabilityZones) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
-			key.ControlPlane(&awsControlPlane),
+			key.ControlPlane(awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
 		)
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("G8sControlPlane %s with %v replicas does not match AWSControlPlane %s with %v availability zones %s",
 			key.ControlPlane(&g8sControlPlane),
 			g8sControlPlane.Spec.Replicas,
-			key.ControlPlane(&awsControlPlane),
+			key.ControlPlane(awsControlPlane),
 			len(awsControlPlane.Spec.AvailabilityZones),
 			awsControlPlane.Spec.AvailabilityZones),
 		)
