@@ -130,7 +130,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	// We only need to manipulate if AZs are not set
-	if awsMachineDeployment.Spec.Provider.AvailabilityZones != nil {
+	if len(awsMachineDeployment.Spec.Provider.AvailabilityZones) != 0 {
 		return result, nil
 	}
 
@@ -144,7 +144,7 @@ func (m *Mutator) MutateAvailabilityZones(awsMachineDeployment infrastructurev1a
 		return nil, microerror.Maskf(invalidConfigError, "No availability zones assigned in AWSControlPlane %s.", awsControlPlane.GetName())
 	}
 	// Trigger defaulting of the worker availability zones
-	m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s AvailabilityZones is nil and will be defaulted", awsMachineDeployment.ObjectMeta.Name))
+	m.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s AvailabilityZones are not set and will be defaulted", awsMachineDeployment.ObjectMeta.Name))
 	// We default the AZs
 	defaultedAZs := aws.GetNavailabilityZones(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, aws.DefaultNodePoolAZs, awsControlPlane.Spec.AvailabilityZones)
 	patch := mutator.PatchAdd("/spec/provider/availabilityZones", defaultedAZs)
