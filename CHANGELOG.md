@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2020-12-01
+
 ### Added
 
 - Default the Availability Zones in `AWSMachinedeployment` based on `AWSControlplane` CR.
@@ -158,7 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.3.3...v2.4.0
 [2.3.3]: https://github.com/giantswarm/aws-admission-controller/compare/v2.2.3...v2.3.3
