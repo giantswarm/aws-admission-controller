@@ -228,7 +228,7 @@ func FetchNewestReleaseVersion(m *Handler) (*semver.Version, error) {
 			activeReleases = append(activeReleases, *version)
 		}
 	}
-	if len(infrastructurev1alpha2.NewAWSClusterTypeMeta().APIVersion) == 0 {
+	if len(activeReleases) == 0 {
 		return nil, microerror.Maskf(notFoundError, "Could not find any active releases.")
 	}
 	// Sort releases by version (descending).
