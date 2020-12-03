@@ -51,6 +51,11 @@ func IsHAVersion(releaseVersion *semver.Version) bool {
 	return releaseVersion.GE(*HAVersion)
 }
 
+// IsVersionProductionReady returns whether a given releaseVersion is not a prerelease or test version
+func IsVersionProductionReady(version *semver.Version) bool {
+	return len(version.Pre) == 0 && len(version.Build) == 0
+}
+
 // IsValidMasterReplicas returns whether a given number is a valid number of Master node replicas
 func IsValidMasterReplicas(replicas int) bool {
 	for _, r := range ValidMasterReplicas() {

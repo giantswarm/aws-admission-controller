@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -187,6 +188,55 @@ func FetchG8sControlPlane(m *Handler, meta metav1.Object) (*infrastructurev1alph
 		}
 	}
 	return &g8sControlPlane, nil
+}
+
+func FetchNewestReleaseVersion(m *Handler) (*semver.Version, error) {
+	var activeReleases []semver.Version
+	var err error
+
+	// Fetch the Release CRs
+	releases := releasev1alpha1.ReleaseList{}
+	{
+
+		err = m.K8sClient.CtrlClient().List(
+			context.Background(),
+			&releases,
+		)
+		if err != nil {
+			return nil, microerror.Maskf(notFoundError, "failed to fetch releases: %v", err)
+		}
+		if len(releases.Items) == 0 {
+			return nil, microerror.Maskf(notFoundError, "Could not find any releases.")
+		}
+	}
+	// Find the active, production-ready releases
+	{
+		for _, r := range releases.Items {
+			if r.Spec.State != releasev1alpha1.StateActive {
+				continue
+			}
+
+			var version *semver.Version
+			version, err = semver.New(strings.TrimPrefix(r.GetName(), "v"))
+			if err != nil {
+				continue
+			}
+			if !IsVersionProductionReady(version) {
+				continue
+			}
+
+			activeReleases = append(activeReleases, *version)
+		}
+	}
+	if len(infrastructurev1alpha2.NewAWSClusterTypeMeta().APIVersion) == 0 {
+		return nil, microerror.Maskf(notFoundError, "Could not find any active releases.")
+	}
+	// Sort releases by version (descending).
+	sort.Slice(activeReleases, func(i, j int) bool {
+		return activeReleases[i].GT(activeReleases[j])
+	})
+
+	return &activeReleases[0], nil
 }
 
 func FetchRelease(m *Handler, version *semver.Version) (*releasev1alpha1.Release, error) {
