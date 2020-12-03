@@ -428,7 +428,10 @@ func TestNewestReleaseVersion(t *testing.T) {
 				release := unittest.DefaultRelease()
 				release.SetName(r.Name)
 				release.Spec.State = r.State
-				fakeK8sClient.CtrlClient().Create(tc.ctx, &release)
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &release)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 			// run fetcher to get newest active release version
 			version, err := FetchNewestReleaseVersion(handle)
