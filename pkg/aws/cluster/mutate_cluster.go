@@ -2,6 +2,8 @@
 package cluster
 
 import (
+	"fmt"
+
 	"github.com/blang/semver"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -68,10 +70,15 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
 
+	patch, err = m.MutateReleaseVersion(*cluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	releaseVersion, err := aws.ReleaseVersion(cluster, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
+	result = append(result, patch...)
 
 	patch, err = m.MutateOperatorVersion(*cluster, releaseVersion)
 	if err != nil {
@@ -102,6 +109,29 @@ func (m *Mutator) MutateOperatorVersion(cluster capiv1alpha2.Cluster, releaseVer
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
+
+	return result, nil
+}
+
+func (m *Mutator) MutateReleaseVersion(cluster capiv1alpha2.Cluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var err error
+
+	if key.Release(&cluster) != "" {
+		return result, nil
+	}
+	// Find the newest active release.
+	newestRelease, err := aws.FetchNewestReleaseVersion(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger})
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the release label
+	m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to newest version %s.",
+		label.Release,
+		newestRelease.String()))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)), newestRelease.String())
+	result = append(result, patch)
 
 	return result, nil
 }

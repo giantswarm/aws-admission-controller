@@ -9,6 +9,11 @@ const (
 	DefaultReleaseName = "v100.0.0"
 )
 
+type ReleaseData struct {
+	Name  string
+	State releasev1alpha1.ReleaseState
+}
+
 func DefaultRelease() releasev1alpha1.Release {
 	cr := releasev1alpha1.Release{
 		ObjectMeta: metav1.ObjectMeta{

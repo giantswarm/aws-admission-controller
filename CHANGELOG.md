@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Default the Release Version Label in `Cluster` to the newest active production release.
+
 ## [2.5.0] - 2020-12-01
 
 ### Added
