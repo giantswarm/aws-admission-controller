@@ -17,6 +17,7 @@ Mutating Webhook:
 
 - In a `Cluster` resource, the Release Version is defaulted to the newest active production version if it is not set. 
 - In a `Cluster` resource, the Cluster Operator Version is defaulted based on the `Release` CR if it is not set. 
+- In a `Cluster` resource, the Cluster Operator Version is defaulted based on the new release version during an upgrade. 
 
 - In a `G8sControlplane` resource, the Cluster Operator Version is defaulted based on the `Cluster` CR if it is not set. 
 - In a `G8sControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 

@@ -80,7 +80,7 @@ func MutateLabelFromRelease(m *Handler, meta metav1.Object, release releasev1alp
 	if value == "" {
 		return nil, microerror.Maskf(notFoundError, "Release %s did not specify version of %s.", release.GetName(), component)
 	}
-	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from Release %s.",
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s will be defaulted to %s from Release %s.",
 		label,
 		value,
 		release.GetName()))

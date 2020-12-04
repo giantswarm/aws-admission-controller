@@ -55,6 +55,9 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 	if request.Operation == admissionv1.Create {
 		return m.MutateCreate(request)
 	}
+	if request.Operation == admissionv1.Update {
+		return m.MutateCreate(request)
+	}
 	return result, nil
 }
 
@@ -81,6 +84,31 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	result = append(result, patch...)
 
 	patch, err = m.MutateOperatorVersion(*cluster, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	return result, nil
+}
+
+// MutateUpdate is the function executed for every update webhook request.
+func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	// Parse incoming object
+	cluster := &capiv1alpha2.Cluster{}
+	oldCluster := &capiv1alpha2.Cluster{}
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
+	}
+	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, oldCluster); err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse old Cluster: %v", err)
+	}
+
+	patch, err = m.MutateReleaseUpdate(*cluster, *oldCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -132,6 +160,34 @@ func (m *Mutator) MutateReleaseVersion(cluster capiv1alpha2.Cluster) ([]mutator.
 		newestRelease.String()))
 	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)), newestRelease.String())
 	result = append(result, patch)
+
+	return result, nil
+}
+
+func (m *Mutator) MutateReleaseUpdate(cluster capiv1alpha2.Cluster, oldCluster capiv1alpha2.Cluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	var patch []mutator.PatchOperation
+	var err error
+
+	if key.Release(&cluster) == key.Release(&oldCluster) {
+		return result, nil
+	}
+	// Retrieve the `Release` CR.
+	releaseVersion, err := aws.ReleaseVersion(&cluster, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
+	}
+	release, err := aws.FetchRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	// mutate the operator label
+	patch, err = aws.MutateLabelFromRelease(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &cluster, *release, label.ClusterOperatorVersion, "cluster-operator")
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
 
 	return result, nil
 }
