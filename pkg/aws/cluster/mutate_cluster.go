@@ -56,7 +56,7 @@ func (m *Mutator) Mutate(request *admissionv1.AdmissionRequest) ([]mutator.Patch
 		return m.MutateCreate(request)
 	}
 	if request.Operation == admissionv1.Update {
-		return m.MutateCreate(request)
+		return m.MutateUpdate(request)
 	}
 	return result, nil
 }
