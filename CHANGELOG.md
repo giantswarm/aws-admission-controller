@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.0] - 2020-12-07
 
+### Added
+
 - Default the Operator Version Label in `Cluster` to match the new release during upgrade.
 - Default the Release Version Label in `Cluster` to the newest active production release.
 
