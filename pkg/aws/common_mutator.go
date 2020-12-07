@@ -72,15 +72,15 @@ func MutateLabelFromCluster(m *Handler, meta metav1.Object, cluster capiv1alpha2
 func MutateLabelFromRelease(m *Handler, meta metav1.Object, release releasev1alpha1.Release, label string, component string) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 
-	if meta.GetLabels()[label] != "" {
-		return result, nil
-	}
 	// Extract version from release
 	value := GetReleaseComponentLabels(release)[component]
 	if value == "" {
 		return nil, microerror.Maskf(notFoundError, "Release %s did not specify version of %s.", release.GetName(), component)
 	}
-	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s from Release %s.",
+	if meta.GetLabels()[label] == value {
+		return result, nil
+	}
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s will be defaulted to %s from Release %s.",
 		label,
 		value,
 		release.GetName()))
