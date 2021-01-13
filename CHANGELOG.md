@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Adding label value validation for `Cluster` CR for non-version labels.
+
 ## [2.6.0] - 2020-12-07
 
 ### Added

@@ -44,6 +44,13 @@ func ValidMasterReplicas() []int {
 	return []int{1, 3}
 }
 
+// ValidLabelAdmins returns the list of accounts used to manipulate labels
+func ValidLabelAdmins() []string {
+	return []string{
+		"system:serviceaccount:giantswarm:api",
+	}
+}
+
 // VersionLabels are the labels which are considered version labels
 func VersionLabels() []string {
 	return []string{label.AWSOperatorVersion, label.ClusterOperatorVersion, label.Release}
