@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/giantswarm/micrologger/microloggertest"
+
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
-	"github.com/giantswarm/micrologger/microloggertest"
 )
 
 func Test_MaxBatchSizeIsValid(t *testing.T) {
