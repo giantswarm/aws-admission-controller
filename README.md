@@ -61,7 +61,8 @@ Validating Webhook:
 
 - In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 
-- In a `Cluster` resource, the non-version label values are not allowed to be deleted or renamed by whitelisted users and users in restricted groups. 
+- In a `Cluster` resource, the non-version label values are not allowed to be deleted or renamed by admin users and users in restricted groups. 
+- In a `Cluster` resource, the `giantswarm.io` label keys are not allowed to be deleted or renamed by admin users and users in restricted groups. 
 
 - In a `NetworkPool` resource, it validates the .Spec.CIDRBlock from other NetworkPools and also checks if there's overlapping from Docker CIDR, Kubernetes cluster IP range or tenant cluster CIDR.
 

@@ -1,6 +1,8 @@
 package aws
 
 import (
+	"strings"
+
 	"github.com/blang/semver"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -22,6 +24,9 @@ const (
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
+
+	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
+	GiantSwarmLabelPart = "giantswarm.io"
 )
 
 const (
@@ -54,6 +59,11 @@ func ValidLabelAdmins() []string {
 // VersionLabels are the labels which are considered version labels
 func VersionLabels() []string {
 	return []string{label.AWSOperatorVersion, label.ClusterOperatorVersion, label.Release}
+}
+
+// IsGiantSwarmLabel returns whether a label is considered a giantswarm label
+func IsGiantSwarmLabel(label string) bool {
+	return strings.Contains(label, GiantSwarmLabelPart)
 }
 
 // IsHAVersion returns whether a given releaseVersion supports HA Masters

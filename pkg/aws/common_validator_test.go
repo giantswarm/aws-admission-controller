@@ -169,6 +169,74 @@ func Test_PauseTimeIsValid(t *testing.T) {
 	}
 }
 
+func TestValidateLabelKeys(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		newLabels map[string]string
+		valid     bool
+	}{
+		{
+			// no label key was changed
+			name: "case 0",
+			ctx:  context.Background(),
+
+			newLabels: unittest.DefaultLabels(),
+			valid:     true,
+		},
+		{
+			// non giantswarm label key was changed
+			name: "case 1",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				label.Cluster:                unittest.DefaultClusterID,
+				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
+				label.Release:                "100.0.0",
+				label.Organization:           "example-organization",
+				"example-key-changed":        "example-value",
+			},
+			valid: true,
+		},
+		{
+			// giantswarm label key was changed
+			name: "case 2",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				"giantswarm.io/cluster-changed": unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:    unittest.DefaultClusterOperatorVersion,
+				label.Release:                   unittest.DefaultReleaseVersion,
+				label.Organization:              "new-organization",
+			},
+			valid: false,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			handle := &Handler{
+				K8sClient: fakeK8sClient,
+				Logger:    microloggertest.New(),
+			}
+			oldObject := unittest.DefaultCluster()
+			newObject := unittest.DefaultCluster()
+			newObject.SetLabels(tc.newLabels)
+			err = ValidateLabelKeys(handle, &oldObject, &newObject)
+			// check if the result is as expected
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
 func TestValidateLabelValues(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context
