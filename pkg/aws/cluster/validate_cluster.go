@@ -62,6 +62,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	if v.isAdmin(request.UserInfo) || v.isInRestrictedGroup(request.UserInfo) {
+		err = v.ClusterLabelKeysValid(oldCluster, cluster)
+		if err != nil {
+			return false, microerror.Mask(err)
+		}
 		err = v.ClusterLabelValuesValid(oldCluster, cluster)
 		if err != nil {
 			return false, microerror.Mask(err)
@@ -69,6 +73,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) ClusterLabelKeysValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
+	return aws.ValidateLabelKeys(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
 }
 
 func (v *Validator) ClusterLabelValuesValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {

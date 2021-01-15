@@ -9,6 +9,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {
+	// validate for each giantswarm.io label that its value has not been modified
+	oldLabels := old.GetLabels()
+	newLabels := new.GetLabels()
+	for key := range oldLabels {
+		if !IsGiantSwarmLabel(key) {
+			continue
+		}
+		if _, ok := newLabels[key]; !ok {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("User is not allowed to rename or delete label key %s.",
+				key),
+			)
+		}
+	}
+
+	return nil
+}
+
 func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error {
 	// validate for each non-version label that its value has not been modified
 	oldLabels := old.GetLabels()

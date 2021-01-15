@@ -10,5 +10,6 @@ func DefaultLabels() map[string]string {
 		label.ClusterOperatorVersion: "1.2.3",
 		label.Release:                "100.0.0",
 		label.Organization:           "example-organization",
+		"example-key":                "example-value",
 	}
 }
