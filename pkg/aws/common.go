@@ -63,10 +63,7 @@ func VersionLabels() []string {
 
 // IsGiantSwarmLabel returns whether a label is considered a giantswarm label
 func IsGiantSwarmLabel(label string) bool {
-	if strings.Contains(label, GiantSwarmLabelPart) {
-		return true
-	}
-	return false
+	return strings.Contains(label, GiantSwarmLabelPart)
 }
 
 // IsHAVersion returns whether a given releaseVersion supports HA Masters
