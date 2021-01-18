@@ -58,7 +58,7 @@ func ValidLabelAdmins() []string {
 
 // VersionLabels are the labels which are considered version labels
 func VersionLabels() []string {
-	return []string{label.AWSOperatorVersion, label.ClusterOperatorVersion, label.Release}
+	return []string{label.Release}
 }
 
 // IsGiantSwarmLabel returns whether a label is considered a giantswarm label

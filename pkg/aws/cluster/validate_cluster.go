@@ -10,6 +10,7 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -70,6 +71,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
+		err = v.ReleaseVersionValid(oldCluster, cluster)
+		if err != nil {
+			return false, microerror.Mask(err)
+		}
 	}
 
 	return true, nil
@@ -81,6 +86,28 @@ func (v *Validator) ClusterLabelKeysValid(oldCluster *capiv1alpha2.Cluster, newC
 
 func (v *Validator) ClusterLabelValuesValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
 	return aws.ValidateLabelValues(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
+}
+
+func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
+	var err error
+
+	if key.Release(newCluster) == key.Release(oldCluster) {
+		return nil
+	}
+	// Retrieve the `Release` CR.
+	releaseVersion, err := aws.ReleaseVersion(newCluster, []mutator.PatchOperation{})
+	if err != nil {
+		return microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
+	}
+	release, err := aws.FetchRelease(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, releaseVersion)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	if release.Spec.State == "deprecated" {
+		return microerror.Maskf(notAllowedError, "Release %v is deprecated.", release.GetName())
+	}
+
+	return nil
 }
 
 func (v *Validator) isAdmin(userInfo authenticationv1.UserInfo) bool {

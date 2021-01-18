@@ -32,7 +32,7 @@ func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error
 	oldLabels := old.GetLabels()
 	newLabels := new.GetLabels()
 	for key, value := range oldLabels {
-		if IsVersionLabel(key) {
+		if IsVersionLabel(key) || !IsGiantSwarmLabel(key) {
 			continue
 		}
 		if value != newLabels[key] {
