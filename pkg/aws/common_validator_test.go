@@ -260,7 +260,7 @@ func TestValidateLabelValues(t *testing.T) {
 
 			newLabels: map[string]string{
 				label.Cluster:                unittest.DefaultClusterID,
-				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
+				label.ClusterOperatorVersion: "1.2.3",
 				label.Release:                "0.0.0",
 				label.Organization:           "example-organization",
 			},
