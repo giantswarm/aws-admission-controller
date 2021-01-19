@@ -1,11 +1,12 @@
 package aws
 
 import (
-	"strconv"
+	"strings"
 
 	"github.com/blang/semver"
-	"github.com/dylanmei/iso8601"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
 
 const (
@@ -23,6 +24,9 @@ const (
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
+
+	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
+	GiantSwarmLabelPart = "giantswarm.io"
 )
 
 const (
@@ -45,10 +49,37 @@ func ValidMasterReplicas() []int {
 	return []int{1, 3}
 }
 
+// ValidLabelAdmins returns the list of accounts used to manipulate labels
+func ValidLabelAdmins() []string {
+	return []string{
+		"system:serviceaccount:giantswarm:api",
+	}
+}
+
+// VersionLabels are the labels which are considered version labels
+func VersionLabels() []string {
+	return []string{label.Release, label.ClusterOperatorVersion}
+}
+
+// IsGiantSwarmLabel returns whether a label is considered a giantswarm label
+func IsGiantSwarmLabel(label string) bool {
+	return strings.Contains(label, GiantSwarmLabelPart)
+}
+
 // IsHAVersion returns whether a given releaseVersion supports HA Masters
 func IsHAVersion(releaseVersion *semver.Version) bool {
 	HAVersion, _ := semver.New(FirstHARelease)
 	return releaseVersion.GE(*HAVersion)
+}
+
+// IsVersionLabel returns whether a label is considered a version label
+func IsVersionLabel(label string) bool {
+	for _, l := range VersionLabels() {
+		if l == label {
+			return true
+		}
+	}
+	return false
 }
 
 // IsVersionProductionReady returns whether a given releaseVersion is not a prerelease or test version
@@ -64,53 +95,4 @@ func IsValidMasterReplicas(replicas int) bool {
 		}
 	}
 	return false
-}
-
-// MaxBatchSizeIsValid will validate the value into valid maxBatchSize
-// valid values can be either:
-// an integer bigger than 0
-// a float between 0 < x <= 1
-// float value is used as ratio of a total worker count
-func MaxBatchSizeIsValid(value string) bool {
-	// try parse an integer
-	integer, err := strconv.Atoi(value)
-	if err == nil {
-		// check if the value is bigger than zero
-		if integer > 0 {
-			// integer value can be directly used, no need for any adjustment
-			return true
-		} else {
-			// the value is outside of valid bounds, it cannot be used
-			return false
-		}
-	}
-	// try parse float
-	ratio, err := strconv.ParseFloat(value, 10)
-	if err != nil {
-		// not integer or float which means invalid value
-		return false
-	}
-	// valid value is a decimal representing a percentage
-	// anything smaller than 0 or bigger than 1 is not valid
-	if ratio > 0 && ratio <= 1.0 {
-		return true
-	}
-
-	return false
-}
-
-// PauseTimeIsValid checks if the value is in proper ISO 8601 duration format
-// and ensure the duration is not bigger than 1 Hour (AWS limitation)
-func PauseTimeIsValid(value string) bool {
-	d, err := iso8601.ParseDuration(value)
-	if err != nil {
-		return false
-	}
-
-	if d.Hours() > 1.0 {
-		// AWS allows maximum of 1 hour
-		return false
-	}
-
-	return true
 }

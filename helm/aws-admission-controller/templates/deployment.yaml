@@ -40,6 +40,10 @@ spec:
               value: {{ .Values.Installation.V1.Guest.Docker.CIDR }}
             - name: DEFAULT_IPAM_NETWORKCIDR
               value: {{ .Values.Installation.V1.Guest.IPAM.NetworkCIDR }}
+            - name: DEFAULT_KUBERNETES_ADMIN_GROUP
+              value: {{ .Values.Installation.V1.Kubernetes.Auth.TenantAdminTargetGroup }}
+            - name: DEFAULT_KUBERNETES_ALL_GROUP
+              value: {{ .Values.Installation.V1.Kubernetes.Auth.ViewAllTargetGroup }}
             - name: DEFAULT_KUBERNETES_CLUSTER_IP_RANGE
               value: {{ .Values.Installation.V1.Guest.Kubernetes.API.ClusterIPRange }}
             - name: DEFAULT_KUBERNETES_ENDPOINT              
@@ -54,6 +58,8 @@ spec:
               value: {{ .Values.Installation.V1.Guest.Calico.Subnet }}
           args:
             - ./aws-admission-controller
+            - --admin-group=$(DEFAULT_KUBERNETES_ADMIN_GROUP)
+            - --all-target-group=$(DEFAULT_KUBERNETES_ALL_GROUP)
             - --availability-zones=$(DEFAULT_AWS_AZS)
             - --docker-cidr=$(DEFAULT_DOCKER_CIDR)
             - --endpoint=$(DEFAULT_KUBERNETES_ENDPOINT)

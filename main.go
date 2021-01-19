@@ -78,6 +78,11 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	clusterValidator, err := cluster.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	g8scontrolplaneValidator, err := g8scontrolplane.NewValidator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
@@ -99,6 +104,7 @@ func main() {
 	handler.Handle("/validate/awscluster", validator.Handler(awsclusterValidator))
 	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
+	handler.Handle("/validate/cluster", validator.Handler(clusterValidator))
 	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
 	handler.Handle("/validate/networkpool", validator.Handler(networkPoolValidator))
 

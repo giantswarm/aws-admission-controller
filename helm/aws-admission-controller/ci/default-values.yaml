@@ -50,3 +50,7 @@ Installation:
         API:
           ClusterIPRange: "172.18.192.0/20"
           EndpointBase: k8s.gauss.eu-west-1.aws.gigantic.io
+    Kubernetes:
+      Auth:
+        TenantAdminTargetGroup: "giantswarm:Employees"
+        ViewAllTargetGroup: "giantswarm:Employees"
