@@ -95,3 +95,19 @@ func PauseTimeIsValid(value string) bool {
 
 	return true
 }
+
+func IsIntegerGreaterThanZero(v string) bool {
+	// try parse an integer
+	integer, err := strconv.Atoi(v)
+	if err == nil {
+		// check if the value is bigger than zero
+		if integer > 0 {
+			// its valid positive integer
+			return true
+		} else {
+			// the value is outside of valid bounds, it cannot be used
+			return false
+		}
+	}
+	return false
+}
