@@ -3,6 +3,7 @@ package awscluster
 import (
 	"fmt"
 
+	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -53,7 +54,49 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		return false, microerror.Mask(err)
 	}
 
+	err = v.AWSClusterAnnotationCNIMinimumIPTarget(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AWSClusterAnnotationCNIWarmIPTarget(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
+}
+
+func (v *Validator) AWSClusterAnnotationCNIMinimumIPTarget(awsCluster infrastructurev1alpha2.AWSCluster) error {
+	if cniMinimumIPTarget, ok := awsCluster.GetAnnotations()[annotation.AWSCNIMinimumIPTarget]; ok {
+		if !aws.IsIntegerGreaterThanZero(cniMinimumIPTarget) {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be a integer greater than zero.",
+				annotation.AWSCNIMinimumIPTarget,
+				cniMinimumIPTarget),
+			)
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be a integer greater than zero.",
+				annotation.AWSCNIMinimumIPTarget,
+				cniMinimumIPTarget),
+			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) AWSClusterAnnotationCNIWarmIPTarget(awsCluster infrastructurev1alpha2.AWSCluster) error {
+	if cniWarmIPTarget, ok := awsCluster.GetAnnotations()[annotation.AWSCNIWarmIPTarget]; ok {
+		if !aws.IsIntegerGreaterThanZero(cniWarmIPTarget) {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be a integer greater than zero.",
+				annotation.AWSCNIWarmIPTarget,
+				cniWarmIPTarget),
+			)
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be a integer greater than zero.",
+				annotation.AWSCNIWarmIPTarget,
+				cniWarmIPTarget),
+			)
+		}
+	}
+	return nil
 }
 
 func (v *Validator) AWSClusterAnnotationMaxBatchSizeIsValid(awsCluster infrastructurev1alpha2.AWSCluster) error {
