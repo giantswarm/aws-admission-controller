@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adding label value validation for `Cluster` CR for non-version labels.
 - Adding label key validation for `Cluster` CR for `giantswarm.io` labels.
 - Adding label value validation for `Cluster` CR for version labels.
+- Adding validation for AWS CNI annotations for `AWSCluster` CR.
 
 ## [2.6.0] - 2020-12-07
 
