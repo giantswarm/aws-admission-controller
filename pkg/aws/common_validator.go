@@ -105,6 +105,6 @@ func IsIntegerGreaterThanZero(v string) bool {
 			return true
 		}
 	}
-	// the value is outside of valid bounds, it cannot be used
+	// the value is outside of valid bounds
 	return false
 }
