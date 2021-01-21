@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2021-01-21
+
+- Adding validation for AWS CNI annotations for `AWSCluster` CR.
+
 ## [2.7.0] - 2021-01-19
 
 ### Added
