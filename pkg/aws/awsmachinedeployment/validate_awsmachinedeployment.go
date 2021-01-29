@@ -94,7 +94,6 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	err = v.MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment)
