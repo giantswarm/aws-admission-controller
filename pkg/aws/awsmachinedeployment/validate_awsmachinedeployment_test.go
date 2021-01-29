@@ -123,7 +123,7 @@ func TestValidateCluster(t *testing.T) {
 			// create the cluster
 			cluster := unittest.DefaultCluster()
 			if tc.deleted {
-				cluster.SetDeletionTimestamp(&v1.Time{time.Now()})
+				cluster.SetDeletionTimestamp(&v1.Time{Time: time.Now()})
 			}
 			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &cluster)
 			if err != nil {
