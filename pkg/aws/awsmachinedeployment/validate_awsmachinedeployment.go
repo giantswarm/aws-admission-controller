@@ -43,12 +43,54 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.Operation == admissionv1.Update {
+		return v.ValidateUpdate(request)
+	}
+	if request.Operation == admissionv1.Create {
+		return v.ValidateCreate(request)
+	}
+	return true, nil
+}
+
+func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment
 	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
+	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+
+	err = v.MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	return true, nil
+}
+
+func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
+	var awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment
+	var err error
+
+	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
+	}
+	err = v.ValidateCluster(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+
+	}
+
 	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -151,6 +193,26 @@ func (v *Validator) MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeploy
 				maxBatchSize),
 			)
 		}
+	}
+	return nil
+}
+
+func (v *Validator) ValidateCluster(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
+	var err error
+
+	// Retrieve the `Cluster` CR related to this object.
+	cluster, err := aws.FetchCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, &awsMachineDeployment)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	// make sure the cluster is not deleted
+	if cluster.DeletionTimestamp != nil {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment could not be created because Cluster '%s' is in deleting state.",
+			cluster.Name),
+		)
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment could not be created because Cluster '%s' is in deleting state.",
+			cluster.Name),
+		)
 	}
 	return nil
 }

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Prevent creation of `AWSMachinedeployment` CR if the related cluster is deleted.
+- Add Validator for `Machinedeployment` CRs and prevent their creation if the related cluster is deleted.
+
 ## [2.8.0] - 2021-01-21
 
 - Adding validation for AWS CNI annotations for `AWSCluster` CR.

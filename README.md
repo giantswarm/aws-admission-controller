@@ -1,8 +1,8 @@
 [![CircleCI](https://circleci.com/gh/giantswarm/aws-admission-controller.svg?style=shield)](https://circleci.com/gh/giantswarm/aws-admission-controller)
 
-# G8S Admission Controller
+# AWS Admission Controller
 
-Giant Swarm Control Plane admission controller that implements the following rules:
+Giant Swarm AWS Management Cluster admission controller that implements the following rules:
 
 Mutating Webhook:
 
@@ -60,10 +60,13 @@ Validating Webhook:
 - In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
 
 - In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
+- In a `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 
 - In a `Cluster` resource, the  release version label can only be changed to an existing and non-deprecated release by admin users and users in restricted groups. 
 - In a `Cluster` resource, the non-version label values are not allowed to be deleted or renamed by admin users and users in restricted groups. 
 - In a `Cluster` resource, the `giantswarm.io` label keys are not allowed to be deleted or renamed by admin users and users in restricted groups. 
+
+- In a `MachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 
 - In a `NetworkPool` resource, it validates the .Spec.CIDRBlock from other NetworkPools and also checks if there's overlapping from Docker CIDR, Kubernetes cluster IP range or tenant cluster CIDR.
 

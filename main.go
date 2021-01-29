@@ -88,6 +88,11 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	machinedeploymentValidator, err := machinedeployment.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	networkPoolValidator, err := networkpool.NewValidator(config)
 	if err != nil {
 		panic(microerror.JSON(err))
@@ -106,6 +111,7 @@ func main() {
 	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
 	handler.Handle("/validate/cluster", validator.Handler(clusterValidator))
 	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
+	handler.Handle("/validate/machinedeployment", validator.Handler(machinedeploymentValidator))
 	handler.Handle("/validate/networkpool", validator.Handler(networkPoolValidator))
 
 	handler.HandleFunc("/healthz", healthCheck)
