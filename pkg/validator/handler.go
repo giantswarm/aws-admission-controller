@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/handler"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/metrics"
 )
 
@@ -56,14 +57,16 @@ func Handler(validator Validator) http.HandlerFunc {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		resourceName := fmt.Sprintf("%s %s/%s", review.Request.Kind, review.Request.Namespace, handler.ExtractName(review.Request, Deserializer))
 
 		allowed, err := validator.Validate(review.Request)
 		if err != nil {
+			validator.Log("level", "error", "message", fmt.Sprintf("error during validation process of %s: %v", resourceName, err))
 			writeResponse(validator, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
 			metrics.RejectedRequests.WithLabelValues("validating", validator.Resource()).Inc()
 			return
 		}
-
+		validator.Log("level", "debug", "message", fmt.Sprintf("validator admitted %s", resourceName))
 		metrics.SuccessfulRequests.WithLabelValues("validating", validator.Resource()).Inc()
 
 		writeResponse(validator, writer, &admissionv1.AdmissionResponse{

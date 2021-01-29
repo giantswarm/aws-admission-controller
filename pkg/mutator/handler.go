@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/handler"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/metrics"
 )
 
@@ -59,10 +60,11 @@ func Handler(mutator Mutator) http.HandlerFunc {
 			writer.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		resourceName := fmt.Sprintf("%s %s/%s", review.Request.Kind, review.Request.Namespace, extractName(review.Request))
+		resourceName := fmt.Sprintf("%s %s/%s", review.Request.Kind, review.Request.Namespace, handler.ExtractName(review.Request, Deserializer))
 
 		patch, err := mutator.Mutate(review.Request)
 		if err != nil {
+			mutator.Log("level", "error", "message", fmt.Sprintf("error during mutation process of %s: %v", resourceName, err))
 			writeResponse(mutator, writer, errorResponse(review.Request.UID, microerror.Mask(err)))
 			metrics.RejectedRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 			return
@@ -76,7 +78,7 @@ func Handler(mutator Mutator) http.HandlerFunc {
 			return
 		}
 
-		mutator.Log("level", "debug", "message", fmt.Sprintf("admitted %s (with %d patches)", resourceName, len(patch)))
+		mutator.Log("level", "debug", "message", fmt.Sprintf("mutator admitted %s (with %d patches)", resourceName, len(patch)))
 		metrics.SuccessfulRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 
 		pt := admissionv1.PatchTypeJSONPatch
@@ -87,25 +89,6 @@ func Handler(mutator Mutator) http.HandlerFunc {
 			PatchType: &pt,
 		})
 	}
-}
-
-func extractName(request *admissionv1.AdmissionRequest) string {
-	if request.Name != "" {
-		return request.Name
-	}
-
-	obj := metav1.PartialObjectMetadata{}
-	if _, _, err := Deserializer.Decode(request.Object.Raw, nil, &obj); err != nil {
-		return "<unknown>"
-	}
-
-	if obj.Name != "" {
-		return obj.Name
-	}
-	if obj.GenerateName != "" {
-		return obj.GenerateName + "<generated>"
-	}
-	return "<unknown>"
 }
 
 func writeResponse(mutator Mutator, writer http.ResponseWriter, response *admissionv1.AdmissionResponse) {

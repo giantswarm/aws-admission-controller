@@ -67,9 +67,6 @@ func (v *Validator) ValidateCluster(machineDeployment capiv1alpha2.MachineDeploy
 	}
 	// make sure the cluster is not deleted
 	if cluster.DeletionTimestamp != nil {
-		v.logger.Log("level", "debug", "message", fmt.Sprintf("MachineDeployment could not be created because Cluster '%s' is in deleting state.",
-			cluster.Name),
-		)
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("MachineDeployment could not be created because Cluster '%s' is in deleting state.",
 			cluster.Name),
 		)
