@@ -228,6 +228,25 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
+  - name: machinedeployments.{{ include "resource.default.name" . }}.giantswarm.io
+    admissionReviewVersions: [v1]
+    failurePolicy: Ignore
+    sideEffects: None
+    clientConfig:
+      service:
+        name: {{ include "resource.default.name" . }}
+        namespace: {{ include "resource.default.namespace" . }}
+        path: /validate/machinedeployment
+      caBundle: Cg==
+    rules:
+      - apiGroups: ["cluster.x-k8s.io"]
+        resources:
+          - machinedeployments
+        apiVersions:
+          - v1alpha2
+        operations:
+          - CREATE
+          - UPDATE
   - name: networkpools.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
