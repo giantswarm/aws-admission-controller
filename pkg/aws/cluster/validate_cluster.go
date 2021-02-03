@@ -104,13 +104,13 @@ func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha2.Cluster, newClu
 	}
 	if releaseVersion.Major < oldReleaseVersion.Major {
 		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v is a major downgrade and is not supported.",
-			releaseVersion.String(),
-			oldReleaseVersion.String())
+			oldReleaseVersion.String(),
+			releaseVersion.String())
 	}
 	if releaseVersion.Major > oldReleaseVersion.Major+1 {
 		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v skips major release versions and is not supported.",
-			releaseVersion.String(),
-			oldReleaseVersion.String())
+			oldReleaseVersion.String(),
+			releaseVersion.String())
 	}
 	// Retrieve the `Release` CR.
 	release, err := aws.FetchRelease(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, releaseVersion)

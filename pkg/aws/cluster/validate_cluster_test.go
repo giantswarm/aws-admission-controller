@@ -17,6 +17,7 @@ func TestValidateReleaseVersion(t *testing.T) {
 		ctx  context.Context
 		name string
 
+		oldReleaseVersion string
 		newReleaseVersion string
 		valid             bool
 	}{
@@ -25,7 +26,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 0",
 			ctx:  context.Background(),
 
-			newReleaseVersion: unittest.DefaultReleaseVersion,
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "3.0.0",
 			valid:             true,
 		},
 		{
@@ -33,7 +35,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 1",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "100.1.0",
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "4.0.0",
 			valid:             true,
 		},
 		{
@@ -41,7 +44,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 2",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "100.2.0",
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "3.2.0",
 			valid:             false,
 		},
 		{
@@ -49,7 +53,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 3",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "100.3.0",
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "3.3.0",
 			valid:             false,
 		},
 		{
@@ -57,7 +62,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 4",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "102.0.0",
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "5.0.0",
 			valid:             false,
 		},
 		{
@@ -65,7 +71,8 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 5",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "1.0.0",
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "2.0.0",
 			valid:             false,
 		},
 	}
@@ -82,19 +89,19 @@ func TestValidateReleaseVersion(t *testing.T) {
 			// create releases for testing
 			releases := []unittest.ReleaseData{
 				{
-					Name:  "v100.1.0",
+					Name:  "v4.0.0",
 					State: releasev1alpha1.StateActive,
 				},
 				{
-					Name:  "v100.2.0",
+					Name:  "v3.2.0",
 					State: releasev1alpha1.StateDeprecated,
 				},
 				{
-					Name:  "v102.0.0",
+					Name:  "v5.0.0",
 					State: releasev1alpha1.StateActive,
 				},
 				{
-					Name:  "v1.0.0",
+					Name:  "v2.0.0",
 					State: releasev1alpha1.StateActive,
 				},
 			}
@@ -110,6 +117,10 @@ func TestValidateReleaseVersion(t *testing.T) {
 
 			// create old and new object with release version labels
 			oldObject := unittest.DefaultCluster()
+			oldLabels := unittest.DefaultLabels()
+			oldLabels[label.ReleaseVersion] = tc.oldReleaseVersion
+			oldObject.SetLabels(oldLabels)
+
 			newObject := unittest.DefaultCluster()
 			newLabels := unittest.DefaultLabels()
 			newLabels[label.ReleaseVersion] = tc.newReleaseVersion
