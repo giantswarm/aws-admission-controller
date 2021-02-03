@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - 2021-02-03
+
 ### Added
 
 - Only allow customers to change the major release version in the `Cluster` CR to a version that is greater than the current one,
@@ -191,7 +193,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.9.1...HEAD
+[2.9.1]: https://github.com/giantswarm/aws-admission-controller/compare/v2.9.0...v2.9.1
 [2.9.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.6.0...v2.7.0
