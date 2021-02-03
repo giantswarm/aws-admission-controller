@@ -102,8 +102,8 @@ func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha2.Cluster, newClu
 	if err != nil {
 		return microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
-	if releaseVersion.LT(*oldReleaseVersion) {
-		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v is a downgrade and is not supported.",
+	if releaseVersion.Major < oldReleaseVersion.Major {
+		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v is a major downgrade and is not supported.",
 			releaseVersion.String(),
 			oldReleaseVersion.String())
 	}
