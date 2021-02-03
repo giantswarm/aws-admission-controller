@@ -94,11 +94,25 @@ func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha2.Cluster, newClu
 	if key.Release(newCluster) == key.Release(oldCluster) {
 		return nil
 	}
-	// Retrieve the `Release` CR.
 	releaseVersion, err := aws.ReleaseVersion(newCluster, []mutator.PatchOperation{})
 	if err != nil {
 		return microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
+	oldReleaseVersion, err := aws.ReleaseVersion(oldCluster, []mutator.PatchOperation{})
+	if err != nil {
+		return microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
+	}
+	if releaseVersion.LT(*oldReleaseVersion) {
+		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v is a downgrade and is not supported.",
+			releaseVersion.String(),
+			oldReleaseVersion.String())
+	}
+	if releaseVersion.Major > oldReleaseVersion.Major+1 {
+		return microerror.Maskf(notAllowedError, "Upgrade from %v to %v skips major release versions and is not supported.",
+			releaseVersion.String(),
+			oldReleaseVersion.String())
+	}
+	// Retrieve the `Release` CR.
 	release, err := aws.FetchRelease(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, releaseVersion)
 	if err != nil {
 		return microerror.Mask(err)

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Only allow customers to change the release version label in the `Cluster` CR to a version that is greater than the current one,
+  but does not skip major release versions. 
+
 ## [2.9.0] - 2021-02-01
 
 ### Added

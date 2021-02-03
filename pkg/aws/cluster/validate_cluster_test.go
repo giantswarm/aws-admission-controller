@@ -33,7 +33,7 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 1",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "1.0.0",
+			newReleaseVersion: "100.1.0",
 			valid:             true,
 		},
 		{
@@ -41,7 +41,7 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 2",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "2.0.0",
+			newReleaseVersion: "100.2.0",
 			valid:             false,
 		},
 		{
@@ -49,7 +49,23 @@ func TestValidateReleaseVersion(t *testing.T) {
 			name: "case 3",
 			ctx:  context.Background(),
 
-			newReleaseVersion: "3.0.0",
+			newReleaseVersion: "100.3.0",
+			valid:             false,
+		},
+		{
+			// version changed with major skip
+			name: "case 4",
+			ctx:  context.Background(),
+
+			newReleaseVersion: "102.0.0",
+			valid:             false,
+		},
+		{
+			// version changed to older release
+			name: "case 5",
+			ctx:  context.Background(),
+
+			newReleaseVersion: "1.0.0",
 			valid:             false,
 		},
 	}
@@ -66,12 +82,20 @@ func TestValidateReleaseVersion(t *testing.T) {
 			// create releases for testing
 			releases := []unittest.ReleaseData{
 				{
-					Name:  "v1.0.0",
+					Name:  "v100.1.0",
 					State: releasev1alpha1.StateActive,
 				},
 				{
-					Name:  "v2.0.0",
+					Name:  "v100.2.0",
 					State: releasev1alpha1.StateDeprecated,
+				},
+				{
+					Name:  "v102.0.0",
+					State: releasev1alpha1.StateActive,
+				},
+				{
+					Name:  "v1.0.0",
+					State: releasev1alpha1.StateActive,
 				},
 			}
 			for _, r := range releases {
