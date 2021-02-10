@@ -75,6 +75,51 @@ func TestValidateReleaseVersion(t *testing.T) {
 			newReleaseVersion: "2.0.0",
 			valid:             false,
 		},
+		{
+			// version changed with multiple major skips
+			name: "case 6",
+			ctx:  context.Background(),
+
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "7.0.0",
+			valid:             false,
+		},
+		{
+			// version changed to older minor release
+			name: "case 7",
+			ctx:  context.Background(),
+
+			oldReleaseVersion: "3.0.0",
+			newReleaseVersion: "2.9.0",
+			valid:             false,
+		},
+		{
+			// version changed to older minor release
+			name: "case 8",
+			ctx:  context.Background(),
+
+			oldReleaseVersion: "3.2.0",
+			newReleaseVersion: "3.1.0",
+			valid:             true,
+		},
+		{
+			// version changed to older minor release
+			name: "case 9",
+			ctx:  context.Background(),
+
+			oldReleaseVersion: "3.4.1",
+			newReleaseVersion: "3.1.0",
+			valid:             true,
+		},
+		{
+			// version changed to older patch release
+			name: "case 10",
+			ctx:  context.Background(),
+
+			oldReleaseVersion: "3.2.2",
+			newReleaseVersion: "3.2.1",
+			valid:             true,
+		},
 	}
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -89,7 +134,23 @@ func TestValidateReleaseVersion(t *testing.T) {
 			// create releases for testing
 			releases := []unittest.ReleaseData{
 				{
+					Name:  "v5.0.0",
+					State: releasev1alpha1.StateActive,
+				},
+				{
 					Name:  "v4.0.0",
+					State: releasev1alpha1.StateActive,
+				},
+				{
+					Name:  "v3.4.1",
+					State: releasev1alpha1.StateActive,
+				},
+				{
+					Name:  "v3.2.2",
+					State: releasev1alpha1.StateActive,
+				},
+				{
+					Name:  "v3.2.1",
 					State: releasev1alpha1.StateActive,
 				},
 				{
@@ -97,7 +158,7 @@ func TestValidateReleaseVersion(t *testing.T) {
 					State: releasev1alpha1.StateDeprecated,
 				},
 				{
-					Name:  "v5.0.0",
+					Name:  "v3.1.0",
 					State: releasev1alpha1.StateActive,
 				},
 				{
