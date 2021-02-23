@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Prevent upgrades (changing release version label on `Cluster` CR) if the Cluster has not transitioned yet.
+
 ## [2.9.1] - 2021-02-03
 
 ### Added

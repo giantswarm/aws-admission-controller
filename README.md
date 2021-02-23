@@ -64,6 +64,7 @@ Validating Webhook:
 
 - In a `Cluster` resource, the  release version label can only be changed to an existing and non-deprecated release by admin users and users in restricted groups. 
 - In a `Cluster` resource, the  release version label can only be changed to a major version that is greater than the current one   
+- In a `Cluster` resource, the  release version label can only be changed if the cluster is in a transitioned condition. ("updated" or "created")
   but does not skip major versions by admin users and users in restricted groups. 
 - In a `Cluster` resource, the non-version label values are not allowed to be deleted or renamed by admin users and users in restricted groups. 
 - In a `Cluster` resource, the `giantswarm.io` label keys are not allowed to be deleted or renamed by admin users and users in restricted groups. 
