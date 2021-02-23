@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	"github.com/giantswarm/micrologger/microloggertest"
@@ -138,6 +139,103 @@ func TestValidateCluster(t *testing.T) {
 			}
 			if !tc.allowed && err == nil {
 				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
+func TestValidateMachineDeploymentScaling(t *testing.T) {
+	testCases := []struct {
+		scaling infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling
+		matcher func(error) bool
+	}{
+		{
+			// case 0
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 0,
+				Max: 2,
+			},
+			matcher: IsNotAllowed,
+		},
+		{
+			// case 1
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 4,
+				Max: 0,
+			},
+			matcher: IsNotAllowed,
+		},
+		{
+			// case 2
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 0,
+				Max: 0,
+			},
+			matcher: IsNotAllowed,
+		},
+		{
+			// case 3
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 4,
+				Max: 2,
+			},
+			matcher: IsNotAllowed,
+		},
+		{
+			// case 4
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 1,
+				Max: 1,
+			},
+			matcher: nil,
+		},
+		{
+			// case 5
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 4,
+				Max: 4,
+			},
+			matcher: nil,
+		},
+		{
+			// case 6
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 4,
+				Max: 6,
+			},
+			matcher: nil,
+		},
+		{
+			// case 7
+			scaling: infrastructurev1alpha2.AWSMachineDeploymentSpecNodePoolScaling{
+				Min: 1,
+				Max: 10,
+			},
+			matcher: nil,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+
+			md := unittest.DefaultAWSMachineDeployment()
+
+			md.Spec.NodePool.Scaling = tc.scaling
+
+			err := v.MachineDeploymentScaling(md)
+			switch {
+			case err == nil && tc.matcher == nil:
+				// correct; carry on
+			case err != nil && tc.matcher == nil:
+				t.Fatalf("error == %#v, want nil", err)
+			case err == nil && tc.matcher != nil:
+				t.Fatalf("error == nil, want non-nil")
+			case !tc.matcher(err):
+				t.Fatalf("error == %#v, want matching", err)
 			}
 		})
 	}

@@ -79,16 +79,16 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 }
 
 func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
-	var awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment
 	var err error
 
+	var awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
+
 	err = v.ValidateCluster(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
@@ -102,6 +102,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	err = v.MachineDeploymentAnnotationPauseTimeIsValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.MachineDeploymentScaling(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -209,6 +214,25 @@ func (v *Validator) ValidateCluster(awsMachineDeployment infrastructurev1alpha2.
 			cluster.Name),
 		)
 	}
+	return nil
+}
+
+func (v *Validator) MachineDeploymentScaling(md infrastructurev1alpha2.AWSMachineDeployment) error {
+	min := md.Spec.NodePool.Scaling.Min
+	max := md.Spec.NodePool.Scaling.Max
+
+	if min == 0 {
+		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Min must not be 0.")
+	}
+
+	if max == 0 {
+		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Max must not be 0.")
+	}
+
+	if min > max {
+		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Min must not be greater that AWSMachineDeployment.Spec.Scaling.Max.")
+	}
+
 	return nil
 }
 
