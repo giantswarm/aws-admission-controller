@@ -43,17 +43,18 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 }
 
 func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
-	var machineDeployment capiv1alpha2.MachineDeployment
 	var err error
 
+	var machineDeployment capiv1alpha2.MachineDeployment
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &machineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse machinedeployment: %v", err)
 	}
+
 	err = v.ValidateCluster(machineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
+
 	return true, nil
 }
 
