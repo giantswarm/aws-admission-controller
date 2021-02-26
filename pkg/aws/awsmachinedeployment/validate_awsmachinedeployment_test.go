@@ -16,6 +16,52 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
 
+func TestInstanceTypeValid(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		instanceType string
+		allowed      bool
+	}{
+		{
+			name: "case 0",
+
+			instanceType: "c5.xlarge",
+			allowed:      true,
+		},
+		{
+			name: "case 1",
+
+			instanceType: "xlarge.c5",
+			allowed:      false,
+		},
+		{
+			name: "case 2",
+
+			instanceType: "",
+			allowed:      false,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			md := unittest.DefaultAWSMachineDeployment()
+			md.Spec.Provider.Worker.InstanceType = tc.instanceType
+
+			validate := &Validator{
+				validInstanceTypes: unittest.DefaultInstanceTypes(),
+				logger:             microloggertest.New(),
+			}
+			err := validate.InstanceTypeValid(md)
+			if tc.allowed && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.allowed && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
 func TestMachineDeploymentLabelMatch(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context
