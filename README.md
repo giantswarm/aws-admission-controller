@@ -52,15 +52,15 @@ Validating Webhook:
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are a valid count (Right now either 1 or 3).
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are matching the number of Availability Zones in the `AWSControlPlane` resource.
 
-- In a `AWSControlPlane` resource, it validates the Master Instance Type is a valid Instance Type for the installation.
-- In a `AWSControlPlane` resource, it validates that the order of Master Node Availability Zones does not change on update.
-- In a `AWSControlPlane` resource, it validates that the number of distinct Master Node Availability Zones is maximal.
-- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are valid AZs for the installation.
-- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
-- In a `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
+- In an `AWSControlPlane` resource, it validates the Master Instance Type is a valid Instance Type for the installation.
+- In an `AWSControlPlane` resource, it validates that the order of Master Node Availability Zones does not change on update.
+- In an `AWSControlPlane` resource, it validates that the number of distinct Master Node Availability Zones is maximal.
+- In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are valid AZs for the installation.
+- In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
+- In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
 
-- In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
-- In a `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
+- In an `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
+- In an `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 - In an `AWSMachinedeployment` resource, it validates that the `max` number of nodes is not 0 and greater or equal to `min`.
 
 - In a `Cluster` resource, the  release version label can only be changed to an existing and non-deprecated release by admin users and users in restricted groups. 
