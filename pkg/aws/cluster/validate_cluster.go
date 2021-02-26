@@ -63,12 +63,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse old Cluster: %v", err)
 	}
 
-	err = v.ClusterStatusValid(oldCluster, cluster)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-
 	if v.isAdmin(request.UserInfo) || v.isInRestrictedGroup(request.UserInfo) {
+		err = v.ClusterStatusValid(oldCluster, cluster)
+		if err != nil {
+			return false, microerror.Mask(err)
+		}
 		err = v.ClusterLabelKeysValid(oldCluster, cluster)
 		if err != nil {
 			return false, microerror.Mask(err)
