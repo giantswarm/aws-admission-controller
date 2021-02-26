@@ -214,11 +214,6 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 }
 func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
 	if !contains(v.validInstanceTypes, awsControlPlane.Spec.InstanceType) {
-		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
-			key.ControlPlane(&awsControlPlane),
-			awsControlPlane.Spec.InstanceType,
-			v.validInstanceTypes),
-		)
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.InstanceType,
