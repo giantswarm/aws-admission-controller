@@ -138,11 +138,6 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 
 func (v *Validator) InstanceTypeValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
 	if !contains(v.validInstanceTypes, awsMachineDeployment.Spec.Provider.Worker.InstanceType) {
-		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSMachineDeployment %s worker instance type %v is invalid. Valid instance types are: %v",
-			key.ControlPlane(&awsMachineDeployment),
-			awsMachineDeployment.Spec.Provider.Worker.InstanceType,
-			v.validInstanceTypes),
-		)
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment %s worker instance type %v is invalid. Valid instance types are: %v",
 			key.ControlPlane(&awsMachineDeployment),
 			awsMachineDeployment.Spec.Provider.Worker.InstanceType,
