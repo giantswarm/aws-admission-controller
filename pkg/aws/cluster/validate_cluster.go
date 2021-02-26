@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -63,6 +64,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	if v.isAdmin(request.UserInfo) || v.isInRestrictedGroup(request.UserInfo) {
+		err = v.ClusterStatusValid(oldCluster, cluster)
+		if err != nil {
+			return false, microerror.Mask(err)
+		}
 		err = v.ClusterLabelKeysValid(oldCluster, cluster)
 		if err != nil {
 			return false, microerror.Mask(err)
@@ -86,6 +91,26 @@ func (v *Validator) ClusterLabelKeysValid(oldCluster *capiv1alpha2.Cluster, newC
 
 func (v *Validator) ClusterLabelValuesValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
 	return aws.ValidateLabelValues(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
+}
+
+func (v *Validator) ClusterStatusValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
+	var err error
+
+	if key.Release(newCluster) == key.Release(oldCluster) {
+		return nil
+	}
+	// Retrieve the `AWSCluster` CR.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, newCluster)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	if !v.isTransitioned(awsCluster.GetCommonClusterStatus()) {
+		return microerror.Maskf(notAllowedError, "Cluster %v can not be upgraded at the present moment because it has not transitioned yet.",
+			newCluster.GetName(),
+		)
+	}
+
+	return nil
 }
 
 func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha2.Cluster, newCluster *capiv1alpha2.Cluster) error {
@@ -142,6 +167,11 @@ func (v *Validator) isInRestrictedGroup(userInfo authenticationv1.UserInfo) bool
 		}
 	}
 	return false
+}
+
+func (v *Validator) isTransitioned(status infrastructurev1alpha2.CommonClusterStatus) bool {
+	condition := status.LatestCondition()
+	return condition == infrastructurev1alpha2.ClusterStatusConditionCreated || condition == infrastructurev1alpha2.ClusterStatusConditionUpdated
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {
