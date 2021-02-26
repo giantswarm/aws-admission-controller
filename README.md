@@ -61,6 +61,7 @@ Validating Webhook:
 
 - In a `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 - In a `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
+- In an `AWSMachinedeployment` resource, it validates that the `max` number of nodes is not 0 and greater or equal to `min`.
 
 - In a `Cluster` resource, the  release version label can only be changed to an existing and non-deprecated release by admin users and users in restricted groups. 
 - In a `Cluster` resource, the  release version label can only be changed to a major version that is greater than the current one   

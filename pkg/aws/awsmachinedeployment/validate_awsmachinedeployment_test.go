@@ -155,7 +155,7 @@ func TestValidateMachineDeploymentScaling(t *testing.T) {
 				Min: 0,
 				Max: 2,
 			},
-			matcher: IsNotAllowed,
+			matcher: nil,
 		},
 		{
 			// case 1
