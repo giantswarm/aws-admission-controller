@@ -75,6 +75,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = v.MachineDeploymentScaling(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -220,10 +225,6 @@ func (v *Validator) ValidateCluster(awsMachineDeployment infrastructurev1alpha2.
 func (v *Validator) MachineDeploymentScaling(md infrastructurev1alpha2.AWSMachineDeployment) error {
 	min := md.Spec.NodePool.Scaling.Min
 	max := md.Spec.NodePool.Scaling.Max
-
-	if min == 0 {
-		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Min must not be 0.")
-	}
 
 	if max == 0 {
 		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Max must not be 0.")

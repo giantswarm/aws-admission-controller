@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Prevent max number of nodes in `AWSMachinedeployment` CR to be 0 or smaller than min number of nodes.
 - Prevent upgrades (changing release version label on `Cluster` CR) if the Cluster has not transitioned yet.
 
 ## [2.9.1] - 2021-02-03
