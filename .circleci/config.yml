@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  architect: giantswarm/architect@0.17.0
+  architect: giantswarm/architect@2.1.0
 
 
 workflows:
@@ -62,7 +62,6 @@ workflows:
           context: architect
           app_name: "aws-admission-controller"
           app_collection_repo: "aws-app-collection"
-          unique: "true"
           requires:
             - push-aws-admission-controller-to-control-plane-app-catalog
           filters:

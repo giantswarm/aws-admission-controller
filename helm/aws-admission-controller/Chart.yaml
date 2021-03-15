@@ -4,3 +4,5 @@ description: A Helm chart for Kubernetes
 home: https://github.com/giantswarm/aws-admission-controller
 version: [[ .Version ]]
 appVersion: [[ .AppVersion ]]
+annotations:
+  application.giantswarm.io/team: "firecracker"
