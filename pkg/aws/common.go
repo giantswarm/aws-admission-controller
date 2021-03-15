@@ -22,6 +22,9 @@ const (
 	// DefaultMasterInstanceType is the default master instance type
 	DefaultMasterInstanceType = "m5.xlarge"
 
+	// LastGSRelease is the last GS release that does not run on CAPI controllers
+	LastGSRelease = "19.0.0"
+
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
 
@@ -70,6 +73,12 @@ func IsGiantSwarmLabel(label string) bool {
 func IsHAVersion(releaseVersion *semver.Version) bool {
 	HAVersion, _ := semver.New(FirstHARelease)
 	return releaseVersion.GE(*HAVersion)
+}
+
+// IsCAPIVersion returns whether a given releaseVersion is using CAPI controllers
+func IsCAPIVersion(releaseVersion *semver.Version) bool {
+	GSVersion, _ := semver.New(LastGSRelease)
+	return releaseVersion.GT(*GSVersion)
 }
 
 // IsVersionLabel returns whether a label is considered a version label
