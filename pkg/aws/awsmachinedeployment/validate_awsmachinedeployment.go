@@ -3,6 +3,7 @@ package awsmachinedeployment
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
@@ -24,6 +25,8 @@ import (
 type Validator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
+
+	validInstanceTypes []string
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
@@ -34,9 +37,13 @@ func NewValidator(config config.Config) (*Validator, error) {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
+	var instanceTypes []string = strings.Split(config.WorkerInstanceTypes, ",")
+
 	validator := &Validator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
+
+		validInstanceTypes: instanceTypes,
 	}
 
 	return validator, nil
@@ -59,10 +66,15 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsMachineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
+
+	err = v.InstanceTypeValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.MachineDeploymentLabelMatch(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
-
 	}
 
 	err = v.MachineDeploymentAnnotationMaxBatchSizeIsValid(awsMachineDeployment)
@@ -91,6 +103,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awsmachinedeployment: %v", err)
 	}
 
+	err = v.InstanceTypeValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ValidateCluster(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -117,6 +134,18 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) InstanceTypeValid(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
+	if !contains(v.validInstanceTypes, awsMachineDeployment.Spec.Provider.Worker.InstanceType) {
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment %s worker instance type %v is invalid. Valid instance types are: %v",
+			key.ControlPlane(&awsMachineDeployment),
+			awsMachineDeployment.Spec.Provider.Worker.InstanceType,
+			v.validInstanceTypes),
+		)
+	}
+
+	return nil
 }
 
 func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastructurev1alpha2.AWSMachineDeployment) error {
@@ -235,6 +264,14 @@ func (v *Validator) MachineDeploymentScaling(md infrastructurev1alpha2.AWSMachin
 	}
 
 	return nil
+}
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {

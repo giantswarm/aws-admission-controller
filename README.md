@@ -59,6 +59,7 @@ Validating Webhook:
 - In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
 - In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
 
+- In an `AWSMachineDeployment` resource, it validates the worker node instance type.
 - In an `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 - In an `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 - In an `AWSMachinedeployment` resource, it validates that the `max` number of nodes is not 0 and greater or equal to `min`.

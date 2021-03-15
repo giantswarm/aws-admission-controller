@@ -31,6 +31,7 @@ type Config struct {
 	PodCIDR                  string
 	PodSubnet                string
 	Region                   string
+	WorkerInstanceTypes      string
 	Logger                   micrologger.Logger
 	K8sClient                k8sclient.Interface
 	KeyFile                  string
@@ -90,6 +91,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("region", "Default cluster region").Required().StringVar(&config.Region)
 	kingpin.Flag("tls-cert-file", "File containing the certificate for HTTPS").Required().StringVar(&config.CertFile)
 	kingpin.Flag("tls-key-file", "File containing the private key for HTTPS").Required().StringVar(&config.KeyFile)
+	kingpin.Flag("worker-instance-types", "List of AWS worker instance types").Required().StringVar(&config.WorkerInstanceTypes)
 
 	kingpin.Parse()
 
