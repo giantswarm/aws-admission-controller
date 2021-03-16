@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/microerror"
 )
 
 const (
@@ -22,8 +23,8 @@ const (
 	// DefaultMasterInstanceType is the default master instance type
 	DefaultMasterInstanceType = "m5.xlarge"
 
-	// LastGSRelease is the last GS release that does not run on CAPI controllers
-	LastGSRelease = "19.0.0"
+	// FirstCAPIRelease is the last GS release that does not run on CAPI controllers
+	FirstCAPIRelease = "20.0.0-v1alpha3"
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
@@ -76,9 +77,12 @@ func IsHAVersion(releaseVersion *semver.Version) bool {
 }
 
 // IsCAPIVersion returns whether a given releaseVersion is using CAPI controllers
-func IsCAPIVersion(releaseVersion *semver.Version) bool {
-	GSVersion, _ := semver.New(LastGSRelease)
-	return releaseVersion.GT(*GSVersion)
+func IsCAPIVersion(releaseVersion *semver.Version) (bool, error) {
+	CAPIVersion, err := semver.New(FirstCAPIRelease)
+	if err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to get first CAPI release version")
+	}
+	return releaseVersion.GE(*CAPIVersion), nil
 }
 
 // IsVersionLabel returns whether a label is considered a version label

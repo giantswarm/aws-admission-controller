@@ -55,7 +55,7 @@ func IsCAPIRelease(meta metav1.Object) (bool, error) {
 	if err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse release version from object")
 	}
-	return IsCAPIVersion(releaseVersion), nil
+	return IsCAPIVersion(releaseVersion)
 }
 
 func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver.Version, error) {

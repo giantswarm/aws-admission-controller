@@ -63,10 +63,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse old Cluster: %v", err)
 	}
 
-	capi, err := aws.IsCAPIRelease(cluster)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
+	capi, _ := aws.IsCAPIRelease(cluster)
 	if capi {
 		return true, nil
 	}

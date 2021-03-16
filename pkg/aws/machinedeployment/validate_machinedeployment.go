@@ -49,10 +49,7 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &machineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse machinedeployment: %v", err)
 	}
-	capi, err := aws.IsCAPIRelease(&machineDeployment)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
+	capi, _ := aws.IsCAPIRelease(&machineDeployment)
 	if capi {
 		return true, nil
 	}

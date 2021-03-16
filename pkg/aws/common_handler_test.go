@@ -27,7 +27,15 @@ func TestCAPIReleaseLabel(t *testing.T) {
 		},
 		{
 			// CAPI Release label is set
-			name: "case 0",
+			name: "case 1",
+			ctx:  context.Background(),
+
+			currentRelease: "20.0.0-v1alpha3",
+			expectedResult: true,
+		},
+		{
+			// CAPI Release label is set
+			name: "case 2",
 			ctx:  context.Background(),
 
 			currentRelease: "20.0.0",
@@ -35,7 +43,7 @@ func TestCAPIReleaseLabel(t *testing.T) {
 		},
 		{
 			// GS Release label is set
-			name: "case 0",
+			name: "case 3",
 			ctx:  context.Background(),
 
 			currentRelease: "14.0.0",

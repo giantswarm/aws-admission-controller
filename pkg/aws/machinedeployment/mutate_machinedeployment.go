@@ -66,10 +66,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, machineDeployment); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse MachineDeployment: %v", err)
 	}
-	capi, err := aws.IsCAPIRelease(machineDeployment)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
+	capi, _ := aws.IsCAPIRelease(machineDeployment)
 	if capi {
 		return result, nil
 	}
