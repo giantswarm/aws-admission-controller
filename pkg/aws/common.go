@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/giantswarm/microerror"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/microerror"
 )
 
 const (
