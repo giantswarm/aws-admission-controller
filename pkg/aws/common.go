@@ -23,7 +23,7 @@ const (
 	// DefaultMasterInstanceType is the default master instance type
 	DefaultMasterInstanceType = "m5.xlarge"
 
-	// FirstCAPIRelease is the last GS release that does not run on CAPI controllers
+	// FirstCAPIRelease is the first GS release that runs on CAPI controllers
 	FirstCAPIRelease = "20.0.0-v1alpha3"
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters

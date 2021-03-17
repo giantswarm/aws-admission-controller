@@ -73,7 +73,10 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
 
-	capi, _ := aws.IsCAPIRelease(cluster)
+	capi, err := aws.IsCAPIRelease(cluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	if capi {
 		return result, nil
 	}
@@ -113,7 +116,10 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse old Cluster: %v", err)
 	}
 
-	capi, _ := aws.IsCAPIRelease(cluster)
+	capi, err := aws.IsCAPIRelease(cluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
 	if capi {
 		return result, nil
 	}
