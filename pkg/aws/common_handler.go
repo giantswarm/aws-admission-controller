@@ -47,6 +47,17 @@ func GetNavailabilityZones(m *Handler, n int, azs []string) []string {
 	return randomAZs
 }
 
+func IsCAPIRelease(meta metav1.Object) (bool, error) {
+	if meta.GetLabels()[label.Release] == "" {
+		return false, nil
+	}
+	releaseVersion, err := ReleaseVersion(meta, []mutator.PatchOperation{})
+	if err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse release version from object")
+	}
+	return IsCAPIVersion(releaseVersion)
+}
+
 func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver.Version, error) {
 	var version string
 	var ok bool

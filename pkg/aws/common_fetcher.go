@@ -224,6 +224,13 @@ func FetchNewestReleaseVersion(m *Handler) (*semver.Version, error) {
 			if !IsVersionProductionReady(version) {
 				continue
 			}
+			capi, err := IsCAPIVersion(version)
+			if err != nil {
+				return nil, microerror.Mask(err)
+			}
+			if capi {
+				continue
+			}
 
 			activeReleases = append(activeReleases, *version)
 		}

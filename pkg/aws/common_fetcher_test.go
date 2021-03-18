@@ -78,6 +78,23 @@ func TestNewestReleaseVersion(t *testing.T) {
 			},
 			expectedVersion: "1.2.3",
 		},
+		{
+			// don't take CAPI versions
+			name: "case 1",
+			ctx:  context.Background(),
+
+			releases: []unittest.ReleaseData{
+				{
+					Name:  "v1.2.3",
+					State: releasev1alpha1.StateActive,
+				},
+				{
+					Name:  "v20.0.0-v1alpha3",
+					State: releasev1alpha1.StateActive,
+				},
+			},
+			expectedVersion: "1.2.3",
+		},
 	}
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {

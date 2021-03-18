@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/giantswarm/microerror"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
@@ -21,6 +22,9 @@ const (
 
 	// DefaultMasterInstanceType is the default master instance type
 	DefaultMasterInstanceType = "m5.xlarge"
+
+	// FirstCAPIRelease is the first GS release that runs on CAPI controllers
+	FirstCAPIRelease = "20.0.0-v1alpha3"
 
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
@@ -70,6 +74,15 @@ func IsGiantSwarmLabel(label string) bool {
 func IsHAVersion(releaseVersion *semver.Version) bool {
 	HAVersion, _ := semver.New(FirstHARelease)
 	return releaseVersion.GE(*HAVersion)
+}
+
+// IsCAPIVersion returns whether a given releaseVersion is using CAPI controllers
+func IsCAPIVersion(releaseVersion *semver.Version) (bool, error) {
+	CAPIVersion, err := semver.New(FirstCAPIRelease)
+	if err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to get first CAPI release version")
+	}
+	return releaseVersion.GE(*CAPIVersion), nil
 }
 
 // IsVersionLabel returns whether a label is considered a version label
