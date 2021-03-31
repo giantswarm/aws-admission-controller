@@ -15,7 +15,6 @@ require (
 	github.com/giantswarm/to v0.3.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/stretchr/testify v1.6.1 // indirect
-	golang.org/x/tools v0.0.0-20200706234117-b22de6825cf7 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.18.9
 	k8s.io/apiextensions-apiserver v0.18.9
@@ -27,6 +26,7 @@ require (
 
 replace (
 	github.com/coreos/etcd v3.3.10+incompatible => github.com/coreos/etcd v3.3.25+incompatible
+	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.0 => github.com/gorilla/websocket v1.4.2
 	sigs.k8s.io/cluster-api v0.3.13 => github.com/giantswarm/cluster-api v0.3.10-gs
 )
