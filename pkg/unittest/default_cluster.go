@@ -107,7 +107,7 @@ func DefaultCluster() *capiv1alpha2.Cluster {
 				label.Cluster:                DefaultClusterID,
 				label.ClusterOperatorVersion: "1.2.3",
 				label.Release:                "100.0.0",
-				label.Organization:           "example-organization",
+				label.Organization:           "giantswarm",
 			},
 		},
 	}

@@ -337,17 +337,10 @@ func Test_OrganizationNotExists(t *testing.T) {
 }
 
 func Test_OrganizationExists(t *testing.T) {
-	organization := &securityv1alpha1.Organization{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "example-organization",
-		},
-		Spec: securityv1alpha1.OrganizationSpec{},
-	}
-
 	ctx := context.Background()
 
 	fakeK8sClient := unittest.FakeK8sClient()
-	err := fakeK8sClient.CtrlClient().Create(ctx, organization)
+	err := fakeK8sClient.CtrlClient().Create(ctx, unittest.DefaultOrganization())
 	if err != nil {
 		panic(err)
 	}
