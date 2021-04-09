@@ -63,6 +63,12 @@ func TestReplicaAZMatch(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			admissionRequest, err := unittest.DefaultAdmissionRequestG8sControlPlane()
 			if err != nil {
 				t.Fatal(err)
@@ -126,6 +132,12 @@ func TestReplicaCount(t *testing.T) {
 			}
 
 			admissionRequest, err := g8sControlPlaneCreateAdmissionRequest(tc.replicas, "100.0.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
 			if err != nil {
 				t.Fatal(err)
 			}

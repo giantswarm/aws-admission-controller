@@ -58,6 +58,12 @@ func TestAZReplicaMatch(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			allowed, _ := validate.Validate(&admissionRequest)
 			if allowed != tc.allowed {
 				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
@@ -109,6 +115,12 @@ func TestAZCount(t *testing.T) {
 			}
 
 			admissionRequest, err := awsControlPlaneAdmissionRequest(tc.azs, "m4.xlarge", "100.0.0")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -187,6 +199,12 @@ func TestAZOrder(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			allowed, _ := validate.Validate(&admissionRequest)
 			if allowed != tc.allowed {
 				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
@@ -261,6 +279,12 @@ func TestAZUnique(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			allowed, _ := validate.Validate(&admissionRequest)
 			if allowed != tc.allowed {
 				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
@@ -309,6 +333,12 @@ func TestAZValid(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			allowed, _ := validate.Validate(&admissionRequest)
 			if allowed != tc.allowed {
 				t.Fatalf("expected %v to not to differ from %v", allowed, tc.allowed)
@@ -352,6 +382,12 @@ func TestInstanceTypeValid(t *testing.T) {
 			}
 
 			admissionRequest, err := unittest.DefaultAdmissionRequestAWSControlPlane()
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			organization := unittest.DefaultOrganization()
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, organization)
 			if err != nil {
 				t.Fatal(err)
 			}
