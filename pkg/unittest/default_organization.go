@@ -8,7 +8,7 @@ import (
 func DefaultOrganization() *securityv1alpha1.Organization {
 	organization := &securityv1alpha1.Organization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "giantswarm",
+			Name: "example-organization",
 		},
 		Spec: securityv1alpha1.OrganizationSpec{},
 	}

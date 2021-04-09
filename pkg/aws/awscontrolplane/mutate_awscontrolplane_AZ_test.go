@@ -232,7 +232,7 @@ func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstance
 				label.ControlPlane:       controlPlaneName,
 				label.Release:            release,
 				label.AWSOperatorVersion: unittest.DefaultAWSOperatorVersion,
-				label.Organization:       "giantswarm",
+				label.Organization:       "example-organization",
 			},
 		},
 		Spec: infrastructurev1alpha2.AWSControlPlaneSpec{
