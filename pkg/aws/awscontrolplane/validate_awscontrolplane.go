@@ -1,6 +1,7 @@
 package awscontrolplane
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -63,6 +64,11 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
+	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	// The order can only change on update
 	if request.Operation == admissionv1.Update {
 		var awsControlPlaneOld infrastructurev1alpha2.AWSControlPlane
