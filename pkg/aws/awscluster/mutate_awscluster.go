@@ -208,6 +208,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 // MutatePodCIDR defaults the Pod CIDR if it is not set.
 func (m *Mutator) MutatePodCIDR(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
+	//nolint:staticcheck // SA4022 the address of a variable cannot be nil
 	if &awsCluster.Spec.Provider.Pods != nil {
 		if awsCluster.Spec.Provider.Pods.CIDRBlock != "" {
 			return result, nil
@@ -246,6 +247,7 @@ func (m *Mutator) MutateMasterPreHA(awsCluster infrastructurev1alpha2.AWSCluster
 	var availabilityZone string
 	var instanceType string
 	{
+		//nolint:staticcheck // SA4022 the address of a variable cannot be nil
 		if &awsCluster.Spec.Provider.Master != nil {
 			if awsCluster.Spec.Provider.Master.AvailabilityZone != "" && awsCluster.Spec.Provider.Master.InstanceType != "" {
 				return result, nil
