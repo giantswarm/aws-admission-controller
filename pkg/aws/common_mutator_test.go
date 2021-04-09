@@ -53,7 +53,7 @@ func TestLabelFromCluster(t *testing.T) {
 			cluster := unittest.DefaultCluster()
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.SetLabels(map[string]string{label.Release: tc.currentRelease, label.Cluster: unittest.DefaultClusterID})
-			patch, err = MutateLabelFromCluster(mutate, awscluster.GetObjectMeta(), cluster, label.Release)
+			patch, err = MutateLabelFromCluster(mutate, awscluster.GetObjectMeta(), *cluster, label.Release)
 			if err != nil {
 				t.Fatal(err)
 			}

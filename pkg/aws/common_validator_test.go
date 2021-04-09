@@ -9,6 +9,9 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
+
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func Test_MaxBatchSizeIsValid(t *testing.T) {
@@ -225,7 +228,7 @@ func TestValidateLabelKeys(t *testing.T) {
 			oldObject := unittest.DefaultCluster()
 			newObject := unittest.DefaultCluster()
 			newObject.SetLabels(tc.newLabels)
-			err = ValidateLabelKeys(handle, &oldObject, &newObject)
+			err = ValidateLabelKeys(handle, oldObject, newObject)
 			// check if the result is as expected
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
@@ -292,7 +295,7 @@ func TestValidateLabelValues(t *testing.T) {
 			oldObject := unittest.DefaultCluster()
 			newObject := unittest.DefaultCluster()
 			newObject.SetLabels(tc.newLabels)
-			err = ValidateLabelValues(handle, &oldObject, &newObject)
+			err = ValidateLabelValues(handle, oldObject, newObject)
 			// check if the result is as expected
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
@@ -301,5 +304,55 @@ func TestValidateLabelValues(t *testing.T) {
 				t.Fatalf("expected error but returned %v", err)
 			}
 		})
+	}
+}
+
+func Test_OrganizationNotExists(t *testing.T) {
+	organization := &securityv1alpha1.Organization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "giantswarm",
+		},
+		Spec: securityv1alpha1.OrganizationSpec{},
+	}
+
+	ctx := context.Background()
+
+	fakeK8sClient := unittest.FakeK8sClient()
+	err := fakeK8sClient.CtrlClient().Create(ctx, organization)
+	if err != nil {
+		panic(err)
+	}
+
+	// if organization is empty it should fail
+	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterEmptyOrganization())
+	if !IsOrganizationNotFoundError(err) {
+		t.Fatalf("it should fail when using a non existing Organization")
+	}
+
+	// if organization label is not given it should fail
+	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterWithoutOrganizationLabel())
+	if !IsOrganizationLabelNotFoundError(err) {
+		t.Fatalf("it should fail when using Organization label is not given")
+	}
+}
+
+func Test_OrganizationExists(t *testing.T) {
+	organization := &securityv1alpha1.Organization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "example-organization",
+		},
+		Spec: securityv1alpha1.OrganizationSpec{},
+	}
+
+	ctx := context.Background()
+
+	fakeK8sClient := unittest.FakeK8sClient()
+	err := fakeK8sClient.CtrlClient().Create(ctx, organization)
+	if err != nil {
+		panic(err)
+	}
+	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultCluster())
+	if err != nil {
+		t.Fatalf("it didn't find the Organization with the normalized name")
 	}
 }

@@ -64,7 +64,7 @@ func TestMutateOperatorVersion(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			patch, err = mutate.MutateOperatorVersion(cluster, releaseVersion)
+			patch, err = mutate.MutateOperatorVersion(*cluster, releaseVersion)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -135,7 +135,7 @@ func TestMutateReleaseUpdate(t *testing.T) {
 
 			// run mutate function to default cluster operator label
 			var patch []mutator.PatchOperation
-			patch, err = mutate.MutateReleaseUpdate(cluster, oldCluster)
+			patch, err = mutate.MutateReleaseUpdate(*cluster, *oldCluster)
 			if err != nil {
 				t.Fatal(err)
 			}

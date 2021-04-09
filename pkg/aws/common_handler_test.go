@@ -54,7 +54,7 @@ func TestCAPIReleaseLabel(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			cluster := unittest.DefaultCluster()
 			cluster.SetLabels(map[string]string{label.Release: tc.currentRelease})
-			capi, err := IsCAPIRelease(&cluster)
+			capi, err := IsCAPIRelease(cluster)
 			if err != nil {
 				t.Fatal(err)
 			}
