@@ -136,6 +136,26 @@ func DefaultClusterEmptyOrganization() *capiv1alpha2.Cluster {
 	return cluster
 }
 
+func DefaultClusterUnknownOrganization() *capiv1alpha2.Cluster {
+	cluster := &capiv1alpha2.Cluster{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Cluster",
+			APIVersion: "cluster.x-k8s.io/v1alpha2",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      DefaultClusterID,
+			Namespace: metav1.NamespaceDefault,
+			Labels: map[string]string{
+				label.Cluster:                DefaultClusterID,
+				label.ClusterOperatorVersion: "1.2.3",
+				label.Release:                "100.0.0",
+				label.Organization:           "unknown-organization",
+			},
+		},
+	}
+
+	return cluster
+}
 func DefaultClusterWithoutOrganizationLabel() *capiv1alpha2.Cluster {
 	cluster := &capiv1alpha2.Cluster{
 		TypeMeta: metav1.TypeMeta{

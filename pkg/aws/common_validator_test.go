@@ -307,45 +307,70 @@ func TestValidateLabelValues(t *testing.T) {
 	}
 }
 
-func Test_OrganizationNotExists(t *testing.T) {
-	organization := &securityv1alpha1.Organization{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "giantswarm",
+func Test_Organization(t *testing.T) {
+	testCases := []struct {
+		ctx   context.Context
+		name  string
+		input string
+	}{
+		{
+			ctx:   context.Background(),
+			name:  "case 0",
+			input: "new-organization",
 		},
-		Spec: securityv1alpha1.OrganizationSpec{},
+		{
+			ctx:   context.Background(),
+			name:  "case 1",
+			input: "different-organization",
+		},
 	}
 
-	ctx := context.Background()
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
 
-	fakeK8sClient := unittest.FakeK8sClient()
-	err := fakeK8sClient.CtrlClient().Create(ctx, organization)
-	if err != nil {
-		panic(err)
-	}
+			// create fake organizations
+			organizations := []securityv1alpha1.Organization{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: tc.input,
+					},
+					Spec: securityv1alpha1.OrganizationSpec{},
+				},
+				// this is the organization label which is from the default test cluster
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "example-organization",
+					},
+					Spec: securityv1alpha1.OrganizationSpec{},
+				},
+			}
 
-	// if organization is empty it should fail
-	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterEmptyOrganization())
-	if !IsOrganizationNotFoundError(err) {
-		t.Fatalf("it should fail when using a non existing Organization")
-	}
+			fakeK8sClient := unittest.FakeK8sClient()
+			for _, org := range organizations {
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &org)
+				if err != nil {
+					panic(err)
+				}
+			}
 
-	// if organization label is not given it should fail
-	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterWithoutOrganizationLabel())
-	if !IsOrganizationLabelNotFoundError(err) {
-		t.Fatalf("it should fail when using Organization label is not given")
-	}
-}
+			// fail if organization is not found
+			err = ValidateOrganizationLabelContainsExistingOrganization(tc.ctx, fakeK8sClient.CtrlClient(), unittest.DefaultCluster())
+			if IsOrganizationNotFoundError(err) {
+				t.Fatalf("%s: it should fail when using a non existing organization", tc.name)
+			}
 
-func Test_OrganizationExists(t *testing.T) {
-	ctx := context.Background()
+			// fail if organization label is empty
+			err = ValidateOrganizationLabelContainsExistingOrganization(tc.ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterEmptyOrganization())
+			if !IsOrganizationNotFoundError(err) {
+				t.Fatalf("%s: it should always fail if organization label is empty", tc.name)
+			}
 
-	fakeK8sClient := unittest.FakeK8sClient()
-	err := fakeK8sClient.CtrlClient().Create(ctx, unittest.DefaultOrganization())
-	if err != nil {
-		panic(err)
-	}
-	err = ValidateOrganizationLabelContainsExistingOrganization(ctx, fakeK8sClient.CtrlClient(), unittest.DefaultCluster())
-	if err != nil {
-		t.Fatalf("it didn't find the Organization with the normalized name")
+			// fail if organization label is not present
+			err = ValidateOrganizationLabelContainsExistingOrganization(tc.ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterWithoutOrganizationLabel())
+			if !IsOrganizationLabelNotFoundError(err) {
+				t.Fatalf("%s: it should always fail if organization label does not exist", tc.name)
+			}
+		})
 	}
 }
