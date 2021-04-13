@@ -330,7 +330,7 @@ func Test_Organization(t *testing.T) {
 			var err error
 
 			// create fake organizations
-			organizations := []securityv1alpha1.Organization{
+			organizations := []*securityv1alpha1.Organization{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: tc.input,
@@ -348,7 +348,7 @@ func Test_Organization(t *testing.T) {
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			for _, org := range organizations {
-				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &org)
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, org)
 				if err != nil {
 					panic(err)
 				}
