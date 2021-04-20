@@ -191,7 +191,7 @@ func TestValidateReleaseVersion(t *testing.T) {
 			newObject.SetLabels(newLabels)
 
 			// check if the result is as expected
-			err = handle.ReleaseVersionValid(&oldObject, &newObject)
+			err = handle.ReleaseVersionValid(oldObject, newObject)
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -320,7 +320,7 @@ func TestValidClusterStatus(t *testing.T) {
 			newObject.SetLabels(newLabels)
 
 			// check if the result is as expected
-			err = handle.ClusterStatusValid(&oldObject, &newObject)
+			err = handle.ClusterStatusValid(oldObject, newObject)
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}

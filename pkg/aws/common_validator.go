@@ -1,12 +1,19 @@
 package aws
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
 	"github.com/dylanmei/iso8601"
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/microerror"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/internal/normalize"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 )
 
 func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {
@@ -107,4 +114,21 @@ func IsIntegerGreaterThanZero(v string) bool {
 	}
 	// the value is outside of valid bounds
 	return false
+}
+
+func ValidateOrganizationLabelContainsExistingOrganization(ctx context.Context, ctrlClient client.Client, obj metav1.Object) error {
+	organizationName, ok := obj.GetLabels()[label.Organization]
+	if !ok {
+		return microerror.Maskf(organizationLabelNotFoundError, "CR doesn't contain Organization label %#q", label.Organization)
+	}
+
+	organization := &securityv1alpha1.Organization{}
+	err := ctrlClient.Get(ctx, client.ObjectKey{Name: normalize.AsDNSLabelName(organizationName)}, organization)
+	if apierrors.IsNotFound(err) {
+		return microerror.Maskf(organizationNotFoundError, "Organization label %#q must contain an existing organization, got %#q but didn't find any CR with name %#q", label.Organization, organizationName, normalize.AsDNSLabelName(organizationName))
+	} else if err != nil {
+		return microerror.Mask(err)
+	}
+
+	return nil
 }

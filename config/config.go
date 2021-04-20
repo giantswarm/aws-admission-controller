@@ -1,6 +1,7 @@
 package config
 
 import (
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
@@ -62,6 +63,7 @@ func Parse() (Config, error) {
 			SchemeBuilder: k8sclient.SchemeBuilder{
 				apiv1alpha2.AddToScheme,
 				infrastructurev1alpha2.AddToScheme,
+				securityv1alpha1.AddToScheme,
 				releasev1alpha1.AddToScheme,
 			},
 			Logger: config.Logger,

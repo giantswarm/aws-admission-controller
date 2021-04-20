@@ -39,3 +39,21 @@ var parsingFailedError = &microerror.Error{
 func IsParsingFailed(err error) bool {
 	return microerror.Cause(err) == parsingFailedError
 }
+
+var organizationLabelNotFoundError = &microerror.Error{
+	Kind: "organizationLabelNotFoundError",
+}
+
+// IsOrganizationLabelNotFoundError asserts organizationLabelNotFoundError.
+func IsOrganizationLabelNotFoundError(err error) bool {
+	return microerror.Cause(err) == organizationLabelNotFoundError
+}
+
+var organizationNotFoundError = &microerror.Error{
+	Kind: "organizationNotFoundError",
+}
+
+// IsOrganizationNotFoundError asserts organizationNotFoundError.
+func IsOrganizationNotFoundError(err error) bool {
+	return microerror.Cause(err) == organizationNotFoundError
+}

@@ -52,7 +52,7 @@ func TestValidateCluster(t *testing.T) {
 			if tc.deleted {
 				cluster.SetDeletionTimestamp(&v1.Time{Time: time.Now()})
 			}
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &cluster)
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, cluster)
 			if err != nil {
 				t.Fatal(err)
 			}

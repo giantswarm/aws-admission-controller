@@ -1,6 +1,7 @@
 package machinedeployment
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
@@ -58,6 +59,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	err = v.ValidateCluster(machineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &machineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}

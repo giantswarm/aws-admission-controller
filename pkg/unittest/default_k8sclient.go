@@ -1,6 +1,7 @@
 package unittest
 
 import (
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/apiextensions/v3/pkg/clientset/versioned"
@@ -39,6 +40,10 @@ func FakeK8sClient() k8sclient.Interface {
 			panic(err)
 		}
 		err = releasev1alpha1.AddToScheme(scheme)
+		if err != nil {
+			panic(err)
+		}
+		err = securityv1alpha1.AddToScheme(scheme)
 		if err != nil {
 			panic(err)
 		}
