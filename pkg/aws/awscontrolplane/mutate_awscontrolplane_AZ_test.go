@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
@@ -227,10 +228,11 @@ func getAWSControlPlaneRAWByte(currentAvailabilityZone []string, currentInstance
 			Name:      controlPlaneName,
 			Namespace: controlPlaneNameSpace,
 			Labels: map[string]string{
-				"giantswarm.io/cluster":              clusterName,
-				"giantswarm.io/control-plane":        controlPlaneName,
-				"release.giantswarm.io/version":      release,
-				"aws-operator.giantswarm.io/version": unittest.DefaultAWSOperatorVersion,
+				label.Cluster:            clusterName,
+				label.ControlPlane:       controlPlaneName,
+				label.Release:            release,
+				label.AWSOperatorVersion: unittest.DefaultAWSOperatorVersion,
+				label.Organization:       "example-organization",
 			},
 		},
 		Spec: infrastructurev1alpha2.AWSControlPlaneSpec{

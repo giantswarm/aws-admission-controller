@@ -21,6 +21,12 @@ rules:
     verbs:
       - "*"
   - apiGroups:
+      - security.giantswarm.io
+    resources:
+      - organizations
+    verbs:
+      - "get"
+  - apiGroups:
       - cluster.x-k8s.io
     resources:
       - machinedeployments

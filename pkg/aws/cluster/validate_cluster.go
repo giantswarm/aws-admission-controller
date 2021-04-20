@@ -1,6 +1,8 @@
 package cluster
 
 import (
+	"context"
+
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -13,6 +15,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 )
 
 type Validator struct {
@@ -44,9 +47,28 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.Operation == admissionv1.Create {
+		return v.ValidateCreate(request)
+	}
 	if request.Operation == admissionv1.Update {
 		return v.ValidateUpdate(request)
 	}
+	return true, nil
+}
+
+func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
+	var err error
+
+	// Parse incoming object
+	cluster := &capiv1alpha2.Cluster{}
+	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
+	}
+	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 

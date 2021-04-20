@@ -187,7 +187,7 @@ func getG8sControlPlaneRAWByte(replicaNum int, release string) ([]byte, error) {
 				"giantswarm.io/control-plane":            controlPlaneName,
 				"giantswarm.io/cluster":                  clusterName,
 				"cluster-operator.giantswarm.io/version": "1.2.3",
-				"giantswarm.io/organization":             "giantswarm",
+				"giantswarm.io/organization":             "example-organization",
 				"release.giantswarm.io/version":          release,
 			},
 		},
