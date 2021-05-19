@@ -70,6 +70,11 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		return false, microerror.Mask(err)
 	}
 
+	err = v.AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -131,6 +136,22 @@ func (v *Validator) AWSClusterAnnotationPauseTimeIsValid(awsCluster infrastructu
 			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be in ISO 8601 duration format and cannot be bigger than 1 hour.",
 				aws.AnnotationUpdatePauseTime,
 				maxBatchSize),
+			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha2.AWSCluster) error {
+	if terminateUnhealthy, ok := awsCluster.GetAnnotations()[annotation.NodeTerminateUnhealthy]; ok {
+		if !(terminateUnhealthy == "true" || terminateUnhealthy == "false") {
+			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be either '\"true\"' or '\"false\"'.",
+				annotation.NodeTerminateUnhealthy,
+				terminateUnhealthy),
+			)
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be either '\"true\"' or '\"false\"'.",
+				annotation.NodeTerminateUnhealthy,
+				terminateUnhealthy),
 			)
 		}
 	}
