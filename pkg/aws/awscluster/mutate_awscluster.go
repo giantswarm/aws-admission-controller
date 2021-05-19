@@ -453,7 +453,7 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 	}
 
 	// new annotation is available from release > 15.x.x
-	release15 := semver.MustParse("v15.0.0")
+	release15 := semver.MustParse("15.0.0")
 	if release.GE(release15) {
 		//load the old alpha annotation
 		if terminateUnhealthy, ok := awsCluster.GetAnnotations()[aws.AnnotationAlphaNodeTerminateUnhealthy]; ok {
