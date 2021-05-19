@@ -24,6 +24,11 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
+const (
+	stringTrue  = "true"
+	stringFalse = "false"
+)
+
 type Config struct {
 	K8sClient k8sclient.Interface
 	Logger    micrologger.Logger
@@ -456,10 +461,10 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 			delete(awsCluster.Annotations, aws.AnnotationAlphaNodeTerminateUnhealthy)
 
 			// set new annotation, any value except 'false' is considered as true
-			if terminateUnhealthy == "false" {
-				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = "false"
+			if terminateUnhealthy == stringFalse {
+				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = stringFalse
 			} else {
-				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = "true"
+				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = stringTrue
 			}
 
 			m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' migrated to '%s'.",
