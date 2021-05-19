@@ -13,6 +13,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/config"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 )
 
@@ -54,6 +55,10 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 
+	err = v.ControlPlaneLabelSet(g8sControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -79,6 +84,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 
+	err = v.ControlPlaneLabelSet(g8sControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
 	err = v.ReplicaCount(g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -89,6 +98,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) ControlPlaneLabelSet(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) error {
+	return aws.ValidateLabelSet(&g8sControlPlane, label.ControlPlane)
 }
 
 func (v *Validator) ReplicaAZMatch(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) error {

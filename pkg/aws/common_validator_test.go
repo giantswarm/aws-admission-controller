@@ -240,6 +240,64 @@ func TestValidateLabelKeys(t *testing.T) {
 	}
 }
 
+func TestValidateLabelSet(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		expectedLabel string
+		labels        map[string]string
+		valid         bool
+	}{
+		{
+			// control plane label is set
+			name: "case 0",
+
+			expectedLabel: label.ControlPlane,
+			labels: map[string]string{
+				label.Cluster:      unittest.DefaultClusterID,
+				label.ControlPlane: unittest.DefaultControlPlaneID,
+			},
+			valid: true,
+		},
+		{
+			// control plane label is missing
+			name: "case 1",
+
+			expectedLabel: label.ControlPlane,
+			labels: map[string]string{
+				label.Cluster: unittest.DefaultClusterID,
+			},
+			valid: false,
+		},
+		{
+			// control plane label is empty
+			name: "case 2",
+
+			expectedLabel: label.ControlPlane,
+			labels: map[string]string{
+				label.Cluster:      unittest.DefaultClusterID,
+				label.ControlPlane: "",
+			},
+			valid: false,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			object := unittest.DefaultAWSControlPlane()
+			object.SetLabels(tc.labels)
+			err = ValidateLabelSet(&object, tc.expectedLabel)
+			// check if the result is as expected
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
 func TestValidateLabelValues(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context
