@@ -13,6 +13,67 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
 
+func TestLabel(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		label         string
+		defaultValue  string
+		currentValue  string
+		expectedPatch string
+	}{
+		{
+			// Don't default the Label if it is set
+			name: "case 0",
+
+			label:         label.ControlPlane,
+			defaultValue:  unittest.DefaultControlPlaneID,
+			currentValue:  "abcd",
+			expectedPatch: "",
+		},
+		{
+			// Don't default the Label if it is set
+			name: "case 1",
+
+			label:         label.ControlPlane,
+			defaultValue:  unittest.DefaultControlPlaneID,
+			currentValue:  "",
+			expectedPatch: unittest.DefaultControlPlaneID,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var updatedValue string
+			var patch []mutator.PatchOperation
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Handler{
+				K8sClient: fakeK8sClient,
+				Logger:    microloggertest.New(),
+			}
+			// run mutate function to default AWSControlplane operator label
+
+			awscontrolplane := unittest.DefaultAWSControlPlane()
+			awscontrolplane.SetLabels(map[string]string{tc.label: tc.currentValue})
+			patch, err = MutateLabel(mutate, &awscontrolplane, tc.label, tc.defaultValue)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(tc.label)) {
+					updatedValue = p.Value.(string)
+				}
+			}
+			// check if the release label is as expected
+			if tc.expectedPatch != updatedValue {
+				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedValue)
+			}
+		})
+	}
+}
+
 func TestLabelFromCluster(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context

@@ -79,6 +79,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateControlPlaneLabel(*awsControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateOperatorVersion(*awsControlPlaneCR)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -259,6 +265,10 @@ func (m *Mutator) MutateInstanceType(awsControlPlaneCR infrastructurev1alpha2.AW
 	patch := mutator.PatchAdd("/spec/instanceType", aws.DefaultMasterInstanceType)
 	result = append(result, patch)
 	return result, nil
+}
+
+func (m *Mutator) MutateControlPlaneLabel(awsControlPlane infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
+	return aws.MutateLabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &awsControlPlane, label.ControlPlane, awsControlPlane.Name)
 }
 
 func (m *Mutator) MutateInstanceTypePreHA(instanceType string, awsControlPlaneCR infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {

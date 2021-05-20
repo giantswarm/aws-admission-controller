@@ -133,6 +133,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateControlPlaneLabel(*g8sControlPlaneCR)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	patch, err = m.MutateInfraRef(*g8sControlPlaneCR)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -160,6 +166,11 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 
 	return result, nil
 }
+
+func (m *Mutator) MutateControlPlaneLabel(g8sControlPlane infrastructurev1alpha2.G8sControlPlane) ([]mutator.PatchOperation, error) {
+	return aws.MutateLabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &g8sControlPlane, label.ControlPlane, g8sControlPlane.Name)
+}
+
 func (m *Mutator) MutateReplicaUpdate(g8sControlPlaneNewCR infrastructurev1alpha2.G8sControlPlane, g8sControlPlaneOldCR infrastructurev1alpha2.G8sControlPlane, awsControlPlane infrastructurev1alpha2.AWSControlPlane) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	// We only need to manipulate if its an update from single to HA master

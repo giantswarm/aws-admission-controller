@@ -27,6 +27,7 @@ Mutating Webhook:
     In case no such `AWSControlPlane` exists, the default number of AZs is assigned. 
   - For pre-HA versions, replicas is always set to 1 for a single master cluster.
 - In a `G8sControlPlane` resource, the infrastructure reference will be set to point to the matching `AWSControlPlane`.
+- In a `G8sControlPlane` resource, the control-plane label will be defaulted to its name if it is not set.
 
 - In an `AWSControlplane` resource, the AWS Operator Version is defaulted based on the `AWSCluster` CR if it is not set. 
 - In an `AWSControlplane` resource, the Release Version is defaulted based on the `Cluster` CR if it is not set. 
@@ -37,6 +38,7 @@ Mutating Webhook:
 - In an `AWSControlPlane` resource, the Instance Type will be defaulted if it is not defined. 
   - For HA-Versions, the default Instance Type is chosen. 
   - For Pre-HA-Versions, in case the matching `AWSCluster` already exists, the Instance Type is taken from there. 
+- In a `AWSControlPlane` resource, the control-plane label will be defaulted to its name if it is not set.
 
 - In an `AWSMachinedeployment` resource, the Availability Zones will be defaulted if they are `nil`. The default number of   
   AZs is assigned based on the master AZs taken from the `AWSControlPlane` CR.
@@ -51,6 +53,7 @@ Validating Webhook:
 
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are a valid count (Right now either 1 or 3).
 - In a `G8sControlPlane` resource, it validates the Master Node Replicas are matching the number of Availability Zones in the `AWSControlPlane` resource.
+- In an `G8sControlPlane` resource, it validates that the control-plane label is set.
 
 - In an `AWSControlPlane` resource, it validates the Master Instance Type is a valid Instance Type for the installation.
 - In an `AWSControlPlane` resource, it validates that the order of Master Node Availability Zones does not change on update.
@@ -58,6 +61,7 @@ Validating Webhook:
 - In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are valid AZs for the installation.
 - In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are a valid count (Right now either 1 or 3).
 - In an `AWSControlPlane` resource, it validates the Master Node Availability Zones are matching the number of Replicas in the `G8sControlPlane` resource.
+- In an `AWSControlPlane` resource, it validates that the control-plane label is set.
 
 - In an `AWSMachineDeployment` resource, it validates the worker node instance type.
 - In an `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
