@@ -174,7 +174,7 @@ func (m *Mutator) MutateReleaseVersion(cluster capiv1alpha2.Cluster) ([]mutator.
 	m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to newest version %s.",
 		label.Release,
 		newestRelease.String()))
-	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.Release)), newestRelease.String())
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.Release)), newestRelease.String())
 	result = append(result, patch)
 
 	return result, nil
