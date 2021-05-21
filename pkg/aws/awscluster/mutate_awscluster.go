@@ -472,7 +472,7 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 				aws.AnnotationAlphaNodeTerminateUnhealthy,
 				annotation.NodeTerminateUnhealthy),
 			)
-			patch := mutator.PatchAdd(fmt.Sprintf("/metadata/annotations"), awsCluster.Annotations)
+			patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
 			result = append(result, patch)
 		}
 	}
