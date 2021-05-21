@@ -118,7 +118,7 @@ func TestLabelFromAWSCluster(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.AWSOperatorVersion)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.AWSOperatorVersion)) {
 					updatedOperator = p.Value.(string)
 				}
 			}
@@ -176,7 +176,7 @@ func TestLabelFromRelease(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.AWSOperatorVersion)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.AWSOperatorVersion)) {
 					updatedOperator = p.Value.(string)
 				}
 			}

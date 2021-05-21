@@ -142,7 +142,7 @@ func TestMutateReleaseUpdate(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.ClusterOperatorVersion)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.ClusterOperatorVersion)) {
 					updatedOperator = p.Value.(string)
 				}
 			}
