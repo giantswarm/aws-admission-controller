@@ -8,6 +8,7 @@ import (
 
 	"github.com/giantswarm/micrologger/microloggertest"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
@@ -59,7 +60,7 @@ func TestLabelFromCluster(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.Release)) {
 					updatedRelease = p.Value.(string)
 				}
 			}

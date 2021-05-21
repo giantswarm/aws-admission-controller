@@ -9,6 +9,7 @@ import (
 	"github.com/giantswarm/micrologger/microloggertest"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
@@ -70,7 +71,7 @@ func TestMutateOperatorVersion(t *testing.T) {
 			}
 			// parse patches
 			for _, p := range patch {
-				if p.Path == fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(label.ClusterOperatorVersion)) {
+				if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.ClusterOperatorVersion)) {
 					updatedOperator = p.Value.(string)
 				}
 			}
