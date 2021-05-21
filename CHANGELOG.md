@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- AWSMachinedeployment with maximum 0 nodes is no longer rejected, as long as minimum is also 0.
+
 ### Added
 
 - Default the control-plane label on awscontrolplane and g8scontrolplane to the control-plane name if they are not set.
