@@ -2,6 +2,7 @@ package key
 
 import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"strings"
 )
 
 func AWSOperator(getter LabelsGetter) string {
@@ -29,4 +30,12 @@ func MachineDeployment(getter LabelsGetter) string {
 
 func Organization(getter LabelsGetter) string {
 	return getter.GetLabels()[label.Organization]
+}
+
+// Ensure the needed escapes are in place. See https://tools.ietf.org/html/rfc6901#section-3 .
+func EscapeJSONPatchString(input string) string {
+	input = strings.ReplaceAll(input, "~", "~0")
+	input = strings.ReplaceAll(input, "/", "~1")
+
+	return input
 }

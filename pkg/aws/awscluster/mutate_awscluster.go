@@ -460,6 +460,7 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 			// clean the old annotation
 			delete(awsCluster.Annotations, aws.AnnotationAlphaNodeTerminateUnhealthy)
 
+			//var anannotationValue string
 			// set new annotation, any value except 'false' is considered as true
 			if terminateUnhealthy == stringFalse {
 				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = stringFalse
@@ -471,7 +472,7 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 				aws.AnnotationAlphaNodeTerminateUnhealthy,
 				annotation.NodeTerminateUnhealthy),
 			)
-			patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
+			patch := mutator.PatchAdd(fmt.Sprintf("/metadata/annotations"), awsCluster.Annotations)
 			result = append(result, patch)
 		}
 	}

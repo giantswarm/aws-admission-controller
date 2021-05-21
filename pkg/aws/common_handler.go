@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/blang/semver"
@@ -14,6 +13,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
@@ -63,7 +63,7 @@ func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver
 	var ok bool
 	// check first if the release version is contained in a patch
 	for _, p := range patch {
-		if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
+		if p.Path == fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label.Release)) {
 			version = p.Value.(string)
 			return semver.New(version)
 		}
@@ -74,12 +74,4 @@ func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver
 		return nil, microerror.Maskf(parsingFailedError, "unable to get release version from Object %s", meta.GetName())
 	}
 	return semver.New(version)
-}
-
-// Ensure the needed escapes are in place. See https://tools.ietf.org/html/rfc6901#section-3 .
-func EscapeJSONPatchString(input string) string {
-	input = strings.ReplaceAll(input, "~", "~0")
-	input = strings.ReplaceAll(input, "/", "~1")
-
-	return input
 }

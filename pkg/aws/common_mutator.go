@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
 
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
@@ -28,7 +29,7 @@ func MutateLabelFromAWSCluster(m *Handler, meta metav1.Object, awsCluster infras
 		label,
 		value,
 		awsCluster.GetName()))
-	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label)), value)
 	result = append(result, patch)
 
 	return result, nil
@@ -50,7 +51,7 @@ func MutateLabelFromCluster(m *Handler, meta metav1.Object, cluster capiv1alpha2
 		label,
 		value,
 		cluster.GetName()))
-	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label)), value)
 	result = append(result, patch)
 
 	return result, nil
@@ -71,7 +72,7 @@ func MutateLabelFromRelease(m *Handler, meta metav1.Object, release releasev1alp
 		label,
 		value,
 		release.GetName()))
-	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), value)
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", key.EscapeJSONPatchString(label)), value)
 	result = append(result, patch)
 
 	return result, nil
