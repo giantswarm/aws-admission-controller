@@ -444,6 +444,7 @@ func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 }
 
 //MutateAnnotationNodeTerminateUnhealthy migrate NodeTerminateUnhealthy annotations from alpha to stable in case it is configured.
+// this migration code can be removed once all AWS clusters are on release 15.0.0 or newer
 func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 
@@ -475,9 +476,11 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 			patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
 			result = append(result, patch)
 		} else {
+			// debug code, remove before merge
 			m.Log("level", "debug", "message", fmt.Sprintf("release GE 15.0.0, but no annotation %s found (annotations %#v), skipping  upgrade", aws.AnnotationAlphaNodeTerminateUnhealthy, awsCluster.GetAnnotations()))
 		}
 	} else {
+		// debug code, remove before merge
 		m.Log("level", "debug", "message", fmt.Sprintf("release '%s' is not GE 15.0.0, skipping anotation upgrade", release))
 	}
 	return result, nil
