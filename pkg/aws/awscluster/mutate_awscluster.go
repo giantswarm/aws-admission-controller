@@ -474,7 +474,11 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 			)
 			patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
 			result = append(result, patch)
+		} else {
+			m.Log("level", "debug", "message", fmt.Sprintf("release GE 15.0.0, but no annotation %s found (annotations %#v), skipping  upgrade", aws.AnnotationAlphaNodeTerminateUnhealthy, awsCluster.GetAnnotations()))
 		}
+	} else {
+		m.Log("level", "debug", "message", fmt.Sprintf("release '%s' is not GE 15.0.0, skipping anotation upgrade", release))
 	}
 	return result, nil
 }
