@@ -34,6 +34,13 @@ func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {
 	return nil
 }
 
+func ValidateLabelSet(obj metav1.Object, label string) error {
+	if obj.GetLabels()[label] == "" {
+		return microerror.Maskf(notFoundError, "Label %#q is not set for object %s.", label, obj.GetName())
+	}
+	return nil
+}
+
 func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error {
 	// validate for each non-version label that its value has not been modified
 	oldLabels := old.GetLabels()

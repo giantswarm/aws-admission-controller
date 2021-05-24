@@ -64,6 +64,10 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
+	err = v.ControlPlaneLabelSet(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -228,6 +232,10 @@ func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWS
 	}
 
 	return nil
+}
+
+func (v *Validator) ControlPlaneLabelSet(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
+	return aws.ValidateLabelSet(&awsControlPlane, label.ControlPlane)
 }
 
 func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {
