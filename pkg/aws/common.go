@@ -39,7 +39,7 @@ const (
 	AnnotationUpdateMaxBatchSize = "alpha.aws.giantswarm.io/update-max-batch-size"
 	AnnotationUpdatePauseTime    = "alpha.aws.giantswarm.io/update-pause-time"
 
-	AnnotationAlphaNodeTerminateUnhealthy = "alpha.aws.giantswarm.io/terminate-unhealthy"
+	AnnotationAlphaNodeTerminateUnhealthy = "alpha.node.giantswarm.io/terminate-unhealthy"
 )
 
 // DefaultCredentialSecret returns the default credentials for clusters
