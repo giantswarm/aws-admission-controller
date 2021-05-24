@@ -4,6 +4,7 @@ package awscluster
 import (
 	"context"
 	"fmt"
+	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	"strings"
 
 	"github.com/blang/semver"
@@ -21,6 +22,11 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+)
+
+const (
+	stringTrue  = "true"
+	stringFalse = "false"
 )
 
 type Config struct {
@@ -189,6 +195,12 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	result = append(result, patch...)
 
 	patch, err = m.MutateRegion(*awsCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	patch, err = m.MutateAnnotationNodeTerminateUnhealthy(*awsCluster)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -427,6 +439,43 @@ func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 		)
 		patch := mutator.PatchAdd("/spec/provider/region", m.region)
 		result = append(result, patch)
+	}
+	return result, nil
+}
+
+//MutateAnnotationNodeTerminateUnhealthy migrate NodeTerminateUnhealthy annotations from alpha to stable in case it is configured.
+// this migration code can be removed once all AWS clusters are on release 15.0.0 or newer
+func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	release, err := semver.New(key.Release(&awsCluster))
+	if err != nil {
+		return nil, microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster release has invalid value '%s'.", key.Release(&awsCluster)))
+	}
+
+	// new annotation is available from release >= 15.x.x
+	release15 := semver.MustParse("14.99.99")
+	if release.GE(release15) {
+		//load the old alpha annotation
+		if terminateUnhealthy, ok := awsCluster.GetAnnotations()[aws.AnnotationAlphaNodeTerminateUnhealthy]; ok {
+			// clean the old annotation
+			delete(awsCluster.Annotations, aws.AnnotationAlphaNodeTerminateUnhealthy)
+
+			//var anannotationValue string
+			// set new annotation, any value except 'false' is considered as true
+			if terminateUnhealthy == stringFalse {
+				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = stringFalse
+			} else {
+				awsCluster.Annotations[annotation.NodeTerminateUnhealthy] = stringTrue
+			}
+
+			m.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' migrated to '%s'.",
+				aws.AnnotationAlphaNodeTerminateUnhealthy,
+				annotation.NodeTerminateUnhealthy),
+			)
+			patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
+			result = append(result, patch)
+		}
 	}
 	return result, nil
 }

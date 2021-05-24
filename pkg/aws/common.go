@@ -38,6 +38,8 @@ const (
 	// once the service is migrate to apiextensions v3
 	AnnotationUpdateMaxBatchSize = "alpha.aws.giantswarm.io/update-max-batch-size"
 	AnnotationUpdatePauseTime    = "alpha.aws.giantswarm.io/update-pause-time"
+
+	AnnotationAlphaNodeTerminateUnhealthy = "alpha.aws.giantswarm.io/terminate-unhealthy"
 )
 
 // DefaultCredentialSecret returns the default credentials for clusters
