@@ -5,10 +5,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
 )
@@ -415,6 +417,123 @@ func TestAWSClusterRegion(t *testing.T) {
 			// check if the pod CIDR is as expected
 			if tc.expectedPatch != updatedRegion {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedRegion)
+			}
+		})
+	}
+}
+
+func TestAWSClusterAnnotationNodeTerminateUnhealthy(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		annotations              map[string]string
+		expectedAnnotationsPatch map[string]string
+
+		release string
+	}{
+		{
+			// Do nothing when the annotation is not set
+			name: "case 0",
+			ctx:  context.Background(),
+
+			release: "15.0.0",
+		},
+		{
+			// Do nothing when the release is older than 15.x.x
+			name: "case 1",
+			ctx:  context.Background(),
+
+			annotations: map[string]string{
+				aws.AnnotationAlphaNodeTerminateUnhealthy: "something",
+			},
+			expectedAnnotationsPatch: map[string]string{
+				// there should be no path for annotations so it should be empty
+			},
+			release: "14.2.1",
+		},
+		{
+			// Migrate annotation and set value to 'true'
+			name: "case 2",
+			ctx:  context.Background(),
+
+			annotations: map[string]string{
+				aws.AnnotationAlphaNodeTerminateUnhealthy: "something",
+			},
+			expectedAnnotationsPatch: map[string]string{
+				annotation.NodeTerminateUnhealthy: "true",
+			},
+			release: "15.1.0",
+		},
+		{
+			// Migrate annotation and set value to 'false'
+			name: "case 3",
+			ctx:  context.Background(),
+
+			annotations: map[string]string{
+				aws.AnnotationAlphaNodeTerminateUnhealthy: "false",
+			},
+			expectedAnnotationsPatch: map[string]string{
+				annotation.NodeTerminateUnhealthy: "false",
+			},
+			release: "15.3.0",
+		},
+		{
+			// Migrate annotation and set value to 'false', preserve other annotations as well
+			name: "case 4",
+			ctx:  context.Background(),
+
+			annotations: map[string]string{
+				aws.AnnotationAlphaNodeTerminateUnhealthy: "false",
+				"test": "test",
+			},
+			expectedAnnotationsPatch: map[string]string{
+				annotation.NodeTerminateUnhealthy: "false",
+				"test":                            "test",
+			},
+			release: "15.6.0",
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+			var migratedAnnotations map[string]string
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			mutate := &Mutator{
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+
+			// run mutate function to migrate
+			var patch []mutator.PatchOperation
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.Annotations = tc.annotations
+			awscluster.Labels[label.Release] = tc.release
+			patch, err = mutate.MutateAnnotationNodeTerminateUnhealthy(awscluster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			// parse patches
+			for _, p := range patch {
+				if p.Path == "/metadata/annotations" {
+					migratedAnnotations = p.Value.(map[string]string)
+				}
+			}
+			// compare map sizes, they should be equal
+			if len(migratedAnnotations) != len(tc.expectedAnnotationsPatch) {
+				t.Fatalf("%s - expected %#q to be equal to %#q but they are different size", tc.name, migratedAnnotations, tc.expectedAnnotationsPatch)
+			}
+			// compare if  migrated annotations map has same keys and values as expected annotations map
+			for k, v := range tc.expectedAnnotationsPatch {
+				if v2, ok := migratedAnnotations[k]; ok {
+					if v != v2 {
+						t.Fatalf("%s - expected %#q annotation with value %#q but got %#q instead", tc.name, k, v, v2)
+					}
+				} else {
+					t.Fatalf("%s - missing %#q annotation in migrated annotation map ", tc.name, k)
+				}
+
 			}
 		})
 	}
