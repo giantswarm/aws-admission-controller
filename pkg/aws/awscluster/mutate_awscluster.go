@@ -444,6 +444,7 @@ func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha2.AWSCluster) ([]
 }
 
 //MutateAnnotationNodeTerminateUnhealthy migrate NodeTerminateUnhealthy annotations from alpha to stable in case it is configured.
+// TODO https://github.com/giantswarm/giantswarm/issues/17395
 // this migration code can be removed once all AWS clusters are on release 15.0.0 or newer
 func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha2.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
