@@ -520,7 +520,7 @@ func TestAWSClusterAnnotationNodeTerminateUnhealthy(t *testing.T) {
 					migratedAnnotations = p.Value.(map[string]string)
 				}
 			}
-
+			// compare map sizes, they should be equal
 			if len(migratedAnnotations) != len(tc.expectedAnnotationsPatch) {
 				t.Fatalf("%s - expected %#q to be equal to %#q but they are different size", tc.name, migratedAnnotations, tc.expectedAnnotationsPatch)
 			}
@@ -528,7 +528,7 @@ func TestAWSClusterAnnotationNodeTerminateUnhealthy(t *testing.T) {
 			for k, v := range tc.expectedAnnotationsPatch {
 				if v2, ok := migratedAnnotations[k]; ok {
 					if v != v2 {
-						t.Fatalf("%s - expected %#q annotation with value %#q  but got %#q instead", tc.name, k, v, v2)
+						t.Fatalf("%s - expected %#q annotation with value %#q but got %#q instead", tc.name, k, v, v2)
 					}
 				} else {
 					t.Fatalf("%s - missing %#q annotation in migrated annotation map ", tc.name, k)
