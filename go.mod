@@ -7,7 +7,7 @@ require (
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
 	github.com/giantswarm/apiextensions/v2 v2.6.2
-	github.com/giantswarm/apiextensions/v3 v3.25.0
+	github.com/giantswarm/apiextensions/v3 v3.26.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v5 v5.11.0
 	github.com/giantswarm/microerror v0.3.0
@@ -18,10 +18,10 @@ require (
 	github.com/prometheus/client_golang v1.10.0
 	github.com/stretchr/testify v1.6.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	k8s.io/api v0.18.18
+	k8s.io/api v0.18.19
 	k8s.io/apiextensions-apiserver v0.18.18
-	k8s.io/apimachinery v0.18.18
-	k8s.io/client-go v0.18.18
+	k8s.io/apimachinery v0.18.19
+	k8s.io/client-go v0.18.19
 	sigs.k8s.io/cluster-api v0.3.16
 	sigs.k8s.io/controller-runtime v0.6.4
 )
