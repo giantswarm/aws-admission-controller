@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.6.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.18.19
-	k8s.io/apiextensions-apiserver v0.18.18
+	k8s.io/apiextensions-apiserver v0.18.19
 	k8s.io/apimachinery v0.18.19
 	k8s.io/client-go v0.18.19
 	sigs.k8s.io/cluster-api v0.3.19
