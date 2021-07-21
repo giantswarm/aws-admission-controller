@@ -3,6 +3,7 @@ package config
 import (
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	infrastructurev1alpha2 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha2"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -10,6 +11,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 	restclient "k8s.io/client-go/rest"
 	apiv1alpha2 "sigs.k8s.io/cluster-api/api/v1alpha2"
+	apiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 )
 
 const (
@@ -63,8 +65,10 @@ func Parse() (Config, error) {
 			SchemeBuilder: k8sclient.SchemeBuilder{
 				apiv1alpha2.AddToScheme,
 				infrastructurev1alpha2.AddToScheme,
-				securityv1alpha1.AddToScheme,
+				apiv1alpha3.AddToScheme,
+				infrastructurev1alpha3.AddToScheme,
 				releasev1alpha1.AddToScheme,
+				securityv1alpha1.AddToScheme,
 			},
 			Logger: config.Logger,
 

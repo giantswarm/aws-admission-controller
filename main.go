@@ -14,13 +14,20 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscluster"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/cluster"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/g8scontrolplane"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/machinedeployment"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/networkpool"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/awscluster"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/awscontrolplane"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/awsmachinedeployment"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/cluster"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/g8scontrolplane"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/machinedeployment"
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2/networkpool"
+	v1alpha3awscluster "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awscluster"
+	v1alpha3awscontrolplane "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awscontrolplane"
+	v1alpha3awsmachinedeployment "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awsmachinedeployment"
+	v1alpha3cluster "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/cluster"
+	v1alpha3g8scontrolplane "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/g8scontrolplane"
+	v1alpha3machinedeployment "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/machinedeployment"
+	v1alpha3networkpool "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/networkpool"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
 )
@@ -62,6 +69,36 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	v1alpha3awsclusterMutator, err := v1alpha3awscluster.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3awscontrolplaneMutator, err := v1alpha3awscontrolplane.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3awsmachinedeploymentMutator, err := v1alpha3awsmachinedeployment.NewMutator(config)
+	if err != nil {
+		log.Fatalf("Unable to create G8s Control Plane admitter: %v", err)
+	}
+
+	v1alpha3clusterMutator, err := v1alpha3cluster.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3g8scontrolplaneMutator, err := v1alpha3g8scontrolplane.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3machinedeploymentMutator, err := v1alpha3machinedeployment.NewMutator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Setup handler for validating webhook
 	awsclusterValidator, err := awscluster.NewValidator(config)
 	if err != nil {
@@ -98,24 +135,74 @@ func main() {
 		panic(microerror.JSON(err))
 	}
 
+	v1alpha3awsclusterValidator, err := v1alpha3awscluster.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3awscontrolplaneValidator, err := v1alpha3awscontrolplane.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3awsmachinedeploymentValidator, err := v1alpha3awsmachinedeployment.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3clusterValidator, err := v1alpha3cluster.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3g8scontrolplaneValidator, err := v1alpha3g8scontrolplane.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3machinedeploymentValidator, err := v1alpha3machinedeployment.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
+	v1alpha3networkPoolValidator, err := v1alpha3networkpool.NewValidator(config)
+	if err != nil {
+		panic(microerror.JSON(err))
+	}
+
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
-	handler.Handle("/mutate/awscluster", mutator.Handler(awsclusterMutator))
-	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
-	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
-	handler.Handle("/mutate/cluster", mutator.Handler(clusterMutator))
-	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
-	handler.Handle("/mutate/machinedeployment", mutator.Handler(machinedeploymentMutator))
-	handler.Handle("/validate/awscluster", validator.Handler(awsclusterValidator))
-	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
-	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
-	handler.Handle("/validate/cluster", validator.Handler(clusterValidator))
-	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
-	handler.Handle("/validate/machinedeployment", validator.Handler(machinedeploymentValidator))
-	handler.Handle("/validate/networkpool", validator.Handler(networkPoolValidator))
+	// v1alpha2
+	handler.Handle("/mutate/v1alpha2/awscluster", mutator.Handler(awsclusterMutator))
+	handler.Handle("/mutate/v1alpha2/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
+	handler.Handle("/mutate/v1alpha2/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha2/cluster", mutator.Handler(clusterMutator))
+	handler.Handle("/mutate/v1alpha2/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha2/machinedeployment", mutator.Handler(machinedeploymentMutator))
+	handler.Handle("/validate/v1alpha2/awscluster", validator.Handler(awsclusterValidator))
+	handler.Handle("/validate/v1alpha2/awscontrolplane", validator.Handler(awscontrolplaneValidator))
+	handler.Handle("/validate/v1alpha2/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
+	handler.Handle("/validate/v1alpha2/cluster", validator.Handler(clusterValidator))
+	handler.Handle("/validate/v1alpha2/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
+	handler.Handle("/validate/v1alpha2/machinedeployment", validator.Handler(machinedeploymentValidator))
+	handler.Handle("/validate/v1alpha2/networkpool", validator.Handler(networkPoolValidator))
+
+	// v1alpha3
+	handler.Handle("/mutate/v1alpha3/awscluster", mutator.Handler(v1alpha3awsclusterMutator))
+	handler.Handle("/mutate/v1alpha3/awsmachinedeployment", mutator.Handler(v1alpha3awsmachinedeploymentMutator))
+	handler.Handle("/mutate/v1alpha3/awscontrolplane", mutator.Handler(v1alpha3awscontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha3/cluster", mutator.Handler(v1alpha3clusterMutator))
+	handler.Handle("/mutate/v1alpha3/g8scontrolplane", mutator.Handler(v1alpha3g8scontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha3/machinedeployment", mutator.Handler(v1alpha3machinedeploymentMutator))
+	handler.Handle("/validate/v1alpha3/awscluster", validator.Handler(v1alpha3awsclusterValidator))
+	handler.Handle("/validate/v1alpha3/awscontrolplane", validator.Handler(v1alpha3awscontrolplaneValidator))
+	handler.Handle("/validate/v1alpha3/awsmachinedeployment", validator.Handler(v1alpha3awsmachinedeploymentValidator))
+	handler.Handle("/validate/v1alpha3/cluster", validator.Handler(v1alpha3clusterValidator))
+	handler.Handle("/validate/v1alpha3/g8scontrolplane", validator.Handler(v1alpha3g8scontrolplaneValidator))
+	handler.Handle("/validate/v1alpha3/machinedeployment", validator.Handler(v1alpha3machinedeploymentValidator))
+	handler.Handle("/validate/v1alpha3/networkpool", validator.Handler(v1alpha3networkPoolValidator))
 
 	handler.HandleFunc("/healthz", healthCheck)
-
 	metrics := http.NewServeMux()
 	metrics.Handle("/metrics", promhttp.Handler())
 
