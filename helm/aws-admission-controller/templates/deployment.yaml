@@ -56,7 +56,7 @@ spec:
             - name: DEFAULT_AWS_POD_CIDR
               value: "{{ $workloadClusterCNICIDRSplit._1 }}"
             - name: DEFAULT_AWS_POD_SUBNET
-              value: "{{ $workloadClusterCNICIDRSplit._0 }}"
+              value: {{ $workloadClusterCNICIDRSplit._0 }}
           args:
             - ./aws-admission-controller
             - --admin-group=$(DEFAULT_KUBERNETES_ADMIN_GROUP)
