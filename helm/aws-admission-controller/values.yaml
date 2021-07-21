@@ -1,3 +1,30 @@
+aws:
+  availabilityZones: []
+  instance:
+    allowed: []
+  region: ""
+
+managementCluster:
+  kubernetes:
+    auth:
+      tenantAdminTargetGroup: ""
+      viewAllTargetGroup: ""
+
+workloadCluster:
+  baseDomain: ""
+  cni:
+    cidr: ""
+  docker:
+    cidr: ""
+  ipam:
+    cidr: ""
+  kubernetes:
+    api:
+      clusterIPRange: ""
+
+registry:
+  domain: docker.io
+
 image:
   name: "giantswarm/aws-admission-controller"
   tag: "[[ .Version ]]"

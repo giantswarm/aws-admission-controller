@@ -32,30 +32,31 @@ spec:
         runAsGroup: 1000
       containers:
         - name: {{ include "name" . }}
-          image: "{{ .Values.Installation.V1.Registry.Domain }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.registry.domain }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           env:
             - name: DEFAULT_AWS_AZS
-              value: {{ join "," .Values.Installation.V1.Provider.AWS.AvailabilityZones }}
+              value: {{ join "," .Values.aws.availabilityZones }}
             - name: DEFAULT_DOCKER_CIDR
-              value: {{ .Values.Installation.V1.Guest.Docker.CIDR }}
+              value: {{ .Values.workloadCluster.docker.cidr }}
             - name: DEFAULT_IPAM_NETWORKCIDR
-              value: {{ .Values.Installation.V1.Guest.IPAM.NetworkCIDR }}
+              value: {{ .Values.workloadCluster.ipam.cidr }}
             - name: DEFAULT_KUBERNETES_ADMIN_GROUP
-              value: {{ .Values.Installation.V1.Kubernetes.Auth.TenantAdminTargetGroup }}
+              value: {{ .Values.managementCluster.kubernetes.auth.tenantAdminTargetGroup }}
             - name: DEFAULT_KUBERNETES_ALL_GROUP
-              value: {{ .Values.Installation.V1.Kubernetes.Auth.ViewAllTargetGroup }}
+              value: {{ .Values.managementCluster.kubernetes.auth.viewAllTargetGroup }}
             - name: DEFAULT_KUBERNETES_CLUSTER_IP_RANGE
-              value: {{ .Values.Installation.V1.Guest.Kubernetes.API.ClusterIPRange }}
-            - name: DEFAULT_KUBERNETES_ENDPOINT              
-              value: {{ .Values.Installation.V1.Guest.Kubernetes.API.EndpointBase }}
+              value: {{ .Values.workloadCluster.kubernetes.api.clusterIPRange }}
+            - name: DEFAULT_KUBERNETES_ENDPOINT
+              value: {{ .Values.workloadCluster.baseDomain }}
             - name: DEFAULT_AWS_INSTANCE_TYPES
-              value: {{ join "," .Values.Installation.V1.Provider.AWS.EC2.Instance.Allowed }}
+              value: {{ join "," .Values.aws.instance.allowed }}
             - name: DEFAULT_AWS_REGION
-              value: {{ .Values.Installation.V1.Provider.AWS.Region }}
+              value: {{ .Values.aws.region }}
+            {{- $workloadClusterCNICIDRSplit := splitn "/" 2 .Values.workloadCluster.cni.cidr }}
             - name: DEFAULT_AWS_POD_CIDR
-              value: "{{ .Values.Installation.V1.Guest.Calico.CIDR }}"
+              value: "{{ $workloadClusterCNICIDRSplit._1 }}"
             - name: DEFAULT_AWS_POD_SUBNET
-              value: {{ .Values.Installation.V1.Guest.Calico.Subnet }}
+              value: "{{ $workloadClusterCNICIDRSplit._0 }}"
           args:
             - ./aws-admission-controller
             - --admin-group=$(DEFAULT_KUBERNETES_ADMIN_GROUP)
