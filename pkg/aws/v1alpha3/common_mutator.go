@@ -12,6 +12,22 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
 )
 
+func MutateLabel(m *Handler, meta metav1.Object, label string, defaultValue string) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if meta.GetLabels()[label] != "" {
+		return result, nil
+	}
+
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
+		label,
+		defaultValue))
+	patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label)), defaultValue)
+	result = append(result, patch)
+
+	return result, nil
+}
+
 func MutateLabelFromAWSCluster(m *Handler, meta metav1.Object, awsCluster infrastructurev1alpha3.AWSCluster, label string) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 

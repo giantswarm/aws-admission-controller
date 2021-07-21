@@ -141,7 +141,7 @@ func (v *Validator) AWSClusterAnnotationPauseTimeIsValid(awsCluster infrastructu
 	return nil
 }
 
-func (v *Validator) AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha2.AWSCluster) error {
+func (v *Validator) AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha3.AWSCluster) error {
 	if terminateUnhealthy, ok := awsCluster.GetAnnotations()[annotation.NodeTerminateUnhealthy]; ok {
 		if !(terminateUnhealthy == stringTrue || terminateUnhealthy == stringFalse) {
 			v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be either '\"true\"' or '\"false\"'.",

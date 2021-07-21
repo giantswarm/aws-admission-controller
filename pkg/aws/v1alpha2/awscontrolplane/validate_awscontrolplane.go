@@ -235,7 +235,7 @@ func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha2.AWS
 }
 
 func (v *Validator) ControlPlaneLabelSet(awsControlPlane infrastructurev1alpha2.AWSControlPlane) error {
-	return aws.ValidateLabelSet(&awsControlPlane, label.ControlPlane)
+	return awsv1alpha2.ValidateLabelSet(&awsControlPlane, label.ControlPlane)
 }
 
 func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {
