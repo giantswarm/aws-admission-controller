@@ -10,7 +10,7 @@ import (
 
 	awsv1alpha2 "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha2"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
+	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha2"
 )
 
 func TestAWSClusterPodCIDR(t *testing.T) {

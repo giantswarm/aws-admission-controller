@@ -10,7 +10,7 @@ import (
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
+	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha2"
 )
 
 func TestLabel(t *testing.T) {

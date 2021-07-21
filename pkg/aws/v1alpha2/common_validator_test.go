@@ -8,7 +8,7 @@ import (
 	"github.com/giantswarm/micrologger/microloggertest"
 
 	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/unittest"
+	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha2"
 
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v2/pkg/apis/security/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
