@@ -8,7 +8,6 @@ managementCluster:
   kubernetes:
     auth:
       tenantAdminTargetGroup: ""
-      viewAllTargetGroup: ""
 
 workloadCluster:
   baseDomain: ""

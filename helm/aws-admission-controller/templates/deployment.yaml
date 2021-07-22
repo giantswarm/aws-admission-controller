@@ -42,8 +42,6 @@ spec:
               value: {{ .Values.workloadCluster.ipam.cidr }}
             - name: DEFAULT_KUBERNETES_ADMIN_GROUP
               value: {{ .Values.managementCluster.kubernetes.auth.tenantAdminTargetGroup }}
-            - name: DEFAULT_KUBERNETES_ALL_GROUP
-              value: {{ .Values.managementCluster.kubernetes.auth.viewAllTargetGroup }}
             - name: DEFAULT_KUBERNETES_CLUSTER_IP_RANGE
               value: {{ .Values.workloadCluster.kubernetes.api.clusterIPRange }}
             - name: DEFAULT_KUBERNETES_ENDPOINT
@@ -60,7 +58,6 @@ spec:
           args:
             - ./aws-admission-controller
             - --admin-group=$(DEFAULT_KUBERNETES_ADMIN_GROUP)
-            - --all-target-group=$(DEFAULT_KUBERNETES_ALL_GROUP)
             - --availability-zones=$(DEFAULT_AWS_AZS)
             - --docker-cidr=$(DEFAULT_DOCKER_CIDR)
             - --endpoint=$(DEFAULT_KUBERNETES_ENDPOINT)
