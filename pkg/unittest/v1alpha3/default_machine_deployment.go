@@ -17,7 +17,7 @@ func DefaultMachineDeployment() apiv1alpha3.MachineDeployment {
 	cr := apiv1alpha3.MachineDeployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MachineDeployment",
-			APIVersion: "cluster.x-k8s.io/v1alpha2",
+			APIVersion: "cluster.x-k8s.io/v1alpha3",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      DefaultMachineDeploymentID,

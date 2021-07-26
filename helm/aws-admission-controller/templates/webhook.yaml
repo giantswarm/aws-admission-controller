@@ -217,7 +217,7 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /validate/v1alpha2/g8scontrolplane
+        path: /validate/v1alpha3/g8scontrolplane
       caBundle: Cg==
     rules:
       - apiGroups: ["infrastructure.giantswarm.io"]
