@@ -9,6 +9,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	v1 "k8s.io/api/core/v1"
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
 	"github.com/giantswarm/aws-admission-controller/v2/config"
@@ -97,6 +98,12 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch, err = m.MutateInfraRef(*cluster, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
 	return result, nil
 }
 
@@ -125,6 +132,16 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 
 	patch, err = m.MutateReleaseUpdate(*cluster, *oldCluster)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
+
+	releaseVersion, err := aws.ReleaseVersion(cluster, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
+	}
+	patch, err = m.MutateInfraRef(*cluster, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
@@ -214,4 +231,30 @@ func (m *Mutator) Log(keyVals ...interface{}) {
 
 func (m *Mutator) Resource() string {
 	return "cluster"
+}
+
+func (m *Mutator) MutateInfraRef(cluster capiv1alpha3.Cluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+	if cluster.Spec.InfrastructureRef.Name != "" && cluster.Spec.InfrastructureRef.Namespace != "" {
+		return result, nil
+	}
+	namespace := cluster.GetNamespace()
+	if namespace == "" {
+		namespace = v1.NamespaceDefault
+	}
+
+	var infrastructureCRRef v1.ObjectReference
+	if aws.IsV1Alpha3Ready(releaseVersion) && cluster.Spec.InfrastructureRef.APIVersion == "infrastructure.giantswarm.io/v1alpha2" {
+		infrastructureCRRef = v1.ObjectReference{
+			APIVersion: "infrastructure.giantswarm.io/v1alpha3",
+			Kind:       "AWSCluster",
+			Name:       cluster.GetName(),
+			Namespace:  namespace,
+		}
+		m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", cluster.Name))
+		patch := mutator.PatchReplace("/spec/infrastructureRef", &infrastructureCRRef)
+		result = append(result, patch)
+		return result, nil
+	}
+	return nil, nil
 }

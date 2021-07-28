@@ -205,13 +205,27 @@ func (m *Mutator) MutateInfraRef(g8sControlPlane infrastructurev1alpha3.G8sContr
 	if namespace == "" {
 		namespace = metav1.NamespaceDefault
 	}
+	releaseVersion, err := aws.ReleaseVersion(&g8sControlPlane, result)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSCluster")
+	}
 	// Since the AWSControlplane object likely doesn't exist yet, we are not fetching it here.
 	// Instead we make the assumption that it will be created correctly and thus has the same name as the G8sControlplane object.
-	infrastructureCRRef := v1.ObjectReference{
-		APIVersion: "infrastructure.giantswarm.io/v1alpha3",
-		Kind:       "AWSControlPlane",
-		Name:       g8sControlPlane.GetName(),
-		Namespace:  namespace,
+	var infrastructureCRRef v1.ObjectReference
+	if aws.IsV1Alpha3Ready(releaseVersion) {
+		infrastructureCRRef = v1.ObjectReference{
+			APIVersion: "infrastructure.giantswarm.io/v1alpha3",
+			Kind:       "AWSControlPlane",
+			Name:       g8sControlPlane.GetName(),
+			Namespace:  namespace,
+		}
+	} else {
+		infrastructureCRRef = v1.ObjectReference{
+			APIVersion: "infrastructure.giantswarm.io/v1alpha2",
+			Kind:       "AWSControlPlane",
+			Name:       g8sControlPlane.GetName(),
+			Namespace:  namespace,
+		}
 	}
 	m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", g8sControlPlane.Name))
 	patch := mutator.PatchReplace("/spec/infrastructureRef", &infrastructureCRRef)

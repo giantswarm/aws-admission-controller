@@ -29,6 +29,9 @@ const (
 	// FirstHARelease is the first GS release for AWS that supports HA Masters
 	FirstHARelease = "11.4.0"
 
+	// FirstV1Alpha3Release is the first GS release for v1alpha3 GiantSwarm AWS CR's
+	FirstV1Alpha3Release = "TBD"
+
 	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
 	GiantSwarmLabelPart = "giantswarm.io"
 )
@@ -76,6 +79,12 @@ func IsGiantSwarmLabel(label string) bool {
 func IsHAVersion(releaseVersion *semver.Version) bool {
 	HAVersion, _ := semver.New(FirstHARelease)
 	return releaseVersion.GE(*HAVersion)
+}
+
+// IsV1Alpha3Ready returns whether a given releaseVersion is a valid v1alpha3 release
+func IsV1Alpha3Ready(releaseVersion *semver.Version) bool {
+	V1Alpha3Version, _ := semver.New(FirstV1Alpha3Release)
+	return releaseVersion.GE(*V1Alpha3Version)
 }
 
 // IsCAPIVersion returns whether a given releaseVersion is using CAPI controllers
