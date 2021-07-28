@@ -39,7 +39,6 @@ func NewValidator(config config.Config) (*Validator, error) {
 
 		restrictedGroups: []string{
 			config.AdminGroup,
-			config.AllTargetGroup,
 		},
 	}
 

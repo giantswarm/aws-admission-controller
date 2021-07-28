@@ -20,7 +20,6 @@ const (
 type Config struct {
 	Address                  string
 	AdminGroup               string
-	AllTargetGroup           string
 	MetricsAddress           string
 	AvailabilityZones        string
 	CertFile                 string
@@ -80,7 +79,6 @@ func Parse() (Config, error) {
 
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
 	kingpin.Flag("admin-group", "Tenant Admin Target Group").Required().StringVar(&config.AdminGroup)
-	kingpin.Flag("all-target-group", "View All Target Group").Required().StringVar(&config.AllTargetGroup)
 	kingpin.Flag("availability-zones", "List of AWS availability zones").Required().StringVar(&config.AvailabilityZones)
 	kingpin.Flag("docker-cidr", "Default CIDR from Docker").Required().StringVar(&config.DockerCIDR)
 	kingpin.Flag("endpoint", "Default kubernetes endpoint").Required().StringVar(&config.Endpoint)
