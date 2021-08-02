@@ -6,7 +6,6 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
-	github.com/giantswarm/apiextensions/v2 v2.6.2
 	github.com/giantswarm/apiextensions/v3 v3.30.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v5 v5.11.0
