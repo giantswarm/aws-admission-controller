@@ -30,7 +30,7 @@ const (
 	FirstHARelease = "11.4.0"
 
 	// FirstV1Alpha3Release is the first GS release for v1alpha3 GiantSwarm AWS CR's
-	FirstV1Alpha3Release = "TBD"
+	FirstV1Alpha3Release = "16.0.0"
 
 	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
 	GiantSwarmLabelPart = "giantswarm.io"

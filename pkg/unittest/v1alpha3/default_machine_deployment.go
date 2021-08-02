@@ -3,6 +3,7 @@ package unittest
 import (
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/to"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
@@ -27,6 +28,17 @@ func DefaultMachineDeployment() apiv1alpha3.MachineDeployment {
 				label.MachineDeployment:      DefaultMachineDeploymentID,
 				label.ClusterOperatorVersion: "7.3.0",
 				label.Release:                "100.0.0",
+			},
+		},
+		Spec: apiv1alpha3.MachineDeploymentSpec{
+			Template: apiv1alpha3.MachineTemplateSpec{
+				Spec: apiv1alpha3.MachineSpec{
+					InfrastructureRef: v1.ObjectReference{
+						Kind:       "AWSMachineDeployment",
+						Name:       DefaultMachineDeploymentID,
+						APIVersion: "infrastructure.giantswarm.io/v1alpha2",
+					},
+				},
 			},
 		},
 		Status: apiv1alpha3.MachineDeploymentStatus{

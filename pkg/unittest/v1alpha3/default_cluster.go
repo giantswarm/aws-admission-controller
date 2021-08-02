@@ -4,6 +4,7 @@ import (
 	"time"
 
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
@@ -108,6 +109,13 @@ func DefaultCluster() *capiv1alpha3.Cluster {
 				label.ClusterOperatorVersion: "1.2.3",
 				label.Release:                "100.0.0",
 				label.Organization:           "example-organization",
+			},
+		},
+		Spec: capiv1alpha3.ClusterSpec{
+			InfrastructureRef: &v1.ObjectReference{
+				Kind:       "AWSCluster",
+				Name:       DefaultMachineDeploymentID,
+				APIVersion: "infrastructure.giantswarm.io/v1alpha2",
 			},
 		},
 	}

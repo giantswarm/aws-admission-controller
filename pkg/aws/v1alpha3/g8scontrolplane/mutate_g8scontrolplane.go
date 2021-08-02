@@ -232,6 +232,7 @@ func (m *Mutator) MutateInfraRef(g8sControlPlane infrastructurev1alpha3.G8sContr
 	result = append(result, patch)
 	return result, nil
 }
+
 func (m *Mutator) MutateReleaseVersion(g8sControlPlane infrastructurev1alpha3.G8sControlPlane) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var patch []mutator.PatchOperation
