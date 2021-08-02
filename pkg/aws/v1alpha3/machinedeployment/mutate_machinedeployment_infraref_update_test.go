@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/blang/semver"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
 	"github.com/giantswarm/micrologger/microloggertest"
 	v1 "k8s.io/api/core/v1"
+
+	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
 )
 
 // TestMutateInfraRefUpdate tests updating v1alpha2 to v1alpha3
