@@ -1,7 +1,7 @@
 package key
 
 import (
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
 
 func AWSOperator(getter LabelsGetter) string {

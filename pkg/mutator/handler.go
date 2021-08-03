@@ -15,8 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/handler"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/metrics"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/handler"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/metrics"
 )
 
 type Mutator interface {

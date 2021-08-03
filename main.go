@@ -13,16 +13,16 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	awscluster "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awscluster"
-	awscontrolplane "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awscontrolplane"
-	awsmachinedeployment "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/awsmachinedeployment"
-	cluster "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/cluster"
-	g8scontrolplane "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/g8scontrolplane"
-	machinedeployment "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/machinedeployment"
-	networkpool "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3/networkpool"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v3/config"
+	awscluster "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awscluster"
+	awscontrolplane "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awscontrolplane"
+	awsmachinedeployment "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awsmachinedeployment"
+	cluster "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/cluster"
+	g8scontrolplane "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/g8scontrolplane"
+	machinedeployment "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/machinedeployment"
+	networkpool "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/networkpool"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/validator"
 )
 
 func main() {
