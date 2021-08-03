@@ -13,16 +13,16 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscluster"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awscontrolplane"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/awsmachinedeployment"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/cluster"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/g8scontrolplane"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/machinedeployment"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/aws/networkpool"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v3/config"
+	awscluster "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awscluster"
+	awscontrolplane "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awscontrolplane"
+	awsmachinedeployment "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/awsmachinedeployment"
+	cluster "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/cluster"
+	g8scontrolplane "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/g8scontrolplane"
+	machinedeployment "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/machinedeployment"
+	networkpool "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3/networkpool"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/validator"
 )
 
 func main() {
@@ -100,22 +100,23 @@ func main() {
 
 	// Here we register our endpoints.
 	handler := http.NewServeMux()
-	handler.Handle("/mutate/awscluster", mutator.Handler(awsclusterMutator))
-	handler.Handle("/mutate/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
-	handler.Handle("/mutate/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
-	handler.Handle("/mutate/cluster", mutator.Handler(clusterMutator))
-	handler.Handle("/mutate/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
-	handler.Handle("/mutate/machinedeployment", mutator.Handler(machinedeploymentMutator))
-	handler.Handle("/validate/awscluster", validator.Handler(awsclusterValidator))
-	handler.Handle("/validate/awscontrolplane", validator.Handler(awscontrolplaneValidator))
-	handler.Handle("/validate/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
-	handler.Handle("/validate/cluster", validator.Handler(clusterValidator))
-	handler.Handle("/validate/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
-	handler.Handle("/validate/machinedeployment", validator.Handler(machinedeploymentValidator))
-	handler.Handle("/validate/networkpool", validator.Handler(networkPoolValidator))
+
+	//
+	handler.Handle("/mutate/v1alpha3/awscluster", mutator.Handler(awsclusterMutator))
+	handler.Handle("/mutate/v1alpha3/awsmachinedeployment", mutator.Handler(awsmachinedeploymentMutator))
+	handler.Handle("/mutate/v1alpha3/awscontrolplane", mutator.Handler(awscontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha3/cluster", mutator.Handler(clusterMutator))
+	handler.Handle("/mutate/v1alpha3/g8scontrolplane", mutator.Handler(g8scontrolplaneMutator))
+	handler.Handle("/mutate/v1alpha3/machinedeployment", mutator.Handler(machinedeploymentMutator))
+	handler.Handle("/validate/v1alpha3/awscluster", validator.Handler(awsclusterValidator))
+	handler.Handle("/validate/v1alpha3/awscontrolplane", validator.Handler(awscontrolplaneValidator))
+	handler.Handle("/validate/v1alpha3/awsmachinedeployment", validator.Handler(awsmachinedeploymentValidator))
+	handler.Handle("/validate/v1alpha3/cluster", validator.Handler(clusterValidator))
+	handler.Handle("/validate/v1alpha3/g8scontrolplane", validator.Handler(g8scontrolplaneValidator))
+	handler.Handle("/validate/v1alpha3/machinedeployment", validator.Handler(machinedeploymentValidator))
+	handler.Handle("/validate/v1alpha3/networkpool", validator.Handler(networkPoolValidator))
 
 	handler.HandleFunc("/healthz", healthCheck)
-
 	metrics := http.NewServeMux()
 	metrics.Handle("/metrics", promhttp.Handler())
 
