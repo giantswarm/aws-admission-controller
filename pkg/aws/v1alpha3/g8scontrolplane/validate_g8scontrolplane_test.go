@@ -8,7 +8,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
+	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
 
 func TestReplicaAZMatch(t *testing.T) {

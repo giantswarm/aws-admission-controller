@@ -16,8 +16,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
 
 var (

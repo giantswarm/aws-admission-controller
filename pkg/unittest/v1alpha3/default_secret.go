@@ -5,7 +5,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
 
 func DefaultClusterCredentialSecretLocation() types.NamespacedName {

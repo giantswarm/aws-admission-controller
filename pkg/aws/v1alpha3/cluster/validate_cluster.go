@@ -11,11 +11,11 @@ import (
 	authenticationv1 "k8s.io/api/authentication/v1"
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	aws "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v3/config"
+	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/validator"
 )
 
 type Validator struct {

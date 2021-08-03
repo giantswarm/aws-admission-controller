@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
 
 const (

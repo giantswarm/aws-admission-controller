@@ -14,8 +14,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
 
 func TestInfraRefG8sControlPlaneAdmit(t *testing.T) {

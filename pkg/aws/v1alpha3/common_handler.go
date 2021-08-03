@@ -14,8 +14,8 @@ import (
 	"github.com/giantswarm/micrologger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 )
 
 type Handler struct {

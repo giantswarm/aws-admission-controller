@@ -12,8 +12,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/internal/normalize"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/internal/normalize"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
 
 func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {

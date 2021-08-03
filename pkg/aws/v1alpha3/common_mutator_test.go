@@ -8,9 +8,9 @@ import (
 
 	"github.com/giantswarm/micrologger/microloggertest"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
 
 func TestLabelFromCluster(t *testing.T) {

@@ -12,8 +12,8 @@ import (
 	"github.com/giantswarm/micrologger/microloggertest"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	unittest "github.com/giantswarm/aws-admission-controller/v2/pkg/unittest/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
 
 func TestInstanceTypeValid(t *testing.T) {

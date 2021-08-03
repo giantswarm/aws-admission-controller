@@ -16,8 +16,8 @@ import (
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
 
 func FetchAWSCluster(m *Handler, meta metav1.Object) (*infrastructurev1alpha3.AWSCluster, error) {

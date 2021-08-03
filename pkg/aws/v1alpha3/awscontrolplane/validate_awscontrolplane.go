@@ -11,11 +11,11 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	aws "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v3/config"
+	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/validator"
 )
 
 type Validator struct {

@@ -17,11 +17,11 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v2/config"
-	aws "github.com/giantswarm/aws-admission-controller/v2/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v2/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v3/config"
+	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 )
 
 type Mutator struct {
