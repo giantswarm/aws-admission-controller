@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2021-08-03
+
 ### Changed
 
 - Bump CRD API version to `v1alpha3`.
@@ -225,7 +227,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.12.0...v3.0.0
 [2.12.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.11.0...v2.12.0
 [2.11.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/giantswarm/aws-admission-controller/compare/v2.9.1...v2.10.0
