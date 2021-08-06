@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed `infrastrutureRef` in /spec/template/spec for `MachindeDeployments`.
+- Fixed `infrastrutureRef` in /spec/template/spec for `MachineDeployments`.
 
 ## [3.0.0] - 2021-08-03
 
