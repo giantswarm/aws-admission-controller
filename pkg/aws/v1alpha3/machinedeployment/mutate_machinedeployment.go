@@ -92,7 +92,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
 
-	patch = m.MutateCAPILabel(*machineDeployment)
+	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, machineDeployment)
 	result = append(result, patch...)
 
 	patch = m.MutateClusterName(*machineDeployment)
@@ -131,7 +131,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
 
-	patch = m.MutateCAPILabel(*machineDeployment)
+	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, machineDeployment)
 	result = append(result, patch...)
 
 	patch = m.MutateClusterName(*machineDeployment)
@@ -205,21 +205,6 @@ func (m *Mutator) MutateInfraRef(machineDeployment capiv1alpha3.MachineDeploymen
 		return result, nil
 	}
 	return nil, nil
-}
-
-func (m *Mutator) MutateCAPILabel(md capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
-	var result []mutator.PatchOperation
-
-	if md.Labels[capiv1alpha3.ClusterLabelName] == "" {
-		// mutate the cluster label name
-		m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
-			capiv1alpha3.ClusterLabelName, md.Labels[label.Cluster]))
-
-		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(capiv1alpha3.ClusterLabelName)), md.Labels[label.Cluster])
-		result = append(result, patch)
-	}
-
-	return result
 }
 
 func (m *Mutator) MutateClusterName(machineDeployment capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
