@@ -265,18 +265,3 @@ func (m *Mutator) MutateInfraRef(cluster capiv1alpha3.Cluster, releaseVersion *s
 	}
 	return nil, nil
 }
-
-func (m *Mutator) MutateCAPILabel(cluster capiv1alpha3.Cluster) []mutator.PatchOperation {
-	var result []mutator.PatchOperation
-
-	if cluster.Labels[capiv1alpha3.ClusterLabelName] == "" {
-		// mutate the cluster label name
-		m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
-			capiv1alpha3.ClusterLabelName, cluster.ObjectMeta.Name))
-
-		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(capiv1alpha3.ClusterLabelName)), cluster.ObjectMeta.Name)
-		result = append(result, patch)
-	}
-
-	return result
-}
