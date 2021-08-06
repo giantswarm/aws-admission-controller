@@ -91,6 +91,16 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
+
+	patch = m.MutateCAPILabel(*machineDeployment)
+	result = append(result, patch...)
+
+	patch = m.MutateClusterName(*machineDeployment)
+	result = append(result, patch...)
+
+	patch = m.MutateTemplateClusterName(*machineDeployment)
+	result = append(result, patch...)
+
 	patch, err = m.MutateInfraRef(*machineDeployment, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -107,23 +117,34 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	var err error
 
 	// Parse incoming object
-	cluster := &capiv1alpha3.MachineDeployment{}
-	oldCluster := &capiv1alpha3.MachineDeployment{}
-	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
+	machineDeployment := &capiv1alpha3.MachineDeployment{}
+	oldMachineDeployment := &capiv1alpha3.MachineDeployment{}
+	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, machineDeployment); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
-	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, oldCluster); err != nil {
+	if _, _, err := mutator.Deserializer.Decode(request.OldObject.Raw, nil, oldMachineDeployment); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse old Cluster: %v", err)
 	}
 
-	releaseVersion, err := aws.ReleaseVersion(cluster, patch)
+	releaseVersion, err := aws.ReleaseVersion(machineDeployment, patch)
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
-	patch, err = m.MutateInfraRef(*cluster, releaseVersion)
+
+	patch = m.MutateCAPILabel(*machineDeployment)
+	result = append(result, patch...)
+
+	patch = m.MutateClusterName(*machineDeployment)
+	result = append(result, patch...)
+
+	patch = m.MutateTemplateClusterName(*machineDeployment)
+	result = append(result, patch...)
+
+	patch, err = m.MutateInfraRef(*machineDeployment, releaseVersion)
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
+
 	result = append(result, patch...)
 
 	return result, nil
@@ -179,11 +200,50 @@ func (m *Mutator) MutateInfraRef(machineDeployment capiv1alpha3.MachineDeploymen
 			Namespace:  namespace,
 		}
 		m.Log("level", "debug", "message", fmt.Sprintf("Updating infrastructure reference to  %s", machineDeployment.Name))
-		patch := mutator.PatchReplace("/spec/infrastructureRef", &infrastructureCRRef)
+		patch := mutator.PatchReplace("/spec/template/spec/infrastructureRef", &infrastructureCRRef)
 		result = append(result, patch)
 		return result, nil
 	}
 	return nil, nil
+}
+
+func (m *Mutator) MutateCAPILabel(md capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
+	var result []mutator.PatchOperation
+
+	if md.Labels[capiv1alpha3.ClusterLabelName] != "" {
+		// mutate the cluster label name
+		m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
+			capiv1alpha3.ClusterLabelName, md.Labels[label.Cluster]))
+
+		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", aws.EscapeJSONPatchString(capiv1alpha3.ClusterLabelName)), md.Labels[label.Cluster])
+		result = append(result, patch)
+	}
+
+	return result
+}
+
+func (m *Mutator) MutateClusterName(machineDeployment capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
+	var result []mutator.PatchOperation
+	if machineDeployment.Spec.ClusterName != "" {
+		return result
+	}
+
+	m.Log("level", "debug", "message", fmt.Sprintf("Updating cluster name to %s", machineDeployment.Labels[label.Cluster]))
+	patch := mutator.PatchReplace("/spec/clusterName", machineDeployment.Labels[label.Cluster])
+	result = append(result, patch)
+	return result
+}
+
+func (m *Mutator) MutateTemplateClusterName(machineDeployment capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
+	var result []mutator.PatchOperation
+	if machineDeployment.Spec.Template.Spec.ClusterName != "" {
+		return result
+	}
+
+	m.Log("level", "debug", "message", fmt.Sprintf("Updating template cluster name to %s", machineDeployment.Labels[label.Cluster]))
+	patch := mutator.PatchReplace("/spec/template/spec/clusterName", machineDeployment.Labels[label.Cluster])
+	result = append(result, patch)
+	return result
 }
 
 func (m *Mutator) Log(keyVals ...interface{}) {

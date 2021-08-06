@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `cluster.x-k8s.io/cluster-name` for `v1alpha3` CAPI CR's.
+
+### Changed
+
+- Default `clusterName` for `MachineDeployments` if empty.
+
+### Fixed
+
+- Fixed `infrastrutureRef` in /spec/template/spec for `MachindeDeployments`.
+
 ## [3.0.0] - 2021-08-03
 
 ### Changed
