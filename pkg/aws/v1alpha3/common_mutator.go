@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 )
 
@@ -91,4 +92,19 @@ func MutateLabelFromRelease(m *Handler, meta metav1.Object, release releasev1alp
 	result = append(result, patch)
 
 	return result, nil
+}
+
+func MutateCAPILabel(m *Handler, meta metav1.Object) []mutator.PatchOperation {
+	var result []mutator.PatchOperation
+
+	if meta.GetLabels()[capiv1alpha3.ClusterLabelName] == "" {
+		// mutate the cluster label name
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
+			capiv1alpha3.ClusterLabelName, key.Cluster(meta)))
+
+		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(capiv1alpha3.ClusterLabelName)), key.Cluster(meta))
+		result = append(result, patch)
+	}
+
+	return result
 }

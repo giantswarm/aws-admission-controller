@@ -76,7 +76,7 @@ func TestMutateInfraRefUpdate(t *testing.T) {
 
 			// parse patches
 			for _, p := range patch {
-				if p.Path == "/spec/infrastructureRef" {
+				if p.Path == "/spec/template/spec/infrastructureRef" {
 					apiVersion = p.Value.(*v1.ObjectReference).APIVersion
 				}
 			}
