@@ -210,7 +210,7 @@ func (m *Mutator) MutateInfraRef(machineDeployment capiv1alpha3.MachineDeploymen
 func (m *Mutator) MutateCAPILabel(md capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
 	var result []mutator.PatchOperation
 
-	if md.Labels[capiv1alpha3.ClusterLabelName] != "" {
+	if md.Labels[capiv1alpha3.ClusterLabelName] == "" {
 		// mutate the cluster label name
 		m.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
 			capiv1alpha3.ClusterLabelName, md.Labels[label.Cluster]))
