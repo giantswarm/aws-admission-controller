@@ -116,6 +116,26 @@ func IsIntegerGreaterThanZero(v string) bool {
 	return false
 }
 
+func IsValidAvailabilityZones(availabilityZones []string, validAvailabilityZones []string) bool {
+	if len(availabilityZones) == 0 && len(validAvailabilityZones) > 0 {
+		return false
+	}
+	for _, az := range availabilityZones {
+		if !Contains(validAvailabilityZones, az) {
+			return false
+		}
+	}
+	return true
+}
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func ValidateOrganizationLabelContainsExistingOrganization(ctx context.Context, ctrlClient client.Client, obj metav1.Object) error {
 	organizationName, ok := obj.GetLabels()[label.Organization]
 	if !ok {

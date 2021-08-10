@@ -182,7 +182,7 @@ func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha3.AWSControlPl
 }
 
 func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
-	if !v.isValidMasterAvailabilityZones(awsControlPlane.Spec.AvailabilityZones) {
+	if !aws.IsValidAvailabilityZones(awsControlPlane.Spec.AvailabilityZones, v.validAvailabilityZones) {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v are invalid. Valid AZs are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.AvailabilityZones,
@@ -219,7 +219,7 @@ func (v *Validator) ControlPlaneLabelMatch(awsControlPlane infrastructurev1alpha
 	return nil
 }
 func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
-	if !contains(v.validInstanceTypes, awsControlPlane.Spec.InstanceType) {
+	if !aws.Contains(v.validInstanceTypes, awsControlPlane.Spec.InstanceType) {
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s master instance type %v is invalid. Valid instance types are: %v",
 			key.ControlPlane(&awsControlPlane),
 			awsControlPlane.Spec.InstanceType,
@@ -230,22 +230,6 @@ func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha3.AWS
 	return nil
 }
 
-func (v *Validator) isValidMasterAvailabilityZones(availabilityZones []string) bool {
-	for _, az := range availabilityZones {
-		if !contains(v.validAvailabilityZones, az) {
-			return false
-		}
-	}
-	return true
-}
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
 func countUniqueValues(s []string) int {
 	counter := make(map[string]int)
 	for _, a := range s {
