@@ -62,6 +62,64 @@ func TestInstanceTypeValid(t *testing.T) {
 	}
 }
 
+func TestAvailabilityZoneValid(t *testing.T) {
+	testCases := []struct {
+		name string
+
+		availabilityZones []string
+		allowed           bool
+	}{
+		{
+			name: "case 0",
+
+			availabilityZones: []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+			allowed:           true,
+		},
+		{
+			name: "case 1",
+
+			availabilityZones: []string{"eu-central-1c"},
+			allowed:           true,
+		},
+		{
+			name: "case 2",
+
+			availabilityZones: []string{},
+			allowed:           false,
+		},
+		{
+			name: "case 3",
+
+			availabilityZones: []string{"eu-central-1a", "eu-central-1x", "eu-central-1c"},
+			allowed:           false,
+		},
+		{
+			name: "case 4",
+
+			availabilityZones: []string{""},
+			allowed:           false,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			md := unittest.DefaultAWSMachineDeployment()
+			md.Spec.Provider.AvailabilityZones = tc.availabilityZones
+
+			validate := &Validator{
+				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
+				logger:                 microloggertest.New(),
+			}
+			err := validate.AZValid(md)
+			if tc.allowed && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.allowed && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
 func TestMachineDeploymentLabelMatch(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context

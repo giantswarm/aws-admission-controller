@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added validation for the `availabilityZones` selectopm in the `AWSMachineDeployment.
+
 ## [3.1.0] - 2021-08-06
 
 ### Added

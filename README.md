@@ -64,6 +64,7 @@ Validating Webhook:
 - In an `AWSControlPlane` resource, it validates that the control-plane label is set.
 
 - In an `AWSMachineDeployment` resource, it validates the worker node instance type.
+- In an `AWSMachineDeployment` resource, it validates the worker node availability zones.
 - In an `AWSMachineDeployment` resource, it validates the Machine Deployment ID is matching against `MachineDeployment` resource.
 - In an `AWSMachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 - In an `AWSMachinedeployment` resource, it validates that the `max` number of nodes is greater or equal to `min`.

@@ -26,7 +26,8 @@ type Validator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 
-	validInstanceTypes []string
+	validAvailabilityZones []string
+	validInstanceTypes     []string
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
@@ -37,13 +38,15 @@ func NewValidator(config config.Config) (*Validator, error) {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
 
+	var availabilityZones []string = strings.Split(config.AvailabilityZones, ",")
 	var instanceTypes []string = strings.Split(config.WorkerInstanceTypes, ",")
 
 	validator := &Validator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
-		validInstanceTypes: instanceTypes,
+		validAvailabilityZones: availabilityZones,
+		validInstanceTypes:     instanceTypes,
 	}
 
 	return validator, nil
@@ -68,6 +71,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	err = v.InstanceTypeValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AZValid(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -113,6 +121,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = v.AZValid(awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ValidateCluster(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -141,10 +154,22 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	return true, nil
 }
 
+func (v *Validator) AZValid(awsMachineDeployment infrastructurev1alpha3.AWSMachineDeployment) error {
+	if !aws.IsValidAvailabilityZones(awsMachineDeployment.Spec.Provider.AvailabilityZones, v.validAvailabilityZones) {
+		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment %s availability zones %v are invalid. Valid AZs are: %v",
+			key.MachineDeployment(&awsMachineDeployment),
+			awsMachineDeployment.Spec.Provider.AvailabilityZones,
+			v.validAvailabilityZones),
+		)
+	}
+
+	return nil
+}
+
 func (v *Validator) InstanceTypeValid(awsMachineDeployment infrastructurev1alpha3.AWSMachineDeployment) error {
-	if !contains(v.validInstanceTypes, awsMachineDeployment.Spec.Provider.Worker.InstanceType) {
+	if !aws.Contains(v.validInstanceTypes, awsMachineDeployment.Spec.Provider.Worker.InstanceType) {
 		return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSMachineDeployment %s worker instance type %v is invalid. Valid instance types are: %v",
-			key.ControlPlane(&awsMachineDeployment),
+			key.MachineDeployment(&awsMachineDeployment),
 			awsMachineDeployment.Spec.Provider.Worker.InstanceType,
 			v.validInstanceTypes),
 		)
@@ -269,14 +294,6 @@ func (v *Validator) MachineDeploymentScaling(md infrastructurev1alpha3.AWSMachin
 	}
 
 	return nil
-}
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 func (v *Validator) Log(keyVals ...interface{}) {
