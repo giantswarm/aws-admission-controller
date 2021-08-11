@@ -3,6 +3,7 @@ package v1alpha3
 import (
 	"fmt"
 
+	"github.com/blang/semver"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/microerror"
@@ -10,6 +11,7 @@ import (
 	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 )
 
@@ -27,6 +29,37 @@ func MutateLabel(m *Handler, meta metav1.Object, label string, defaultValue stri
 	result = append(result, patch)
 
 	return result, nil
+}
+
+func MutateNamespace(m *Handler, meta metav1.Object, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+	var result []mutator.PatchOperation
+
+	if !IsOrgNamespaceVersion(releaseVersion) {
+		return result, nil
+	}
+
+	if !isDefaultNamespace(meta.GetNamespace()) {
+		return result, nil
+	}
+
+	organization := key.Organization(meta)
+	if organization == "" {
+		return nil, microerror.Maskf(organizationLabelNotFoundError, "Object %s Organization label %#q is empty.", meta.GetName(), label.Organization)
+	}
+
+	m.Logger.Log("level", "debug", "message", fmt.Sprintf("Object %s default namespace %s will be changed to org namespace %s for organization %s.",
+		meta.GetName(),
+		meta.GetNamespace(),
+		key.OrganizationNamespaceFromName(organization),
+		organization))
+
+	patch := mutator.PatchAdd("/metadata/namespace", key.OrganizationNamespaceFromName(organization))
+	result = append(result, patch)
+
+	return result, nil
+}
+func isDefaultNamespace(namespace string) bool {
+	return namespace == "" || namespace == metav1.NamespaceDefault
 }
 
 func MutateLabelFromAWSCluster(m *Handler, meta metav1.Object, awsCluster infrastructurev1alpha3.AWSCluster, label string) ([]mutator.PatchOperation, error) {
