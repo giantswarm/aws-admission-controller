@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added rule for users to be allowed to modify/add/remove tags with the `tag.provider.giantswarm.io` format.
+
 ## [3.2.0] - 2021-08-10
 
 ### Added

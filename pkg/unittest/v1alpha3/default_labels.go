@@ -11,5 +11,6 @@ func DefaultLabels() map[string]string {
 		label.Release:                "100.0.0",
 		label.Organization:           "example-organization",
 		"example-key":                "example-value",
+		DefaultProviderTagKey:        DefaultProviderTagValue,
 	}
 }
