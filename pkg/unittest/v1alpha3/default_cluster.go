@@ -21,6 +21,8 @@ const (
 	DefaultMasterInstanceType     = "m4.xlarge"
 	DefaultMasterAvailabilityZone = "eu-central-1b"
 	DefaultOrganizationName       = "test-organization"
+	DefaultProviderTagKey         = "tag.provider.giantswarm.io/TaggingVersion"
+	DefaultProviderTagValue       = "2.4"
 )
 
 func DefaultAWSCluster() infrastructurev1alpha3.AWSCluster {
@@ -105,12 +107,7 @@ func DefaultCluster() *capiv1alpha3.Cluster {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      DefaultClusterID,
 			Namespace: metav1.NamespaceDefault,
-			Labels: map[string]string{
-				label.Cluster:                DefaultClusterID,
-				label.ClusterOperatorVersion: "1.2.3",
-				label.Release:                "100.0.0",
-				label.Organization:           "example-organization",
-			},
+			Labels:    DefaultLabels(),
 		},
 		Spec: capiv1alpha3.ClusterSpec{
 			InfrastructureRef: &v1.ObjectReference{

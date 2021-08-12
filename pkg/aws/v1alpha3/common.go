@@ -38,6 +38,9 @@ const (
 
 	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
 	GiantSwarmLabelPart = "giantswarm.io"
+
+	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
+	ProviderTagLabelPart = "tag.provider.giantswarm.io"
 )
 
 const (
@@ -77,6 +80,11 @@ func VersionLabels() []string {
 // IsGiantSwarmLabel returns whether a label is considered a giantswarm label
 func IsGiantSwarmLabel(label string) bool {
 	return strings.Contains(label, GiantSwarmLabelPart)
+}
+
+// IsProviderTagLabel returns whether a label is considered a provider tag label
+func IsProviderTagLabel(label string) bool {
+	return strings.Contains(label, ProviderTagLabelPart)
 }
 
 // IsHAVersion returns whether a given releaseVersion supports HA Masters

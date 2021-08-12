@@ -194,11 +194,12 @@ func TestValidateLabelKeys(t *testing.T) {
 			ctx:  context.Background(),
 
 			newLabels: map[string]string{
-				label.Cluster:                unittest.DefaultClusterID,
-				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
-				label.Release:                "100.0.0",
-				label.Organization:           "example-organization",
-				"example-key-changed":        "example-value",
+				label.Cluster:                  unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:   unittest.DefaultClusterOperatorVersion,
+				label.Release:                  "100.0.0",
+				label.Organization:             "example-organization",
+				"example-key-changed":          "example-value",
+				unittest.DefaultProviderTagKey: unittest.DefaultProviderTagValue,
 			},
 			valid: true,
 		},
@@ -211,9 +212,52 @@ func TestValidateLabelKeys(t *testing.T) {
 				"giantswarm.io/cluster-changed": unittest.DefaultClusterID,
 				label.ClusterOperatorVersion:    unittest.DefaultClusterOperatorVersion,
 				label.Release:                   unittest.DefaultReleaseVersion,
-				label.Organization:              "new-organization",
+				label.Organization:              "example-organization",
+				unittest.DefaultProviderTagKey:  unittest.DefaultProviderTagValue,
 			},
 			valid: false,
+		},
+		{
+			// provider tag label key was changed
+			name: "case 3",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				label.Cluster:                unittest.DefaultClusterID,
+				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
+				label.Release:                unittest.DefaultReleaseVersion,
+				label.Organization:           "example-organization",
+				"tag.provider.giantswarm.io/NewTaggingVersion": unittest.DefaultProviderTagValue,
+			},
+			valid: true,
+		},
+		{
+			// provider tag label was removed
+			name: "case 4",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				label.Cluster:                unittest.DefaultClusterID,
+				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
+				label.Release:                unittest.DefaultReleaseVersion,
+				label.Organization:           "example-organization",
+			},
+			valid: true,
+		},
+		{
+			// provider tag label was added
+			name: "case 5",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				label.Cluster:                                  unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:                   unittest.DefaultClusterOperatorVersion,
+				label.Release:                                  unittest.DefaultReleaseVersion,
+				label.Organization:                             "example-organization",
+				unittest.DefaultProviderTagKey:                 unittest.DefaultProviderTagValue,
+				"tag.provider.giantswarm.io/NewTaggingVersion": "14",
+			},
+			valid: true,
 		},
 	}
 	for i, tc := range testCases {
@@ -262,10 +306,11 @@ func TestValidateLabelValues(t *testing.T) {
 			ctx:  context.Background(),
 
 			newLabels: map[string]string{
-				label.Cluster:                unittest.DefaultClusterID,
-				label.ClusterOperatorVersion: "1.2.3",
-				label.Release:                "0.0.0",
-				label.Organization:           "example-organization",
+				label.Cluster:                  unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:   "1.2.3",
+				label.Release:                  "100.0.0",
+				label.Organization:             "example-organization",
+				unittest.DefaultProviderTagKey: unittest.DefaultProviderTagValue,
 			},
 			valid: true,
 		},
@@ -275,12 +320,27 @@ func TestValidateLabelValues(t *testing.T) {
 			ctx:  context.Background(),
 
 			newLabels: map[string]string{
-				label.Cluster:                unittest.DefaultClusterID,
-				label.ClusterOperatorVersion: unittest.DefaultClusterOperatorVersion,
-				label.Release:                unittest.DefaultReleaseVersion,
-				label.Organization:           "new-organization",
+				label.Cluster:                  unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:   unittest.DefaultClusterOperatorVersion,
+				label.Release:                  unittest.DefaultReleaseVersion,
+				label.Organization:             "new-organization",
+				unittest.DefaultProviderTagKey: unittest.DefaultProviderTagValue,
 			},
 			valid: false,
+		},
+		{
+			// provider tag label was changed
+			name: "case 3",
+			ctx:  context.Background(),
+
+			newLabels: map[string]string{
+				label.Cluster:                  unittest.DefaultClusterID,
+				label.ClusterOperatorVersion:   "1.2.3",
+				label.Release:                  "0.0.0",
+				label.Organization:             "example-organization",
+				unittest.DefaultProviderTagKey: "v2.4",
+			},
+			valid: true,
 		},
 	}
 	for i, tc := range testCases {
