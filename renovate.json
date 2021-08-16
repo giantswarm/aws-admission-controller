@@ -1,6 +1,7 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    ":reviewer(team:giantswarm/team-firecracker)"
   ],
   "packageRules": [
     {
@@ -14,9 +15,17 @@
     {
       "excludePackagePatterns": [".*giantswarm.*" ,"^k8s.io", "^sigs.k8s.io"],
       "groupName": "etc modules"
+    },
+    {
+      "matchPackagePatterns": ["^k8s.io"],
+      "allowedVersions": "< 0.21.0"
+    },
+    {
+      "matchPackageNames": ["sigs.k8s.io/controller-runtime"],
+      "allowedVersions": "< 0.7.0"
     }
   ],
-  "reviewers": ["team:giantswarm/team-firecracker-engineers"],
   "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
-  "schedule": ["after 9am on monday"]
+  "ignoreDeps": ["zricethezav/gitleaks-action"],
+  "schedule": [ "after 9am on thursday" ]
 }
