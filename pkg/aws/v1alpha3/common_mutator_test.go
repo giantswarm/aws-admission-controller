@@ -7,9 +7,7 @@ import (
 	"testing"
 
 	"github.com/giantswarm/micrologger/microloggertest"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
@@ -184,89 +182,6 @@ func TestLabelFromRelease(t *testing.T) {
 			// check if the release label is as expected
 			if tc.expectedPatch != updatedOperator {
 				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedOperator)
-			}
-		})
-	}
-}
-
-func TestMutateNamespace(t *testing.T) {
-	testCases := []struct {
-		name             string
-		currentNamespace string
-		organization     string
-		releaseVersion   string
-
-		expectedPatch string
-	}{
-		{
-			// Don't default the Namespace if it is set
-			name:             "case 0",
-			currentNamespace: "org-test",
-			organization:     unittest.DefaultOrganizationName,
-			releaseVersion:   "18.0.0",
-
-			expectedPatch: "",
-		},
-		{
-			// Default the Namespace if it is not set
-			name:             "case 1",
-			currentNamespace: metav1.NamespaceDefault,
-			organization:     unittest.DefaultOrganizationName,
-			releaseVersion:   "18.0.0",
-
-			expectedPatch: key.OrganizationNamespaceFromName(unittest.DefaultOrganizationName),
-		},
-		{
-			// Default the Namespace if it is not set
-			name:             "case 2",
-			currentNamespace: "",
-			organization:     unittest.DefaultOrganizationName,
-			releaseVersion:   "18.0.0",
-
-			expectedPatch: key.OrganizationNamespaceFromName(unittest.DefaultOrganizationName),
-		},
-		{
-			// Don't default the Namespace in older version
-			name:             "case 3",
-			currentNamespace: metav1.NamespaceDefault,
-			organization:     unittest.DefaultOrganizationName,
-			releaseVersion:   "14.0.0",
-
-			expectedPatch: "",
-		},
-	}
-	for i, tc := range testCases {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			var err error
-			var updatedNamespace string
-			var patch []mutator.PatchOperation
-
-			awscluster := unittest.DefaultAWSCluster()
-			awscluster.SetLabels(map[string]string{label.Organization: tc.organization, label.Release: tc.releaseVersion})
-			awscluster.SetNamespace(tc.currentNamespace)
-			releaseVersion, err := ReleaseVersion(&awscluster, patch)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// run mutate function to default AWSCluster Namespace
-			mutate := &Handler{
-				K8sClient: unittest.FakeK8sClient(),
-				Logger:    microloggertest.New(),
-			}
-			patch, err = MutateNamespace(mutate, awscluster.GetObjectMeta(), releaseVersion)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// parse patches
-			for _, p := range patch {
-				if p.Path == "/metadata/namespace" {
-					updatedNamespace = p.Value.(string)
-				}
-			}
-			// check if the release label is as expected
-			if tc.expectedPatch != updatedNamespace {
-				t.Fatalf("expected %#q to be equal to %#q", tc.expectedPatch, updatedNamespace)
 			}
 		})
 	}

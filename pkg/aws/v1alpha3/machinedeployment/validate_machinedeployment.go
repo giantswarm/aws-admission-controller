@@ -58,6 +58,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
+	err = aws.ValidateNamespace(&machineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ValidateCluster(machineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)

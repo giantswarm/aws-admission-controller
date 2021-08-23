@@ -92,12 +92,6 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
 
-	patch, err = aws.MutateNamespace(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, machineDeployment, releaseVersion)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
-	result = append(result, patch...)
-
 	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, machineDeployment)
 	result = append(result, patch...)
 
