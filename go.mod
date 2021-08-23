@@ -3,10 +3,10 @@ module github.com/giantswarm/aws-admission-controller/v3
 go 1.15
 
 require (
-	github.com/blang/semver v3.5.1+incompatible
+	github.com/blang/semver/v4 v4.0.0
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
-	github.com/giantswarm/apiextensions/v3 v3.31.0
+	github.com/giantswarm/apiextensions/v3 v3.32.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v5 v5.12.0
 	github.com/giantswarm/microerror v0.3.0
@@ -31,7 +31,7 @@ require (
 	k8s.io/klog/v2 v2.1.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29 // indirect
 	k8s.io/utils v0.0.0-20210709001253-0e1f9d693477 // indirect
-	sigs.k8s.io/cluster-api v0.4.0
+	sigs.k8s.io/cluster-api v0.4.1
 	sigs.k8s.io/controller-runtime v0.6.4
 )
 

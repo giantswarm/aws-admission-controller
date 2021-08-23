@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/giantswarm/micrologger/microloggertest"
 	v1 "k8s.io/api/core/v1"
 
