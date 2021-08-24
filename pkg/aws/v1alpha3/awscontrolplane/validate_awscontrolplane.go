@@ -56,6 +56,11 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
+	err = aws.ValidateNamespace(&awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.AZCount(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)

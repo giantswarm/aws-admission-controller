@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added validation for CRs to be created in the organization-namespace from version `17.0.0`.
+
 ## [3.2.1] - 2021-08-12
 
 ### Added

@@ -45,6 +45,11 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
 	}
 
+	err = aws.ValidateNamespace(&awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
