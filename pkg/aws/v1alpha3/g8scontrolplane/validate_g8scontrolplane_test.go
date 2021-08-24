@@ -131,7 +131,7 @@ func TestReplicaCount(t *testing.T) {
 				logger:    newLogger,
 			}
 
-			admissionRequest, err := g8sControlPlaneCreateAdmissionRequest(tc.replicas, "100.0.0")
+			admissionRequest, err := g8sControlPlaneCreateAdmissionRequest(tc.replicas, "16.0.0")
 			if err != nil {
 				t.Fatal(err)
 			}
