@@ -63,7 +63,7 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse cluster: %v", err)
 	}
-	err = aws.ValidateNamespace(cluster)
+	err = aws.ValidateOrgNamespace(cluster)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}

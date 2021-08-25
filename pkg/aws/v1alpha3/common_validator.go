@@ -56,7 +56,7 @@ func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error
 	return nil
 }
 
-func ValidateNamespace(meta metav1.Object) error {
+func ValidateOrgNamespace(meta metav1.Object) error {
 	releaseVersion, err := ReleaseVersion(meta, []mutator.PatchOperation{})
 	if err != nil {
 		return microerror.Maskf(parsingFailedError, "unable to parse release version from object")

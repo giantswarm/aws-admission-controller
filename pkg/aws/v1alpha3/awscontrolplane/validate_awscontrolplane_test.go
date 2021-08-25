@@ -114,7 +114,7 @@ func TestAZCount(t *testing.T) {
 				logger:                 microloggertest.New(),
 			}
 
-			admissionRequest, err := awsControlPlaneAdmissionRequest(tc.azs, "m4.xlarge", "16.0.0")
+			admissionRequest, err := awsControlPlaneAdmissionRequest(tc.azs, "m4.xlarge", "15.0.0")
 			if err != nil {
 				t.Fatal(err)
 			}

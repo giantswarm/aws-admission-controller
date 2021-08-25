@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Added validation for CRs to be created in the organization-namespace from version `17.0.0`.
+- Added validation and tests for cluster CRs to be created in the organization-namespace from version `16.0.0`.
+- Added tests for nodepool CRs to be created in the same namespace as the cluster.
 
 ## [3.2.1] - 2021-08-12
 

@@ -436,7 +436,7 @@ func Test_Organization(t *testing.T) {
 	}
 }
 
-func TestValidateNamespace(t *testing.T) {
+func TestValidateOrgNamespace(t *testing.T) {
 	testCases := []struct {
 		name             string
 		currentNamespace string
@@ -500,7 +500,7 @@ func TestValidateNamespace(t *testing.T) {
 			awscluster.SetNamespace(tc.currentNamespace)
 
 			// validate AWSCluster Namespace
-			err = ValidateNamespace(awscluster.GetObjectMeta())
+			err = ValidateOrgNamespace(awscluster.GetObjectMeta())
 
 			// check if the result is as expected
 			if tc.valid && err != nil {

@@ -54,7 +54,7 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
 	}
 
-	err = aws.ValidateNamespace(&g8sControlPlane)
+	err = aws.ValidateOrgNamespace(&g8sControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}

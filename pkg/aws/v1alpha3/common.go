@@ -34,7 +34,7 @@ const (
 
 	// FirstOrgNamespaceRelease is the first GS release that creates Clusters in Org Namespaces by default
 	// TODO: change this to the actual release version
-	FirstOrgNamespaceRelease = "17.0.0"
+	FirstOrgNamespaceRelease = "16.0.0"
 
 	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
 	GiantSwarmLabelPart = "giantswarm.io"

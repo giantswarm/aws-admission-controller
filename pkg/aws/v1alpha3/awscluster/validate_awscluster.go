@@ -38,6 +38,16 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.Operation == admissionv1.Create {
+		return v.ValidateCreate(request)
+	}
+	if request.Operation == admissionv1.Update {
+		return v.ValidateUpdate(request)
+	}
+	return true, nil
+}
+
+func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsCluster infrastructurev1alpha3.AWSCluster
 	var err error
 
@@ -45,9 +55,49 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
 	}
 
-	err = aws.ValidateNamespace(&awsCluster)
+	err = aws.ValidateOrgNamespace(&awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
+	}
+
+	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AWSClusterAnnotationMaxBatchSizeIsValid(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AWSClusterAnnotationPauseTimeIsValid(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AWSClusterAnnotationCNIMinimumIPTarget(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AWSClusterAnnotationCNIWarmIPTarget(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	return true, nil
+}
+
+func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool, error) {
+	var awsCluster infrastructurev1alpha3.AWSCluster
+	var err error
+
+	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsCluster); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
 	}
 
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsCluster)
