@@ -32,6 +32,9 @@ const (
 	// FirstV1Alpha3Release is the first GS release for v1alpha3 GiantSwarm AWS CR's
 	FirstV1Alpha3Release = "16.0.0"
 
+	// FirstOrgNamespaceRelease is the first GS release that creates Clusters in Org Namespaces by default
+	FirstOrgNamespaceRelease = "16.0.0"
+
 	// GiantSwarmLabelPart is the part of label keys that shows that they are protected giantswarm labels
 	GiantSwarmLabelPart = "giantswarm.io"
 
@@ -93,6 +96,12 @@ func IsHAVersion(releaseVersion *semver.Version) bool {
 func IsV1Alpha3Ready(releaseVersion *semver.Version) bool {
 	V1Alpha3Version, _ := semver.New(FirstV1Alpha3Release)
 	return releaseVersion.GE(*V1Alpha3Version)
+}
+
+// IsOrgNamespaceVersion returns whether a given releaseVersion creates clusters in org namespaces by default
+func IsOrgNamespaceVersion(releaseVersion *semver.Version) bool {
+	OrgNamespaceVersion, _ := semver.New(FirstOrgNamespaceRelease)
+	return releaseVersion.GE(*OrgNamespaceVersion)
 }
 
 // IsCAPIVersion returns whether a given releaseVersion is using CAPI controllers

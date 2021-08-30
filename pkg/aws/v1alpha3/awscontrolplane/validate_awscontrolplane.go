@@ -49,12 +49,26 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.Operation == admissionv1.Create {
+		return v.ValidateCreate(request)
+	}
+	if request.Operation == admissionv1.Update {
+		return v.ValidateUpdate(request)
+	}
+	return true, nil
+}
+
+func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var awsControlPlane infrastructurev1alpha3.AWSControlPlane
+	var awsControlPlaneOld infrastructurev1alpha3.AWSControlPlane
 	var g8sControlPlane *infrastructurev1alpha3.G8sControlPlane
 	var err error
 
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
+	}
+	if _, _, err := validator.Deserializer.Decode(request.OldObject.Raw, nil, &awsControlPlaneOld); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse old awscontrol plane: %v", err)
 	}
 	err = v.AZCount(awsControlPlane)
 	if err != nil {
@@ -68,17 +82,9 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-
-	// The order can only change on update
-	if request.Operation == admissionv1.Update {
-		var awsControlPlaneOld infrastructurev1alpha3.AWSControlPlane
-		if _, _, err := validator.Deserializer.Decode(request.OldObject.Raw, nil, &awsControlPlaneOld); err != nil {
-			return false, microerror.Maskf(parsingFailedError, "unable to parse old awscontrol plane: %v", err)
-		}
-		err = v.AZOrder(awsControlPlane, awsControlPlaneOld)
-		if err != nil {
-			return false, microerror.Mask(err)
-		}
+	err = v.AZOrder(awsControlPlane, awsControlPlaneOld)
+	if err != nil {
+		return false, microerror.Mask(err)
 	}
 	err = v.AZUnique(awsControlPlane)
 	if err != nil {
@@ -101,12 +107,59 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 		if err != nil {
 			return false, microerror.Mask(err)
 		}
-		// when updating from single to HA validation of AZ replicas has to be ignored
-		if request.Operation == admissionv1.Create {
-			err = v.AZReplicaMatch(awsControlPlane, *g8sControlPlane)
-			if err != nil {
-				return false, microerror.Mask(err)
-			}
+	}
+	return true, nil
+}
+
+func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
+	var awsControlPlane infrastructurev1alpha3.AWSControlPlane
+	var g8sControlPlane *infrastructurev1alpha3.G8sControlPlane
+	var err error
+
+	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &awsControlPlane); err != nil {
+		return false, microerror.Maskf(parsingFailedError, "unable to parse awscontrol plane: %v", err)
+	}
+	err = aws.ValidateOrgNamespace(&awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.AZCount(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AZValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AZUnique(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.InstanceTypeValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	// We try to fetch the G8sControlPlane belonging to the AWSControlPlane here.
+	g8sControlPlane, err = aws.FetchG8sControlPlane(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, &awsControlPlane)
+	if aws.IsNotFound(err) {
+		// Note that while we do log the error, we don't fail if the G8sControlPlane doesn't exist yet. That is okay because the order of CR creation can vary.
+		v.Log("level", "debug", "message", fmt.Sprintf("No G8sControlPlane %s could be found: %v", awsControlPlane.GetName(), err))
+	} else if err != nil {
+		return false, microerror.Mask(err)
+	} else {
+		// We only validate the matching of labels if we succeed in fetching the g8scontrolplane
+		err = v.ControlPlaneLabelMatch(awsControlPlane, *g8sControlPlane)
+		if err != nil {
+			return false, microerror.Mask(err)
+		}
+		err = v.AZReplicaMatch(awsControlPlane, *g8sControlPlane)
+		if err != nil {
+			return false, microerror.Mask(err)
 		}
 	}
 	return true, nil

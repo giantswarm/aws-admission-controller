@@ -61,8 +61,13 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	// Parse incoming object
 	cluster := &capiv1alpha3.Cluster{}
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
-		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
+		return false, microerror.Maskf(parsingFailedError, "unable to parse cluster: %v", err)
 	}
+	err = aws.ValidateOrgNamespace(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), cluster)
 	if err != nil {
 		return false, microerror.Mask(err)

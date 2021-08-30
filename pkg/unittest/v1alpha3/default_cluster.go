@@ -20,6 +20,7 @@ const (
 	DefaultReleaseVersion         = "100.0.0"
 	DefaultMasterInstanceType     = "m4.xlarge"
 	DefaultMasterAvailabilityZone = "eu-central-1b"
+	DefaultOrganizationName       = "test-organization"
 	DefaultProviderTagKey         = "tag.provider.giantswarm.io/TaggingVersion"
 	DefaultProviderTagValue       = "2.4"
 )

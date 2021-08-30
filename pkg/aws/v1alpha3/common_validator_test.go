@@ -7,6 +7,7 @@ import (
 
 	"github.com/giantswarm/micrologger/microloggertest"
 
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 
@@ -430,6 +431,83 @@ func Test_Organization(t *testing.T) {
 			err = ValidateOrganizationLabelContainsExistingOrganization(tc.ctx, fakeK8sClient.CtrlClient(), unittest.DefaultClusterWithoutOrganizationLabel())
 			if !IsOrganizationLabelNotFoundError(err) {
 				t.Fatalf("%s: it should always fail if organization label does not exist", tc.name)
+			}
+		})
+	}
+}
+
+func TestValidateOrgNamespace(t *testing.T) {
+	testCases := []struct {
+		name             string
+		currentNamespace string
+		organization     string
+		releaseVersion   string
+
+		valid bool
+	}{
+		{
+			// invalid namespace
+			name:             "case 0",
+			currentNamespace: "org-test",
+			organization:     unittest.DefaultOrganizationName,
+			releaseVersion:   "18.0.0",
+
+			valid: false,
+		},
+		{
+			// Default Namespace
+			name:             "case 1",
+			currentNamespace: metav1.NamespaceDefault,
+			organization:     unittest.DefaultOrganizationName,
+			releaseVersion:   "18.0.0",
+
+			valid: false,
+		},
+		{
+			// no Namespace
+			name:             "case 2",
+			currentNamespace: "",
+			organization:     unittest.DefaultOrganizationName,
+			releaseVersion:   "18.0.0",
+
+			valid: false,
+		},
+		{
+			// Don't validate the Namespace in older version
+			name:             "case 3",
+			currentNamespace: metav1.NamespaceDefault,
+			organization:     unittest.DefaultOrganizationName,
+			releaseVersion:   "14.0.0",
+
+			valid: true,
+		},
+		{
+			// Valid namespace
+			name:             "case 4",
+			currentNamespace: key.OrganizationNamespaceFromName(unittest.DefaultOrganizationName),
+			organization:     unittest.DefaultOrganizationName,
+			releaseVersion:   "18.0.0",
+
+			valid: true,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			awscluster := unittest.DefaultAWSCluster()
+			awscluster.SetLabels(map[string]string{label.Organization: tc.organization, label.Release: tc.releaseVersion})
+			awscluster.SetNamespace(tc.currentNamespace)
+
+			// validate AWSCluster Namespace
+			err = ValidateOrgNamespace(awscluster.GetObjectMeta())
+
+			// check if the result is as expected
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
 			}
 		})
 	}

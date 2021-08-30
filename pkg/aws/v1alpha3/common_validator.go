@@ -13,7 +13,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/internal/normalize"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
 )
 
 func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {
@@ -52,6 +54,35 @@ func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error
 	}
 
 	return nil
+}
+
+func ValidateOrgNamespace(meta metav1.Object) error {
+	releaseVersion, err := ReleaseVersion(meta, []mutator.PatchOperation{})
+	if err != nil {
+		return microerror.Maskf(parsingFailedError, "unable to parse release version from object")
+	}
+
+	if !IsOrgNamespaceVersion(releaseVersion) {
+		return nil
+	}
+
+	organization := key.Organization(meta)
+	if organization == "" {
+		return microerror.Maskf(organizationLabelNotFoundError, "Object %s Organization label %#q is empty.", meta.GetName(), label.Organization)
+	}
+
+	if !isOrgNamespace(meta.GetNamespace(), organization) {
+		return microerror.Maskf(notAllowedError, "Object %s is in invalid namespace %s. Valid namespace for organization %s is %s.",
+			meta.GetName(),
+			meta.GetNamespace(),
+			organization,
+			key.OrganizationNamespaceFromName(organization))
+	}
+
+	return nil
+}
+func isOrgNamespace(namespace string, organization string) bool {
+	return namespace == key.OrganizationNamespaceFromName(organization)
 }
 
 // MaxBatchSizeIsValid will validate the value into valid maxBatchSize

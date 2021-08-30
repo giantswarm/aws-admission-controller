@@ -122,13 +122,11 @@ func FetchCluster(m *Handler, meta metav1.Object) (*capiv1alpha3.Cluster, error)
 
 	// Fetch the Cluster CR
 	{
-		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching Cluster %s", clusterID))
+		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Fetching Cluster %s in namespace %s.", clusterID, namespace))
 		fetch = func() error {
 			err := m.K8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Name: clusterID, Namespace: namespace}, &cluster)
-			if IsNotFound(err) {
-				return microerror.Maskf(notFoundError, "Looking for Cluster named %s but it was not found.", clusterID)
-			} else if err != nil {
-				return microerror.Mask(err)
+			if err != nil {
+				return microerror.Maskf(notFoundError, "An error occured looking for Cluster named %s in namespace %s: %v", clusterID, namespace, err)
 			}
 			return nil
 		}
