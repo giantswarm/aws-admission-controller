@@ -150,7 +150,7 @@ func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cl
 		if !UpgradeScheduleTimeIsValid(updateTime) {
 			v.logger.Log("level", "error", "message", "upgrade time is not valid")
 			return microerror.Maskf(notAllowedError,
-				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format and should be a date in the future not more than 6 months away.",
+				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format (e.g. 30 Jan 21 15:04 MST) and should be a date in the future not more than 6 months away.",
 					annotation.UpdateScheduleTargetTime,
 					updateTime),
 			)
@@ -169,7 +169,7 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 	if t.Before(time.Now()) {
 		return false
 	}
-	// time too far in the future
+	// time is 6 months or more in the future (6 months are 4380 hours)
 	if time.Until(t) > 4380*time.Hour {
 		return false
 	}
