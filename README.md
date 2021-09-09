@@ -81,6 +81,8 @@ Validating Webhook:
 - In a `Cluster` resource, the non-version label values are not allowed to be deleted or renamed by admin users and users in restricted groups. 
 - In a `Cluster` resource, the `giantswarm.io` label keys are not allowed to be deleted or renamed by admin users and users in restricted groups. 
 - In an `Cluster` resource, it validates that the CR is created in the org-namespace from `v16.0.0`.
+- In a `Cluster` resource, it validates the `alpha.giantswarm.io/update-schedule-target-release` annotation.
+- In a `Cluster` resource, it validates the `alpha.giantswarm.io/update-schedule-target-time` annotation.
 
 - In a `MachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 - In a `MachineDeployment` resource, on creation it validates that the `Cluster` is in the same namespace.

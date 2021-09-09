@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added validation for `alpha.giantswarm.io/update-schedule-target-release` annotation.
+- Added validation for `alpha.giantswarm.io/update-schedule-target-time` annotation.
 - Added validation and tests for cluster CRs to be created in the organization-namespace from version `16.0.0`.
 - Added tests for nodepool CRs to be created in the same namespace as the cluster.
 
