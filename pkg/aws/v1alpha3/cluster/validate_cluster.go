@@ -144,8 +144,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 }
 
 func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster) error {
+	v.logger.Log("level", "debug", "message", "checking if upgrade time is valid")
 	if updateTime, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade time is set to %s", updateTime))
 		if !UpgradeScheduleTimeIsValid(updateTime) {
+			v.logger.Log("level", "error", "message", "upgrade time is not valid")
 			return microerror.Maskf(notAllowedError,
 				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format and should be a date in the future not more than 6 months away.",
 					annotation.UpdateScheduleTargetTime,
@@ -174,9 +177,12 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 }
 
 func (v *Validator) ClusterAnnotationUpgradeReleaseIsValid(cluster *capiv1alpha3.Cluster) error {
+	v.logger.Log("level", "debug", "message", "checking if upgrade release is valid")
 	if targetRelease, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetRelease]; ok {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade releas is set to %s", targetRelease))
 		err := v.UpgradeScheduleReleaseIsValid(targetRelease, key.Release(cluster))
 		if err != nil {
+			v.logger.Log("level", "error", "message", err)
 			return microerror.Maskf(notAllowedError,
 				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be an existing giant swarm release version above the current release version %s and must not have a v prefix. %v",
 					annotation.UpdateScheduleTargetTime,
@@ -306,5 +312,5 @@ func (v *Validator) Log(keyVals ...interface{}) {
 }
 
 func (v *Validator) Resource() string {
-	return "awscluster"
+	return "cluster"
 }
