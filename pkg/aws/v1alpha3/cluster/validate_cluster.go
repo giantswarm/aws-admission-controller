@@ -144,7 +144,6 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 }
 
 func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster) error {
-	v.logger.Log("level", "debug", "message", "checking if upgrade time is valid")
 	if updateTime, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade time is set to %s", updateTime))
 		if !UpgradeScheduleTimeIsValid(updateTime) {
@@ -166,7 +165,7 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 		return false
 	}
 	//time already passed
-	if t.Before(time.Now()) {
+	if t.Before(time.Now().In(t.Location())) {
 		return false
 	}
 	// time is 6 months or more in the future (6 months are 4380 hours)
