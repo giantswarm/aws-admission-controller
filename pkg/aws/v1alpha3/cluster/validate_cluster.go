@@ -77,16 +77,6 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
-	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-
-	err = v.ClusterAnnotationUpgradeReleaseIsValid(cluster)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-
 	return true, nil
 }
 
@@ -111,7 +101,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
-	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster)
+	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -143,8 +133,13 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	return true, nil
 }
 
-func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster, oldCluster *capiv1alpha3.Cluster) error {
 	if updateTime, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
+		if updateTimeOld, ok := oldCluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
+			if updateTime == updateTimeOld {
+				return nil
+			}
+		}
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade time is set to %s", updateTime))
 		if !UpgradeScheduleTimeIsValid(updateTime) {
 			v.logger.Log("level", "error", "message", "upgrade time is not valid")

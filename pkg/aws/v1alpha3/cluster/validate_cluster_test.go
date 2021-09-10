@@ -127,6 +127,7 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 		name         string
 		value        string
 		noAnnotation bool
+		noChange     bool
 		valid        bool
 	}{
 		{
@@ -169,6 +170,12 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 			value: time.Now().UTC().Add(15 * time.Minute).Format(time.RFC822),
 			valid: false,
 		},
+		{
+			name:     "case 8: 15 minutes from now but no change to annotation.",
+			value:    time.Now().UTC().Add(15 * time.Minute).Format(time.RFC822),
+			noChange: true,
+			valid:    true,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -181,8 +188,12 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 			if !tc.noAnnotation {
 				cluster.SetAnnotations(map[string]string{annotation.UpdateScheduleTargetTime: tc.value})
 			}
+			oldCluster := unittest.DefaultCluster()
+			if tc.noChange {
+				oldCluster.SetAnnotations(map[string]string{annotation.UpdateScheduleTargetTime: tc.value})
+			}
 			// check if the result is as expected
-			err := v.ClusterAnnotationUpgradeTimeIsValid(cluster)
+			err := v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
