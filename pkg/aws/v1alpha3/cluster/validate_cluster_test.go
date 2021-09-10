@@ -130,12 +130,12 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 	}{
 		{
 			name:  "case 0: 2 hours from now in RFC822 format",
-			value: time.Now().Add(2 * time.Hour).Format(time.RFC822),
+			value: time.Now().UTC().Add(2 * time.Hour).Format(time.RFC822),
 			valid: true,
 		},
 		{
 			name:  "case 1: 2 hours from now in RFC850 format",
-			value: time.Now().Add(2 * time.Hour).Format(time.RFC850),
+			value: time.Now().UTC().Add(2 * time.Hour).Format(time.RFC850),
 			valid: false,
 		},
 		{
@@ -150,12 +150,17 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 		},
 		{
 			name:  "case 4: A year later",
-			value: time.Now().Add(8760 * time.Hour).Format(time.RFC822),
+			value: time.Now().UTC().Add(8760 * time.Hour).Format(time.RFC822),
 			valid: false,
 		},
 		{
 			name:  "case 5: 2 hours before",
-			value: time.Now().Add(-2 * time.Hour).Format(time.RFC850),
+			value: time.Now().UTC().Add(-2 * time.Hour).Format(time.RFC850),
+			valid: false,
+		},
+		{
+			name:  "case 6: not UTC",
+			value: time.Now().Local().Add(2 * time.Hour).Format(time.RFC822),
 			valid: false,
 		},
 	}
