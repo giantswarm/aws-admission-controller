@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2021-09-10
+
 - Added validation for `alpha.giantswarm.io/update-schedule-target-release` annotation.
 - Added validation for `alpha.giantswarm.io/update-schedule-target-time` annotation.
 - Added validation and tests for cluster CRs to be created in the organization-namespace from version `16.0.0`.
@@ -258,7 +260,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.2.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.2.1...v3.3.0
 [3.2.1]: https://github.com/giantswarm/aws-admission-controller/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.0.0...v3.1.0
