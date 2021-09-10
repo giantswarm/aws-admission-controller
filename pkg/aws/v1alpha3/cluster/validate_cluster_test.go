@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -160,7 +161,7 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 		},
 		{
 			name:  "case 6: not UTC",
-			value: time.Now().Local().Add(2 * time.Hour).Format(time.RFC822),
+			value: strings.Replace(time.Now().UTC().Add(-2*time.Minute).Format(time.RFC850), "UTC", "CET", 1),
 			valid: false,
 		},
 		{
