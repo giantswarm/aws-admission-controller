@@ -2,7 +2,11 @@ package cluster
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/blang/semver/v4"
+	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -97,6 +101,16 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
+	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
+	err = v.ClusterAnnotationUpgradeReleaseIsValid(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	if v.isAdmin(request.UserInfo) || v.isInRestrictedGroup(request.UserInfo) {
 		err = v.ClusterStatusValid(oldCluster, cluster)
 		if err != nil {
@@ -117,6 +131,88 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster, oldCluster *capiv1alpha3.Cluster) error {
+	if updateTime, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
+		if updateTimeOld, ok := oldCluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
+			if updateTime == updateTimeOld {
+				return nil
+			}
+		}
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade time is set to %s", updateTime))
+		if !UpgradeScheduleTimeIsValid(updateTime) {
+			v.logger.Log("level", "error", "message", "upgrade time is not valid")
+			return microerror.Maskf(notAllowedError,
+				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format and UTC time zone (e.g. 30 Jan 21 15:04 UTC) and should be a date 16 mins - 6months in the future.",
+					annotation.UpdateScheduleTargetTime,
+					updateTime),
+			)
+		}
+	}
+	return nil
+}
+
+func UpgradeScheduleTimeIsValid(updateTime string) bool {
+	// parse time
+	t, err := time.Parse(time.RFC822, updateTime)
+	if err != nil {
+		return false
+	}
+	// check whether it is UTC
+	if t.Location().String() != "UTC" {
+		return false
+	}
+	//time already passed or is less than 16 minutes in the future
+	if t.Before(time.Now().UTC().Add(16 * time.Minute)) {
+		return false
+	}
+	// time is 6 months or more in the future (6 months are 4380 hours)
+	if t.Sub(time.Now().UTC()) > 4380*time.Hour {
+		return false
+	}
+	return true
+}
+
+func (v *Validator) ClusterAnnotationUpgradeReleaseIsValid(cluster *capiv1alpha3.Cluster) error {
+	if targetRelease, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetRelease]; ok {
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade release is set to %s", targetRelease))
+		err := v.UpgradeScheduleReleaseIsValid(targetRelease, key.Release(cluster))
+		if err != nil {
+			v.logger.Log("level", "error", "message", err)
+			return microerror.Maskf(notAllowedError,
+				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be an existing giant swarm release version above the current release version %s and must not have a v prefix. %v",
+					annotation.UpdateScheduleTargetTime,
+					targetRelease,
+					key.Release(cluster),
+					err),
+			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) UpgradeScheduleReleaseIsValid(targetRelease string, currentRelease string) error {
+	// parse target version
+	t, err := semver.New(targetRelease)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	// check if the release exists
+	_, err = aws.FetchRelease(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, t)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	// parse current version
+	c, err := semver.New(currentRelease)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	//check if target is higher than the current release
+	if t.LE(*c) {
+		return microerror.Maskf(notAllowedError, "Upgrade target release version has to be above current release version.")
+	}
+	return nil
 }
 
 func (v *Validator) ClusterLabelKeysValid(oldCluster *capiv1alpha3.Cluster, newCluster *capiv1alpha3.Cluster) error {
@@ -213,5 +309,5 @@ func (v *Validator) Log(keyVals ...interface{}) {
 }
 
 func (v *Validator) Resource() string {
-	return "awscluster"
+	return "cluster"
 }

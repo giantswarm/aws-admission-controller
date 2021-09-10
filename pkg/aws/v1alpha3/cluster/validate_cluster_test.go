@@ -3,9 +3,11 @@ package cluster
 import (
 	"context"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/apiextensions/v3/pkg/label"
@@ -14,6 +16,193 @@ import (
 
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )
+
+func Test_UpgradeReleaseIsValid(t *testing.T) {
+	testCases := []struct {
+		name         string
+		value        string
+		oldValue     string
+		noAnnotation bool
+		valid        bool
+	}{
+		{
+			name:     "case 0: minor upgrade",
+			oldValue: "14.0.0",
+			value:    "14.1.0",
+			valid:    true,
+		},
+		{
+			name:     "case 1: major upgrade",
+			oldValue: "14.1.0",
+			value:    "15.1.0",
+			valid:    true,
+		},
+		{
+			name:     "case 2: no value",
+			oldValue: "14.1.0",
+			value:    "",
+			valid:    false,
+		},
+		{
+			name:         "case 3: no annotation",
+			oldValue:     "14.1.0",
+			noAnnotation: true,
+			valid:        true,
+		},
+		{
+			name:     "case 4: no upgrade",
+			oldValue: "14.1.0",
+			value:    "14.1.0",
+			valid:    false,
+		},
+		{
+			name:     "case 5: downgrade",
+			oldValue: "15.1.0",
+			value:    "14.1.0",
+			valid:    false,
+		},
+		{
+			name:     "case 6: release does not exist",
+			oldValue: "14.1.0",
+			value:    "14.11.0",
+			valid:    false,
+		},
+		{
+			name:     "case 7: v prefix",
+			oldValue: "14.1.0",
+			value:    "v15.1.0",
+			valid:    false,
+		},
+		{
+			name:     "case 8: invalid format",
+			oldValue: "14.1.0",
+			value:    "15-1-0",
+			valid:    false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			cluster := unittest.DefaultCluster()
+			cluster.SetLabels(map[string]string{label.ReleaseVersion: tc.oldValue})
+			if !tc.noAnnotation {
+				cluster.SetAnnotations(map[string]string{annotation.UpdateScheduleTargetRelease: tc.value})
+			}
+
+			// create releases for testing
+			releases := []unittest.ReleaseData{
+				{
+					Name: "v14.1.0",
+				},
+				{
+					Name: "v15.1.0",
+				},
+			}
+			for _, r := range releases {
+				release := unittest.DefaultRelease()
+				release.SetName(r.Name)
+				err := v.k8sClient.CtrlClient().Create(context.Background(), &release)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			// check if the result is as expected
+			err := v.ClusterAnnotationUpgradeReleaseIsValid(cluster)
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
+func Test_UpgradeTimeIsValid(t *testing.T) {
+	testCases := []struct {
+		name         string
+		value        string
+		noAnnotation bool
+		noChange     bool
+		valid        bool
+	}{
+		{
+			name:  "case 0: 2 hours from now in RFC822 format",
+			value: time.Now().UTC().Add(2 * time.Hour).Format(time.RFC822),
+			valid: true,
+		},
+		{
+			name:  "case 1: 2 hours from now in RFC850 format",
+			value: time.Now().UTC().Add(2 * time.Hour).Format(time.RFC850),
+			valid: false,
+		},
+		{
+			name:  "case 2: no value",
+			value: "",
+			valid: false,
+		},
+		{
+			name:         "case 3: no annotation",
+			noAnnotation: true,
+			valid:        true,
+		},
+		{
+			name:  "case 4: More than 6 months later",
+			value: time.Now().UTC().Add(4381 * time.Hour).Format(time.RFC822),
+			valid: false,
+		},
+		{
+			name:  "case 5: 2 minutes before",
+			value: time.Now().UTC().Add(-2 * time.Minute).Format(time.RFC850),
+			valid: false,
+		},
+		{
+			name:  "case 6: not UTC",
+			value: strings.Replace(time.Now().UTC().Add(-2*time.Minute).Format(time.RFC850), "UTC", "CET", 1),
+			valid: false,
+		},
+		{
+			name:  "case 7: 15 minutes from now",
+			value: time.Now().UTC().Add(15 * time.Minute).Format(time.RFC822),
+			valid: false,
+		},
+		{
+			name:     "case 8: 15 minutes from now but no change to annotation.",
+			value:    time.Now().UTC().Add(15 * time.Minute).Format(time.RFC822),
+			noChange: true,
+			valid:    true,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			cluster := unittest.DefaultCluster()
+			if !tc.noAnnotation {
+				cluster.SetAnnotations(map[string]string{annotation.UpdateScheduleTargetTime: tc.value})
+			}
+			oldCluster := unittest.DefaultCluster()
+			if tc.noChange {
+				oldCluster.SetAnnotations(map[string]string{annotation.UpdateScheduleTargetTime: tc.value})
+			}
+			// check if the result is as expected
+			err := v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
 
 func TestValidateReleaseVersion(t *testing.T) {
 	testCases := []struct {
