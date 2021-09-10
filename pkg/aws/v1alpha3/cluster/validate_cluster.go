@@ -149,7 +149,7 @@ func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cl
 		if !UpgradeScheduleTimeIsValid(updateTime) {
 			v.logger.Log("level", "error", "message", "upgrade time is not valid")
 			return microerror.Maskf(notAllowedError,
-				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format and UTC time zone (e.g. 30 Jan 21 15:04 UTC) and should be a date in the future not more than 6 months away.",
+				fmt.Sprintf("Cluster annotation '%s' value '%s' is not valid. Value must be in RFC822 format and UTC time zone (e.g. 30 Jan 21 15:04 UTC) and should be a date 16 mins - 6months in the future.",
 					annotation.UpdateScheduleTargetTime,
 					updateTime),
 			)
@@ -168,21 +168,20 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 	if t.Location().String() != "UTC" {
 		return false
 	}
-	//time already passed
-	if t.Before(time.Now()) {
+	//time already passed or is less than 16 minutes in the future
+	if t.Before(time.Now().UTC().Add(16 * time.Minute)) {
 		return false
 	}
 	// time is 6 months or more in the future (6 months are 4380 hours)
-	if time.Until(t) > 4380*time.Hour {
+	if t.Sub(time.Now().UTC()) > 4380*time.Hour {
 		return false
 	}
 	return true
 }
 
 func (v *Validator) ClusterAnnotationUpgradeReleaseIsValid(cluster *capiv1alpha3.Cluster) error {
-	v.logger.Log("level", "debug", "message", "checking if upgrade release is valid")
 	if targetRelease, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetRelease]; ok {
-		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade releas is set to %s", targetRelease))
+		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade release is set to %s", targetRelease))
 		err := v.UpgradeScheduleReleaseIsValid(targetRelease, key.Release(cluster))
 		if err != nil {
 			v.logger.Log("level", "error", "message", err)

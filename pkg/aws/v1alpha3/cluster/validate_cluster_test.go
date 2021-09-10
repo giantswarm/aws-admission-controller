@@ -149,18 +149,23 @@ func Test_UpgradeTimeIsValid(t *testing.T) {
 			valid:        true,
 		},
 		{
-			name:  "case 4: A year later",
-			value: time.Now().UTC().Add(8760 * time.Hour).Format(time.RFC822),
+			name:  "case 4: More than 6 months later",
+			value: time.Now().UTC().Add(4381 * time.Hour).Format(time.RFC822),
 			valid: false,
 		},
 		{
-			name:  "case 5: 2 hours before",
-			value: time.Now().UTC().Add(-2 * time.Hour).Format(time.RFC850),
+			name:  "case 5: 2 minutes before",
+			value: time.Now().UTC().Add(-2 * time.Minute).Format(time.RFC850),
 			valid: false,
 		},
 		{
 			name:  "case 6: not UTC",
 			value: time.Now().Local().Add(2 * time.Hour).Format(time.RFC822),
+			valid: false,
+		},
+		{
+			name:  "case 7: 15 minutes from now",
+			value: time.Now().UTC().Add(15 * time.Minute).Format(time.RFC822),
 			valid: false,
 		},
 	}
