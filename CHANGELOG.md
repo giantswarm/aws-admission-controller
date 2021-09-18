@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Validate operator version on all CR's.
+
 ## [3.3.0] - 2021-09-10
 
 - Added validation for `alpha.giantswarm.io/update-schedule-target-release` annotation.

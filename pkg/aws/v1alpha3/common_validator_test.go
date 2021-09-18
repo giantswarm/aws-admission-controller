@@ -512,3 +512,150 @@ func TestValidateOrgNamespace(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateOperatorVersion(t *testing.T) {
+	testCases := []struct {
+		ctx    context.Context
+		name   string
+		object metav1.Object
+
+		newLabels map[string]string
+		valid     bool
+	}{
+		{
+			// valid cluster operator version on cluster cr
+			name:      "case 0",
+			ctx:       context.Background(),
+			object:    unittest.DefaultCluster(),
+			newLabels: unittest.DefaultLabels(),
+			valid:     true,
+		},
+		{
+			// empty cluster operator version on cluster cr
+			name:   "case 1",
+			ctx:    context.Background(),
+			object: unittest.DefaultCluster(),
+
+			newLabels: map[string]string{
+				label.ClusterOperatorVersion: "",
+			},
+			valid: false,
+		},
+		{
+			// invalid cluster operator version on cluster cr
+			name:   "case 2",
+			ctx:    context.Background(),
+			object: unittest.DefaultCluster(),
+
+			newLabels: map[string]string{
+				label.ClusterOperatorVersion: "invalid-cluster-operator-version",
+			},
+			valid: false,
+		},
+		{
+			// valid aws operator version on awscluster cr
+			name:      "case 3",
+			ctx:       context.Background(),
+			object:    unittest.DefaultAWSCluster(),
+			newLabels: unittest.DefaultLabels(),
+			valid:     true,
+		},
+		{
+			// empty aws operator version on awscluster cr
+			name:   "case 4",
+			ctx:    context.Background(),
+			object: unittest.DefaultAWSCluster(),
+
+			newLabels: map[string]string{
+				label.AWSOperatorVersion: "",
+			},
+			valid: false,
+		},
+		{
+			// invalid aws operator version on awscluster cr
+			name:   "case 5",
+			ctx:    context.Background(),
+			object: unittest.DefaultAWSCluster(),
+
+			newLabels: map[string]string{
+				label.AWSOperatorVersion: "invalid-aws-operator-version",
+			},
+			valid: false,
+		},
+		{
+			// valid aws operator version on awsmachinedeployment cr
+			name:      "case 6",
+			ctx:       context.Background(),
+			object:    unittest.DefaultAWSMachineDeployment(),
+			newLabels: unittest.DefaultLabels(),
+			valid:     true,
+		},
+		{
+			// empty aws operator version on awsmachinedeployment cr
+			name:   "case 7",
+			ctx:    context.Background(),
+			object: unittest.DefaultAWSMachineDeployment(),
+
+			newLabels: map[string]string{
+				label.AWSOperatorVersion: "",
+			},
+			valid: false,
+		},
+		{
+			// invalid aws operator version on awsmachinedeployment cr
+			name:   "case 8",
+			ctx:    context.Background(),
+			object: unittest.DefaultAWSMachineDeployment(),
+
+			newLabels: map[string]string{
+				label.AWSOperatorVersion: "invalid-aws-operator-version",
+			},
+			valid: false,
+		},
+		{
+			// valid cluster operator version on machinedeployment cr
+			name:      "case 9",
+			ctx:       context.Background(),
+			object:    unittest.DefaultMachineDeployment(),
+			newLabels: unittest.DefaultLabels(),
+			valid:     true,
+		},
+		{
+			// empty cluster operator version on machinedeployment cr
+			name:   "case 10",
+			ctx:    context.Background(),
+			object: unittest.DefaultMachineDeployment(),
+
+			newLabels: map[string]string{
+				label.ClusterOperatorVersion: "",
+			},
+			valid: false,
+		},
+		{
+			// invalid cluster operator version on machinedeployment cr
+			name:   "case 11",
+			ctx:    context.Background(),
+			object: unittest.DefaultMachineDeployment(),
+
+			newLabels: map[string]string{
+				label.ClusterOperatorVersion: "invalid-cluster-operator-version",
+			},
+			valid: false,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			tc.object.SetLabels(tc.newLabels)
+			err = ValidateOperatorVersion(tc.object)
+			// check if the result is as expected
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}

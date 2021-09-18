@@ -492,7 +492,7 @@ func TestValidClusterStatus(t *testing.T) {
 
 			awsCluster := unittest.DefaultAWSCluster()
 			awsCluster.Status.Cluster.Conditions = tc.conditions
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &awsCluster)
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, awsCluster)
 			if err != nil {
 				t.Fatal(err)
 			}

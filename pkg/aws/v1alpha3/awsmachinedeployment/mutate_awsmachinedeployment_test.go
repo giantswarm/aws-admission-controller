@@ -111,7 +111,7 @@ func TestAWSMachineDeploymentAvailabilityZones(t *testing.T) {
 			var patch []mutator.PatchOperation
 			awsmachinedeployment := unittest.DefaultAWSMachineDeployment()
 			awsmachinedeployment.Spec.Provider.AvailabilityZones = tc.currentAZ
-			patch, err = mutate.MutateAvailabilityZones(awsmachinedeployment)
+			patch, err = mutate.MutateAvailabilityZones(*awsmachinedeployment)
 			if err != nil {
 				t.Fatal(err)
 			}

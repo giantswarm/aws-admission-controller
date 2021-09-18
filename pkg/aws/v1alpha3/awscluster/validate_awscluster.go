@@ -60,6 +60,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = aws.ValidateOperatorVersion(&awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)

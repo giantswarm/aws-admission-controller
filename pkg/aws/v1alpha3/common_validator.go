@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/blang/semver/v4"
 	"github.com/dylanmei/iso8601"
 	securityv1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
 	"github.com/giantswarm/microerror"
@@ -81,6 +82,30 @@ func ValidateOrgNamespace(meta metav1.Object) error {
 
 	return nil
 }
+
+func ValidateOperatorVersion(meta metav1.Object) error {
+	var labels = meta.GetLabels()
+	var err error
+
+	if version, exists := labels[label.AWSOperatorVersion]; exists {
+		if _, err = semver.New(version); err != nil {
+			return microerror.Maskf(notAllowedError, "Object %s has invalid aws-operator version %s.",
+				meta.GetName(),
+				version)
+		}
+	}
+
+	if version, exists := labels[label.ClusterOperatorVersion]; exists {
+		if _, err = semver.New(version); err != nil {
+			return microerror.Maskf(notAllowedError, "Object %s has invalid cluster-operator version %s.",
+				meta.GetName(),
+				version)
+		}
+	}
+
+	return nil
+}
+
 func isOrgNamespace(namespace string, organization string) bool {
 	return namespace == key.OrganizationNamespaceFromName(organization)
 }

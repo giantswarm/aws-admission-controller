@@ -111,7 +111,7 @@ func TestLabelFromAWSCluster(t *testing.T) {
 			awscluster := unittest.DefaultAWSCluster()
 			awscontrolplane := unittest.DefaultAWSControlPlane()
 			awscontrolplane.SetLabels(map[string]string{label.AWSOperatorVersion: tc.currentOperator, label.Cluster: unittest.DefaultClusterID})
-			patch, err = MutateLabelFromAWSCluster(mutate, awscontrolplane.GetObjectMeta(), awscluster, label.AWSOperatorVersion)
+			patch, err = MutateLabelFromAWSCluster(mutate, awscontrolplane.GetObjectMeta(), *awscluster, label.AWSOperatorVersion)
 			if err != nil {
 				t.Fatal(err)
 			}
