@@ -129,7 +129,7 @@ func MaxBatchSizeIsValid(value string) bool {
 		}
 	}
 	// try parse float
-	ratio, err := strconv.ParseFloat(value, 10)
+	ratio, err := strconv.ParseFloat(value, 32)
 	if err != nil {
 		// not integer or float which means invalid value
 		return false
