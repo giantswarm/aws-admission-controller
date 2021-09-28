@@ -59,7 +59,7 @@ func TestValidateCluster(t *testing.T) {
 
 			// try to create the machinedeployment
 			object := unittest.DefaultMachineDeployment()
-			err = validate.ValidateCluster(object)
+			err = validate.ValidateCluster(*object)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -133,7 +133,7 @@ func TestValidateClusterNamespace(t *testing.T) {
 			// try to create the awsmachinedeployment
 			object := unittest.DefaultMachineDeployment()
 			object.SetNamespace(tc.nodePoolNamespace)
-			err = validate.ValidateCluster(object)
+			err = validate.ValidateCluster(*object)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}

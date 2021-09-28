@@ -64,12 +64,12 @@ func TestMutateInfraRefUpdate(t *testing.T) {
 
 			// try to create the machinedeployment
 			machineDeployment := unittest.DefaultMachineDeployment()
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &machineDeployment)
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, machineDeployment)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			patch, err = mutate.MutateInfraRef(machineDeployment, tc.releaseVersion)
+			patch, err = mutate.MutateInfraRef(*machineDeployment, tc.releaseVersion)
 			if err != nil {
 				t.Fatal(err)
 			}

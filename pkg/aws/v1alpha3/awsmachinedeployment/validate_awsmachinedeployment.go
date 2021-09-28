@@ -116,6 +116,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = aws.ValidateOperatorVersion(&awsMachineDeployment)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.InstanceTypeValid(awsMachineDeployment)
 	if err != nil {
 		return false, microerror.Mask(err)

@@ -51,7 +51,7 @@ func TestInstanceTypeValid(t *testing.T) {
 				validInstanceTypes: unittest.DefaultInstanceTypes(),
 				logger:             microloggertest.New(),
 			}
-			err := validate.InstanceTypeValid(md)
+			err := validate.InstanceTypeValid(*md)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -109,7 +109,7 @@ func TestAvailabilityZoneValid(t *testing.T) {
 				validAvailabilityZones: unittest.DefaultAvailabilityZones(),
 				logger:                 microloggertest.New(),
 			}
-			err := validate.AZValid(md)
+			err := validate.AZValid(*md)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -172,14 +172,14 @@ func TestMachineDeploymentLabelMatch(t *testing.T) {
 			machineDeployment := unittest.DefaultMachineDeployment()
 			machineDeployment.SetLabels(map[string]string{label.MachineDeployment: tc.machineDeploymentID})
 
-			err = fakeK8sClient.CtrlClient().Create(tc.ctx, &machineDeployment)
+			err = fakeK8sClient.CtrlClient().Create(tc.ctx, machineDeployment)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			// try to create the awsmachinedeployment
 			object := unittest.DefaultAWSMachineDeployment()
-			err = validate.MachineDeploymentLabelMatch(object)
+			err = validate.MachineDeploymentLabelMatch(*object)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -237,7 +237,7 @@ func TestValidateCluster(t *testing.T) {
 
 			// try to create the awsmachinedeployment
 			object := unittest.DefaultAWSMachineDeployment()
-			err = validate.ValidateCluster(object)
+			err = validate.ValidateCluster(*object)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -311,7 +311,7 @@ func TestValidateClusterNamespace(t *testing.T) {
 			// try to create the awsmachinedeployment
 			object := unittest.DefaultAWSMachineDeployment()
 			object.SetNamespace(tc.nodePoolNamespace)
-			err = validate.ValidateCluster(object)
+			err = validate.ValidateCluster(*object)
 			if tc.allowed && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}
@@ -404,7 +404,7 @@ func TestValidateMachineDeploymentScaling(t *testing.T) {
 
 			md.Spec.NodePool.Scaling = tc.scaling
 
-			err := v.MachineDeploymentScaling(md)
+			err := v.MachineDeploymentScaling(*md)
 			switch {
 			case err == nil && tc.matcher == nil:
 				// correct; carry on

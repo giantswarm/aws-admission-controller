@@ -14,8 +14,8 @@ const (
 	DefaultMachineDeploymentID = "al9qy"
 )
 
-func DefaultMachineDeployment() apiv1alpha3.MachineDeployment {
-	cr := apiv1alpha3.MachineDeployment{
+func DefaultMachineDeployment() *apiv1alpha3.MachineDeployment {
+	cr := &apiv1alpha3.MachineDeployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MachineDeployment",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
@@ -54,8 +54,12 @@ func DefaultMachineDeployment() apiv1alpha3.MachineDeployment {
 	return cr
 }
 
-func DefaultAWSMachineDeployment() infrastructurev1alpha3.AWSMachineDeployment {
-	cr := infrastructurev1alpha3.AWSMachineDeployment{
+func DefaultAWSMachineDeployment() *infrastructurev1alpha3.AWSMachineDeployment {
+	cr := &infrastructurev1alpha3.AWSMachineDeployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AWSMachineDeployment",
+			APIVersion: "infrastructure.giantswarm.io/v1alpha3",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				label.Cluster:            DefaultClusterID,

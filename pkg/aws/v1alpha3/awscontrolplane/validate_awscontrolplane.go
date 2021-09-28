@@ -124,6 +124,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = aws.ValidateOperatorVersion(&awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.AZCount(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)

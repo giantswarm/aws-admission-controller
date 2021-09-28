@@ -134,7 +134,7 @@ func TestAWSClusterCredentials(t *testing.T) {
 			awscluster.APIVersion = "v1alpha3"
 			awscluster.Spec.Provider.CredentialSecret.Name = tc.currentCredential.Name
 			awscluster.Spec.Provider.CredentialSecret.Namespace = tc.currentCredential.Namespace
-			patch, err = mutate.MutateCredential(awscluster)
+			patch, err = mutate.MutateCredential(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -197,7 +197,7 @@ func TestAWSClusterDescription(t *testing.T) {
 			var patch []mutator.PatchOperation
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.Spec.Cluster.Description = tc.currentDescription
-			patch, err = mutate.MutateDescription(awscluster)
+			patch, err = mutate.MutateDescription(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -255,7 +255,7 @@ func TestAWSClusterDomain(t *testing.T) {
 			var patch []mutator.PatchOperation
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.Spec.Cluster.DNS.Domain = tc.currentDomain
-			patch, err = mutate.MutateDomain(awscluster)
+			patch, err = mutate.MutateDomain(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -342,7 +342,7 @@ func TestAWSClusterMaster(t *testing.T) {
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.Spec.Provider.Master.AvailabilityZone = tc.currentAZ
 			awscluster.Spec.Provider.Master.InstanceType = tc.currentIT
-			patch, err = mutate.MutateMasterPreHA(awscluster)
+			patch, err = mutate.MutateMasterPreHA(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -405,7 +405,7 @@ func TestAWSClusterRegion(t *testing.T) {
 			var patch []mutator.PatchOperation
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.Spec.Provider.Region = tc.currentRegion
-			patch, err = mutate.MutateRegion(awscluster)
+			patch, err = mutate.MutateRegion(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -511,7 +511,7 @@ func TestAWSClusterAnnotationNodeTerminateUnhealthy(t *testing.T) {
 			awscluster := unittest.DefaultAWSCluster()
 			awscluster.Annotations = tc.annotations
 			awscluster.Labels[label.Release] = tc.release
-			patch, err = mutate.MutateAnnotationNodeTerminateUnhealthy(awscluster)
+			patch, err = mutate.MutateAnnotationNodeTerminateUnhealthy(*awscluster)
 			if err != nil {
 				t.Fatal(err)
 			}

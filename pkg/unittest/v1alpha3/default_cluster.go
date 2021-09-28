@@ -25,8 +25,12 @@ const (
 	DefaultProviderTagValue       = "2.4"
 )
 
-func DefaultAWSCluster() infrastructurev1alpha3.AWSCluster {
-	cr := infrastructurev1alpha3.AWSCluster{
+func DefaultAWSCluster() *infrastructurev1alpha3.AWSCluster {
+	cr := &infrastructurev1alpha3.AWSCluster{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "AWSCluster",
+			APIVersion: "infrastructure.giantswarm.io/v1alpha3",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				label.Cluster:            DefaultClusterID,
