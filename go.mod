@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
-	github.com/giantswarm/apiextensions/v3 v3.33.0
+	github.com/giantswarm/apiextensions/v3 v3.34.0
 	github.com/giantswarm/backoff v0.2.0
 	github.com/giantswarm/k8sclient/v5 v5.12.0
 	github.com/giantswarm/microerror v0.3.0
@@ -19,10 +19,7 @@ require (
 	github.com/onsi/gomega v1.14.0 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	go.uber.org/zap v1.17.0 // indirect
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/net v0.0.0-20210716203947-853a461950ff // indirect
-	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.18.19
 	k8s.io/apiextensions-apiserver v0.18.19
