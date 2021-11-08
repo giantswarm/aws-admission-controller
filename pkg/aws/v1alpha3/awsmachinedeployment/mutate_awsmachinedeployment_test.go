@@ -45,6 +45,7 @@ func TestAWSMachineDeploymentAdmit(t *testing.T) {
 			fakeK8sClient := unittest.FakeK8sClient()
 			mutator := &Mutator{
 				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
 			}
 
 			// create AWSMachineDeployment
