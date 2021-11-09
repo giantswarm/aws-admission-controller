@@ -85,6 +85,9 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, awsControlPlaneCR)
+	result = append(result, patch...)
+
 	patch, err = m.MutateOperatorVersion(*awsControlPlaneCR)
 	if err != nil {
 		return nil, microerror.Mask(err)
@@ -141,6 +144,9 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	if err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from AWSControlPlane")
 	}
+
+	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, awsControlPlaneCR)
+	result = append(result, patch...)
 
 	// We try to fetch the G8sControlPlane belonging to the AWSControlPlane here.
 	replicas := 0
