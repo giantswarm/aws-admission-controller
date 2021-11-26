@@ -3,10 +3,11 @@ package awscluster
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -94,6 +95,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = v.AWSClusterAnnotationCNIPrefix(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -130,6 +136,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 	err = v.AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AWSClusterAnnotationCNIPrefix(awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -211,6 +221,17 @@ func (v *Validator) AWSClusterAnnotationNodeTerminateUnhealthy(awsCluster infras
 			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' value '%s' is not valid. Value must be either '\"true\"' or '\"false\"'.",
 				annotation.NodeTerminateUnhealthy,
 				terminateUnhealthy),
+			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) AWSClusterAnnotationCNIPrefix(awsCluster infrastructurev1alpha3.AWSCluster) error {
+	if _, ok := awsCluster.GetAnnotations()[annotation.AWSCNIPrefixDelegation]; ok {
+		if strings.Contains(awsCluster.Spec.Provider.Region, "cn-") {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' is not allowed in region 'China'.",
+				annotation.AWSCNIPrefixDelegation),
 			)
 		}
 	}
