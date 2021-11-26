@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Validate if AWS CNI prefix can be enabled.
+
+### Changed
+
+- Use `k8smetadata` for annotations.
+
 ## [3.5.1] - 2021-11-12
 
 ### Fixed

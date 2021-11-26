@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/giantswarm/apiextensions/v3/pkg/annotation"
+	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/micrologger/microloggertest"
 	"k8s.io/apimachinery/pkg/types"
 
