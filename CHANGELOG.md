@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2021-11-26
+
 ### Added
 
 - Validate if AWS CNI prefix can be enabled.
@@ -286,7 +288,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.5.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.5.1...v3.6.0
 [3.5.1]: https://github.com/giantswarm/aws-admission-controller/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.3.0...v3.4.0
