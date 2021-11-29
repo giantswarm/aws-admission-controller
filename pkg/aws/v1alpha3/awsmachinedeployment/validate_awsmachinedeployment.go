@@ -290,10 +290,6 @@ func (v *Validator) MachineDeploymentScaling(md infrastructurev1alpha3.AWSMachin
 	min := md.Spec.NodePool.Scaling.Min
 	max := md.Spec.NodePool.Scaling.Max
 
-	if max == 0 {
-		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Max must not be 0.")
-	}
-
 	if min > max {
 		return microerror.Maskf(notAllowedError, "AWSMachineDeployment.Spec.Scaling.Min must not be greater that AWSMachineDeployment.Spec.Scaling.Max.")
 	}
