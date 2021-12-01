@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Patch `infraRef` in case of updating g8scontrolplane.
+
 ## [3.6.1] - 2021-11-29
 
 ### Fixed
