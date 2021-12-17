@@ -65,7 +65,11 @@ func ReleaseVersion(meta metav1.Object, patch []mutator.PatchOperation) (*semver
 	for _, p := range patch {
 		if p.Path == fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(label.Release)) {
 			version = p.Value.(string)
-			return semver.New(version)
+			if version != "" {
+				return semver.New(version)
+			} else {
+				break
+			}
 		}
 	}
 	// otherwise check the labels
