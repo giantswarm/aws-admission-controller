@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.3] - 2021-12-17
+
 ### Fixed
 
 - Handle update patch with empty version string
@@ -304,7 +306,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.2...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.3...HEAD
+[3.6.3]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.2...v3.6.3
 [3.6.2]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.1...v3.6.2
 [3.6.1]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.0...v3.6.1
 [3.6.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.5.1...v3.6.0
