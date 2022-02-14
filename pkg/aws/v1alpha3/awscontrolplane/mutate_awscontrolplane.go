@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -106,6 +107,8 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 		// This defaulting is only done when the awscontrolplane exists
 		replicas = g8sControlPlane.Spec.Replicas
 	}
+
+	spew.Dump(g8sControlPlane.Spec)
 
 	if aws.IsHAVersion(releaseVersion) {
 		patch, err = m.MutateInstanceType(*awsControlPlaneCR)
@@ -245,6 +248,9 @@ func (m *Mutator) MutateAvailabilityZones(replicas int, awsControlPlaneCR infras
 	defaultedAZs := aws.GetNavailabilityZones(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, numberOfAZs, m.validAvailabilityZones)
 	patch := mutator.PatchAdd("/spec/availabilityZones", defaultedAZs)
 	result = append(result, patch)
+
+	spew.Dump(result)
+
 	return result, nil
 }
 

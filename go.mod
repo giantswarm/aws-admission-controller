@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/blang/semver/v4 v4.0.0
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
 	github.com/giantswarm/apiextensions/v3 v3.39.0
