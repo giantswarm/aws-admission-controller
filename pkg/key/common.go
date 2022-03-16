@@ -9,6 +9,10 @@ import (
 
 const (
 	organizationNamespaceFormat = "org-%s"
+	MinEBSVolumeThroughtput     = 100
+	MaxEBSVolumeThroughtput     = 1000
+	MinEBSVolumeIops            = 3000
+	MaxEBSVolumeIops            = 16000
 )
 
 func AWSOperator(getter LabelsGetter) string {
