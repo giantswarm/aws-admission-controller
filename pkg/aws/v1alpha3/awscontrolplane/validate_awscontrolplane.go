@@ -3,10 +3,12 @@ package awscontrolplane
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -94,6 +96,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
+	err = v.AnnotationValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
 	// We try to fetch the G8sControlPlane belonging to the AWSControlPlane here.
 	g8sControlPlane, err = aws.FetchG8sControlPlane(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, &awsControlPlane)
 	if aws.IsNotFound(err) {
@@ -146,6 +152,10 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 	err = v.InstanceTypeValid(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AnnotationValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -283,6 +293,49 @@ func (v *Validator) InstanceTypeValid(awsControlPlane infrastructurev1alpha3.AWS
 			awsControlPlane.Spec.InstanceType,
 			v.validInstanceTypes),
 		)
+	}
+
+	return nil
+}
+
+func (v *Validator) AnnotationValid(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
+	val, ok := awsControlPlane.Annotations[annotation.AWSEBSVolumeIops]
+	if ok {
+		o, err := strconv.Atoi(val)
+		if err != nil {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s annotation '%s' is invalid. Only integer values are allowed.",
+				key.ControlPlane(&awsControlPlane),
+				annotation.AWSEBSVolumeIops),
+			)
+		}
+		// check gp3 iops settings, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
+		if o < key.MinEBSVolumeIops || o > key.MaxEBSVolumeIops {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s annotation '%s' is invalid. Allowed min setting: %v, allowed max setting: %v",
+				key.ControlPlane(&awsControlPlane),
+				annotation.AWSEBSVolumeThroughput,
+				key.MinEBSVolumeIops,
+				key.MaxEBSVolumeIops),
+			)
+		}
+	}
+	val, ok = awsControlPlane.Annotations[annotation.AWSEBSVolumeThroughput]
+	if ok {
+		o, err := strconv.Atoi(val)
+		if err != nil {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s annotation '%s' is invalid. Only integer values are allowed.",
+				key.ControlPlane(&awsControlPlane),
+				annotation.AWSEBSVolumeThroughput),
+			)
+		}
+		// check gp3 throughput settings, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-launchtemplate-blockdevicemapping-ebs.html
+		if o < key.MinEBSVolumeThroughtput || o > key.MaxEBSVolumeThroughtput {
+			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s annotation '%s' is invalid. Allowed min setting: %v, allowed max setting: %v",
+				key.ControlPlane(&awsControlPlane),
+				annotation.AWSEBSVolumeThroughput,
+				key.MinEBSVolumeThroughtput,
+				key.MaxEBSVolumeThroughtput),
+			)
+		}
 	}
 
 	return nil
