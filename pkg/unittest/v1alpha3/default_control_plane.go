@@ -31,7 +31,8 @@ func DefaultAWSControlPlane() infrastructurev1alpha3.AWSControlPlane {
 				label.Release:            "15.0.0",
 				label.Organization:       "example-organization",
 			},
-			Namespace: metav1.NamespaceDefault,
+			Annotations: map[string]string{},
+			Namespace:   metav1.NamespaceDefault,
 		},
 		Spec: infrastructurev1alpha3.AWSControlPlaneSpec{
 			AvailabilityZones: []string{"eu-central-1b"},

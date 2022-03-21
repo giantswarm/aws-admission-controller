@@ -38,8 +38,11 @@ func CustomAdmissionRequestAWSCluster(podCIDRBlock string) (admissionv1.Admissio
 	return req, nil
 }
 
-func CustomAdmissionRequestAWSControlPlane(AZs []string) (admissionv1.AdmissionRequest, error) {
+func CustomAdmissionRequestAWSControlPlane(Annotations map[string]string, AZs []string) (admissionv1.AdmissionRequest, error) {
 	awsControlplane := DefaultAWSControlPlane()
+	for k, v := range Annotations {
+		awsControlplane.Annotations[k] = v
+	}
 	awsControlplane.Spec.AvailabilityZones = AZs
 	byt, err := json.Marshal(awsControlplane)
 	if err != nil {
