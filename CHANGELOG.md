@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add VerticalPodAutoscaler CR.
 - Validate EBS volume iops and throughput settings.
 
 ## [3.6.3] - 2021-12-17
