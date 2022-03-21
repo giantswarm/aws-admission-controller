@@ -1,4 +1,5 @@
 {{ if .Capabilities.APIVersions.Has "autoscaling.k8s.io/v1" }}
+{{ if .Values.verticalPodAutoscaler.enabled }}
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
@@ -18,4 +19,5 @@ spec:
     name:  {{ include "resource.default.name" . }}
   updatePolicy:
     updateMode: Auto
+{{ end }}
 {{ end }}
