@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2022-03-30
+
 ### Changed
 
 - Update `apiextensions` to `v6.0.0`.
@@ -320,7 +322,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.7.0...v4.0.0
 [3.7.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.3...v3.7.0
 [3.6.3]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.2...v3.6.3
 [3.6.2]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.1...v3.6.2
