@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
-	"github.com/giantswarm/apiextensions/v3/pkg/label"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
+	"github.com/giantswarm/apiextensions/v6/pkg/label"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/micrologger/microloggertest"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"

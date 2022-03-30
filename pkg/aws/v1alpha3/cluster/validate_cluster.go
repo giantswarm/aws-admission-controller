@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
+	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -168,7 +168,7 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 	if t.Location().String() != "UTC" {
 		return false
 	}
-	//time already passed or is less than 16 minutes in the future
+	// time already passed or is less than 16 minutes in the future
 	if t.Before(time.Now().UTC().Add(16 * time.Minute)) {
 		return false
 	}
@@ -213,7 +213,7 @@ func (v *Validator) UpgradeScheduleReleaseIsValid(targetRelease string, currentR
 	if err != nil {
 		return microerror.Mask(err)
 	}
-	//check if target is higher than the current release
+	// check if target is higher than the current release
 	if t.LE(*c) {
 		return microerror.Maskf(notAllowedError, "Upgrade target release version has to be above current release version.")
 	}

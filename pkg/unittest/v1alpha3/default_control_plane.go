@@ -3,7 +3,7 @@ package unittest
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )

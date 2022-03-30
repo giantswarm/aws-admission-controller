@@ -3,8 +3,8 @@ package unittest
 import (
 	"encoding/json"
 
-	"github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	"github.com/giantswarm/apiextensions/v3/pkg/id"
+	"github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
+	"github.com/giantswarm/apiextensions/v6/pkg/id"
 	"github.com/giantswarm/microerror"
 	admissionv1 "k8s.io/api/admission/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
