@@ -14,7 +14,8 @@ import (
 	"k8s.io/client-go/rest"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake" //nolint:staticcheck // v0.6.4 has a deprecation on pkg/client/fake that was removed in later versions
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	//nolint:staticcheck // v0.6.4 has a deprecation on pkg/client/fake that was removed in later versions
 )
 
 type fakeK8sClient struct {
@@ -48,7 +49,7 @@ func FakeK8sClient() k8sclient.Interface {
 		client := fakek8s.NewSimpleClientset()
 
 		k8sClient = &fakeK8sClient{
-			ctrlClient: fake.NewFakeClientWithScheme(scheme),
+			ctrlClient: fake.NewClientBuilder().WithScheme(scheme).Build(),
 			k8sClient:  client,
 		}
 	}
