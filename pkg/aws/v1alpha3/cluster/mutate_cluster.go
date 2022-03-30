@@ -10,7 +10,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -69,7 +69,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	var err error
 
 	// Parse incoming object
-	cluster := &capiv1alpha3.Cluster{}
+	cluster := &capi.Cluster{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
@@ -117,8 +117,8 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	var err error
 
 	// Parse incoming object
-	cluster := &capiv1alpha3.Cluster{}
-	oldCluster := &capiv1alpha3.Cluster{}
+	cluster := &capi.Cluster{}
+	oldCluster := &capi.Cluster{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
@@ -157,7 +157,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	return result, nil
 }
 
-func (m *Mutator) MutateOperatorVersion(cluster capiv1alpha3.Cluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateOperatorVersion(cluster capi.Cluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var patch []mutator.PatchOperation
 	var err error
@@ -181,7 +181,7 @@ func (m *Mutator) MutateOperatorVersion(cluster capiv1alpha3.Cluster, releaseVer
 	return result, nil
 }
 
-func (m *Mutator) MutateReleaseVersion(cluster capiv1alpha3.Cluster) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateReleaseVersion(cluster capi.Cluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var err error
 
@@ -204,7 +204,7 @@ func (m *Mutator) MutateReleaseVersion(cluster capiv1alpha3.Cluster) ([]mutator.
 	return result, nil
 }
 
-func (m *Mutator) MutateReleaseUpdate(cluster capiv1alpha3.Cluster, oldCluster capiv1alpha3.Cluster) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateReleaseUpdate(cluster capi.Cluster, oldCluster capi.Cluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var patch []mutator.PatchOperation
 	var err error
@@ -240,7 +240,7 @@ func (m *Mutator) Resource() string {
 	return "cluster"
 }
 
-func (m *Mutator) MutateInfraRef(cluster capiv1alpha3.Cluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateInfraRef(cluster capi.Cluster, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if cluster.Spec.InfrastructureRef.Name != "" && cluster.Spec.InfrastructureRef.Namespace != "" {
 		return result, nil

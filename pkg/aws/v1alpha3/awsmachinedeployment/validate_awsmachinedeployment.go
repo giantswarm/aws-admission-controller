@@ -13,7 +13,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -184,7 +184,7 @@ func (v *Validator) InstanceTypeValid(awsMachineDeployment infrastructurev1alpha
 }
 
 func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastructurev1alpha3.AWSMachineDeployment) error {
-	var machineDeployment v1alpha3.MachineDeployment
+	var machineDeployment capi.MachineDeployment
 	var err error
 	var fetch func() error
 

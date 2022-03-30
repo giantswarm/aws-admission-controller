@@ -13,7 +13,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -63,7 +63,7 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	var err error
 
 	// Parse incoming object
-	cluster := &capiv1alpha3.Cluster{}
+	cluster := &capi.Cluster{}
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse cluster: %v", err)
 	}
@@ -89,8 +89,8 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	var err error
 
 	// Parse incoming object
-	cluster := &capiv1alpha3.Cluster{}
-	oldCluster := &capiv1alpha3.Cluster{}
+	cluster := &capi.Cluster{}
+	oldCluster := &capi.Cluster{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
@@ -138,7 +138,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	return true, nil
 }
 
-func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capiv1alpha3.Cluster, oldCluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capi.Cluster, oldCluster *capi.Cluster) error {
 	if updateTime, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
 		if updateTimeOld, ok := oldCluster.GetAnnotations()[annotation.UpdateScheduleTargetTime]; ok {
 			if updateTime == updateTimeOld {
@@ -179,7 +179,7 @@ func UpgradeScheduleTimeIsValid(updateTime string) bool {
 	return true
 }
 
-func (v *Validator) ClusterAnnotationUpgradeReleaseIsValid(cluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterAnnotationUpgradeReleaseIsValid(cluster *capi.Cluster) error {
 	if targetRelease, ok := cluster.GetAnnotations()[annotation.UpdateScheduleTargetRelease]; ok {
 		v.logger.Log("level", "debug", "message", fmt.Sprintf("upgrade release is set to %s", targetRelease))
 		err := v.UpgradeScheduleReleaseIsValid(targetRelease, key.Release(cluster))
@@ -220,15 +220,15 @@ func (v *Validator) UpgradeScheduleReleaseIsValid(targetRelease string, currentR
 	return nil
 }
 
-func (v *Validator) ClusterLabelKeysValid(oldCluster *capiv1alpha3.Cluster, newCluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterLabelKeysValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
 	return aws.ValidateLabelKeys(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
 }
 
-func (v *Validator) ClusterLabelValuesValid(oldCluster *capiv1alpha3.Cluster, newCluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterLabelValuesValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
 	return aws.ValidateLabelValues(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
 }
 
-func (v *Validator) ClusterStatusValid(oldCluster *capiv1alpha3.Cluster, newCluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ClusterStatusValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
 	var err error
 
 	if key.Release(newCluster) == key.Release(oldCluster) {
@@ -248,7 +248,7 @@ func (v *Validator) ClusterStatusValid(oldCluster *capiv1alpha3.Cluster, newClus
 	return nil
 }
 
-func (v *Validator) ReleaseVersionValid(oldCluster *capiv1alpha3.Cluster, newCluster *capiv1alpha3.Cluster) error {
+func (v *Validator) ReleaseVersionValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
 	var err error
 
 	if key.Release(newCluster) == key.Release(oldCluster) {

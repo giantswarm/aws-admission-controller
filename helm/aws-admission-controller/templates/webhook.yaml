@@ -65,7 +65,7 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-  - name: clusters.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
+  - name: clusters.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
@@ -73,14 +73,14 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /mutate/v1alpha3/cluster
+        path: /mutate/v1beta1/cluster
       caBundle: Cg==
     rules:
       - apiGroups: ["cluster.x-k8s.io"]
         resources:
           - clusters
         apiVersions:
-          - v1alpha3
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -103,7 +103,7 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-  - name: machinedeployments.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
+  - name: machinedeployments.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
@@ -111,14 +111,14 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /mutate/v1alpha3/machinedeployment
+        path: /mutate/v1beta1/machinedeployment
       caBundle: Cg==
     rules:
       - apiGroups: ["cluster.x-k8s.io"]
         resources:
           - machinedeployments
         apiVersions:
-          - v1alpha3
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -190,7 +190,7 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-  - name: clusters.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
+  - name: clusters.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
@@ -198,14 +198,14 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /validate/v1alpha3/cluster
+        path: /validate/v1beta1/cluster
       caBundle: Cg==
     rules:
       - apiGroups: ["cluster.x-k8s.io"]
         resources:
           - clusters
         apiVersions:
-          - v1alpha3
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -228,7 +228,7 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-  - name: machinedeployments.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
+  - name: machinedeployments.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
     sideEffects: None
@@ -236,14 +236,14 @@ webhooks:
       service:
         name: {{ include "resource.default.name" . }}
         namespace: {{ include "resource.default.namespace" . }}
-        path: /validate/v1alpha3/machinedeployment
+        path: /validate/v1beta1/machinedeployment
       caBundle: Cg==
     rules:
       - apiGroups: ["cluster.x-k8s.io"]
         resources:
           - machinedeployments
         apiVersions:
-          - v1alpha3
+          - v1beta1
         operations:
           - CREATE
           - UPDATE

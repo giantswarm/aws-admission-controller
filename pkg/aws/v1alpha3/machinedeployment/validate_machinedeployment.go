@@ -8,7 +8,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -46,7 +46,7 @@ func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error
 func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool, error) {
 	var err error
 
-	var machineDeployment capiv1alpha3.MachineDeployment
+	var machineDeployment capi.MachineDeployment
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, &machineDeployment); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse machinedeployment: %v", err)
 	}
@@ -76,7 +76,7 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	return true, nil
 }
 
-func (v *Validator) ValidateCluster(machineDeployment capiv1alpha3.MachineDeployment) error {
+func (v *Validator) ValidateCluster(machineDeployment capi.MachineDeployment) error {
 	var err error
 
 	// Retrieve the `Cluster` CR related to this object.

@@ -9,7 +9,7 @@ import (
 	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	"gopkg.in/alecthomas/kingpin.v2"
 	restclient "k8s.io/client-go/rest"
-	apiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 )
 
 const (
@@ -60,7 +60,7 @@ func Parse() (Config, error) {
 		}
 		c := k8sclient.ClientsConfig{
 			SchemeBuilder: k8sclient.SchemeBuilder{
-				apiv1alpha3.AddToScheme,
+				capi.AddToScheme,
 				infrastructurev1alpha3.AddToScheme,
 				releasev1alpha1.AddToScheme,
 				securityv1alpha1.AddToScheme,

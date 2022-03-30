@@ -10,7 +10,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -69,7 +69,7 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	var err error
 
 	// Parse incoming object
-	machineDeployment := &capiv1alpha3.MachineDeployment{}
+	machineDeployment := &capi.MachineDeployment{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, machineDeployment); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse MachineDeployment: %v", err)
 	}
@@ -117,8 +117,8 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	var err error
 
 	// Parse incoming object
-	machineDeployment := &capiv1alpha3.MachineDeployment{}
-	oldMachineDeployment := &capiv1alpha3.MachineDeployment{}
+	machineDeployment := &capi.MachineDeployment{}
+	oldMachineDeployment := &capi.MachineDeployment{}
 	if _, _, err := mutator.Deserializer.Decode(request.Object.Raw, nil, machineDeployment); err != nil {
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse Cluster: %v", err)
 	}
@@ -150,7 +150,7 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	return result, nil
 }
 
-func (m *Mutator) MutateReleaseVersion(machineDeployment capiv1alpha3.MachineDeployment) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateReleaseVersion(machineDeployment capi.MachineDeployment) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	var patch []mutator.PatchOperation
 	var err error
@@ -181,7 +181,7 @@ func (m *Mutator) MutateReleaseVersion(machineDeployment capiv1alpha3.MachineDep
 	return result, nil
 }
 
-func (m *Mutator) MutateInfraRef(machineDeployment capiv1alpha3.MachineDeployment, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
+func (m *Mutator) MutateInfraRef(machineDeployment capi.MachineDeployment, releaseVersion *semver.Version) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if machineDeployment.Spec.Template.Spec.InfrastructureRef.Name != "" && machineDeployment.Spec.Template.Spec.InfrastructureRef.Namespace != "" {
 		return result, nil
@@ -207,7 +207,7 @@ func (m *Mutator) MutateInfraRef(machineDeployment capiv1alpha3.MachineDeploymen
 	return nil, nil
 }
 
-func (m *Mutator) MutateClusterName(machineDeployment capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
+func (m *Mutator) MutateClusterName(machineDeployment capi.MachineDeployment) []mutator.PatchOperation {
 	var result []mutator.PatchOperation
 	if machineDeployment.Spec.ClusterName != "" {
 		return result
@@ -219,7 +219,7 @@ func (m *Mutator) MutateClusterName(machineDeployment capiv1alpha3.MachineDeploy
 	return result
 }
 
-func (m *Mutator) MutateTemplateClusterName(machineDeployment capiv1alpha3.MachineDeployment) []mutator.PatchOperation {
+func (m *Mutator) MutateTemplateClusterName(machineDeployment capi.MachineDeployment) []mutator.PatchOperation {
 	var result []mutator.PatchOperation
 	if machineDeployment.Spec.Template.Spec.ClusterName != "" {
 		return result

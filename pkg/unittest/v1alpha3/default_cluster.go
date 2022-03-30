@@ -6,7 +6,7 @@ import (
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
@@ -102,8 +102,8 @@ func DefaultAWSCluster() *infrastructurev1alpha3.AWSCluster {
 	return cr
 }
 
-func DefaultCluster() *capiv1alpha3.Cluster {
-	cluster := &capiv1alpha3.Cluster{
+func DefaultCluster() *capi.Cluster {
+	cluster := &capi.Cluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Cluster",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
@@ -113,7 +113,7 @@ func DefaultCluster() *capiv1alpha3.Cluster {
 			Namespace: metav1.NamespaceDefault,
 			Labels:    DefaultLabels(),
 		},
-		Spec: capiv1alpha3.ClusterSpec{
+		Spec: capi.ClusterSpec{
 			InfrastructureRef: &v1.ObjectReference{
 				Kind:       "AWSCluster",
 				Name:       DefaultMachineDeploymentID,
@@ -125,8 +125,8 @@ func DefaultCluster() *capiv1alpha3.Cluster {
 	return cluster
 }
 
-func DefaultClusterEmptyOrganization() *capiv1alpha3.Cluster {
-	cluster := &capiv1alpha3.Cluster{
+func DefaultClusterEmptyOrganization() *capi.Cluster {
+	cluster := &capi.Cluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Cluster",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
@@ -146,8 +146,8 @@ func DefaultClusterEmptyOrganization() *capiv1alpha3.Cluster {
 	return cluster
 }
 
-func DefaultClusterUnknownOrganization() *capiv1alpha3.Cluster {
-	cluster := &capiv1alpha3.Cluster{
+func DefaultClusterUnknownOrganization() *capi.Cluster {
+	cluster := &capi.Cluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Cluster",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
@@ -166,8 +166,8 @@ func DefaultClusterUnknownOrganization() *capiv1alpha3.Cluster {
 
 	return cluster
 }
-func DefaultClusterWithoutOrganizationLabel() *capiv1alpha3.Cluster {
-	cluster := &capiv1alpha3.Cluster{
+func DefaultClusterWithoutOrganizationLabel() *capi.Cluster {
+	cluster := &capi.Cluster{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Cluster",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
