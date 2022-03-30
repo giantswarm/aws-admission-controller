@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
@@ -105,8 +105,8 @@ func FetchAWSControlPlane(m *Handler, meta metav1.Object) (*infrastructurev1alph
 	return &awsControlPlane, nil
 }
 
-func FetchCluster(m *Handler, meta metav1.Object) (*capiv1alpha3.Cluster, error) {
-	var cluster capiv1alpha3.Cluster
+func FetchCluster(m *Handler, meta metav1.Object) (*capi.Cluster, error) {
+	var cluster capi.Cluster
 	var err error
 	var fetch func() error
 

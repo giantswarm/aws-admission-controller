@@ -1,11 +1,11 @@
 package unittest
 
 import (
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/to"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 )
@@ -14,8 +14,8 @@ const (
 	DefaultMachineDeploymentID = "al9qy"
 )
 
-func DefaultMachineDeployment() *apiv1alpha3.MachineDeployment {
-	cr := &apiv1alpha3.MachineDeployment{
+func DefaultMachineDeployment() *capi.MachineDeployment {
+	cr := &capi.MachineDeployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "MachineDeployment",
 			APIVersion: "cluster.x-k8s.io/v1alpha3",
@@ -30,9 +30,9 @@ func DefaultMachineDeployment() *apiv1alpha3.MachineDeployment {
 				label.Release:                "100.0.0",
 			},
 		},
-		Spec: apiv1alpha3.MachineDeploymentSpec{
-			Template: apiv1alpha3.MachineTemplateSpec{
-				Spec: apiv1alpha3.MachineSpec{
+		Spec: capi.MachineDeploymentSpec{
+			Template: capi.MachineTemplateSpec{
+				Spec: capi.MachineSpec{
 					InfrastructureRef: v1.ObjectReference{
 						Kind:       "AWSMachineDeployment",
 						Name:       DefaultMachineDeploymentID,
@@ -41,7 +41,7 @@ func DefaultMachineDeployment() *apiv1alpha3.MachineDeployment {
 				},
 			},
 		},
-		Status: apiv1alpha3.MachineDeploymentStatus{
+		Status: capi.MachineDeploymentStatus{
 			ObservedGeneration:  0,
 			Selector:            "",
 			Replicas:            1,

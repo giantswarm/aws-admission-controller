@@ -3,11 +3,11 @@ package v1alpha3
 import (
 	"fmt"
 
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/microerror"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	capiv1alpha3 "sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
@@ -51,7 +51,7 @@ func MutateLabelFromAWSCluster(m *Handler, meta metav1.Object, awsCluster infras
 	return result, nil
 }
 
-func MutateLabelFromCluster(m *Handler, meta metav1.Object, cluster capiv1alpha3.Cluster, label string) ([]mutator.PatchOperation, error) {
+func MutateLabelFromCluster(m *Handler, meta metav1.Object, cluster capi.Cluster, label string) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 
 	if meta.GetLabels()[label] != "" {
@@ -97,12 +97,12 @@ func MutateLabelFromRelease(m *Handler, meta metav1.Object, release releasev1alp
 func MutateCAPILabel(m *Handler, meta metav1.Object) []mutator.PatchOperation {
 	var result []mutator.PatchOperation
 
-	if meta.GetLabels()[capiv1alpha3.ClusterLabelName] == "" {
+	if meta.GetLabels()[capi.ClusterLabelName] == "" {
 		// mutate the cluster label name
 		m.Logger.Log("level", "debug", "message", fmt.Sprintf("Label %s is not set and will be defaulted to %s.",
-			capiv1alpha3.ClusterLabelName, key.Cluster(meta)))
+			capi.ClusterLabelName, key.Cluster(meta)))
 
-		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(capiv1alpha3.ClusterLabelName)), key.Cluster(meta))
+		patch := mutator.PatchAdd(fmt.Sprintf("/metadata/labels/%s", EscapeJSONPatchString(capi.ClusterLabelName)), key.Cluster(meta))
 		result = append(result, patch)
 	}
 

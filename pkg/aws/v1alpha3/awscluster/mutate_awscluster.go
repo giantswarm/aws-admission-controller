@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
+	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -448,7 +448,7 @@ func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha3.AWSCluster) ([]
 	return result, nil
 }
 
-//MutateAnnotationNodeTerminateUnhealthy migrate NodeTerminateUnhealthy annotations from alpha to stable in case it is configured.
+// MutateAnnotationNodeTerminateUnhealthy migrate NodeTerminateUnhealthy annotations from alpha to stable in case it is configured.
 // TODO https://github.com/giantswarm/giantswarm/issues/17395
 // this migration code can be removed once all AWS clusters are on release 15.0.0 or newer
 func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
@@ -462,7 +462,7 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 	// new annotation is available from release >= 15.x.x
 	release15 := semver.MustParse("14.99.99")
 	if release.GE(release15) {
-		//load the old alpha annotation
+		// load the old alpha annotation
 		if terminateUnhealthy, ok := awsCluster.GetAnnotations()[aws.AnnotationAlphaNodeTerminateUnhealthy]; ok {
 			// clean the old annotation
 			delete(awsCluster.Annotations, aws.AnnotationAlphaNodeTerminateUnhealthy)

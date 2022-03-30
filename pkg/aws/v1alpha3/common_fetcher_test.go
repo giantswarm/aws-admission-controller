@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	releasev1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/release/v1alpha1"
 	"github.com/giantswarm/micrologger/microloggertest"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 )

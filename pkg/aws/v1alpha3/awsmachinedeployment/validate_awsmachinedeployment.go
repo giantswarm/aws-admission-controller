@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v3/pkg/apis/infrastructure/v1alpha3"
+	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/backoff"
-	"github.com/giantswarm/k8sclient/v5/pkg/k8sclient"
+	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/cluster-api/api/v1alpha3"
+	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"github.com/giantswarm/aws-admission-controller/v3/config"
 	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
@@ -184,7 +184,7 @@ func (v *Validator) InstanceTypeValid(awsMachineDeployment infrastructurev1alpha
 }
 
 func (v *Validator) MachineDeploymentLabelMatch(awsMachineDeployment infrastructurev1alpha3.AWSMachineDeployment) error {
-	var machineDeployment v1alpha3.MachineDeployment
+	var machineDeployment capi.MachineDeployment
 	var err error
 	var fetch func() error
 

@@ -11,7 +11,7 @@ import (
 	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
 	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
 
-	securityv1alpha1 "github.com/giantswarm/apiextensions/v3/pkg/apis/security/v1alpha1"
+	securityv1alpha1 "github.com/giantswarm/apiextensions/v6/pkg/apis/security/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
