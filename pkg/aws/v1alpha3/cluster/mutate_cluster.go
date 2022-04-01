@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/blang/semver/v4"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
@@ -106,7 +105,6 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	if err != nil {
 		return nil, microerror.Mask(err)
 	}
-	spew.Dump(patch)
 	result = append(result, patch...)
 
 	return result, nil
