@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.2] - 2022-04-04
+
 ### Fixed
 
 - Bump go module version to v4.
@@ -332,7 +334,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.2...HEAD
+[4.0.2]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.7.0...v4.0.0
 [3.7.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.6.3...v3.7.0
