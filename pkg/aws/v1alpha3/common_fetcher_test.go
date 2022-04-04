@@ -8,7 +8,7 @@ import (
 	"github.com/giantswarm/micrologger/microloggertest"
 	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 
-	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
+	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
 )
 
 func TestNewestReleaseVersion(t *testing.T) {

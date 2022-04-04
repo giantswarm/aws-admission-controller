@@ -10,11 +10,11 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v3/config"
-	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v4/config"
+	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/mutator"
 )
 
 type Mutator struct {

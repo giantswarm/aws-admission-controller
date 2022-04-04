@@ -15,11 +15,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
-	"github.com/giantswarm/aws-admission-controller/v3/config"
-	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/validator"
+	"github.com/giantswarm/aws-admission-controller/v4/config"
+	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/validator"
 )
 
 type Validator struct {

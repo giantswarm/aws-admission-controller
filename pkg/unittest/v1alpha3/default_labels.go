@@ -1,7 +1,7 @@
 package unittest
 
 import (
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
 )
 
 func DefaultLabels() map[string]string {

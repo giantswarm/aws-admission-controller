@@ -9,8 +9,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/key"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/key"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/mutator"
 )
 
 func MutateLabel(m *Handler, meta metav1.Object, label string, defaultValue string) ([]mutator.PatchOperation, error) {

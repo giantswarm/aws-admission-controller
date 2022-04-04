@@ -3,8 +3,8 @@ package key
 import (
 	"fmt"
 
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/internal/normalize"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/internal/normalize"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
 )
 
 const (
