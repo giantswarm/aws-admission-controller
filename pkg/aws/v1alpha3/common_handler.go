@@ -14,8 +14,8 @@ import (
 	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/mutator"
 )
 
 type Handler struct {

@@ -8,9 +8,9 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 
-	aws "github.com/giantswarm/aws-admission-controller/v3/pkg/aws/v1alpha3"
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/mutator"
-	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
+	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/mutator"
+	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
 )
 
 func TestInstanceTypeAWSControlPlaneAdmit(t *testing.T) {

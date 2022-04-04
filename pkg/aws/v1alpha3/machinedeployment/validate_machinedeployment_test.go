@@ -9,7 +9,7 @@ import (
 	"github.com/giantswarm/micrologger/microloggertest"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
+	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
 )
 
 func TestValidateCluster(t *testing.T) {

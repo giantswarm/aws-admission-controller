@@ -5,7 +5,7 @@ import (
 
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 
-	"github.com/giantswarm/aws-admission-controller/v3/pkg/label"
+	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
 )
 
 const (

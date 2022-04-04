@@ -14,7 +14,7 @@ import (
 	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	unittest "github.com/giantswarm/aws-admission-controller/v3/pkg/unittest/v1alpha3"
+	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
 )
 
 func Test_UpgradeReleaseIsValid(t *testing.T) {
