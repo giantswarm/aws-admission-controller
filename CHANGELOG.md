@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.3] - 2022-06-15
+
 ### Added
 
 - Skip validation for `service-priority` label.
@@ -338,7 +340,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.2...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.3...HEAD
+[4.0.3]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.2...v4.0.3
 [4.0.2]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/giantswarm/aws-admission-controller/compare/v3.7.0...v4.0.0
