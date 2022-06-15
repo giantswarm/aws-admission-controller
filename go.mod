@@ -15,7 +15,7 @@ require (
 	github.com/giantswarm/release-operator/v3 v3.2.0
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.4.0
-	github.com/google/go-cmp v0.5.7
+	github.com/google/go-cmp v0.5.8
 	github.com/prometheus/client_golang v1.12.1
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.24.0
@@ -39,8 +39,10 @@ replace (
 	github.com/go-ldap/ldap/v3 => github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.0 => github.com/gorilla/websocket v1.4.2
+	github.com/kataras/iris/v12 => github.com/kataras/iris/v12 v12.2.0-beta3
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.7.2
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.18
+	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.7.2
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/sftp => github.com/pkg/sftp v1.13.5
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.37.0
