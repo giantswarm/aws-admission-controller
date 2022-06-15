@@ -15,13 +15,26 @@ require (
 	github.com/giantswarm/release-operator/v3 v3.2.0
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.4.0
+	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/google/go-cmp v0.5.7
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/onsi/gomega v1.17.0 // indirect
 	github.com/prometheus/client_golang v1.12.0
+	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/stretchr/testify v1.7.1 // indirect
+	go.uber.org/goleak v1.1.12 // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	k8s.io/api v0.22.2
+	gopkg.in/yaml.v3 v3.0.0 // indirect
+	k8s.io/api v0.22.5
 	k8s.io/apiextensions-apiserver v0.22.2
-	k8s.io/apimachinery v0.22.2
-	k8s.io/client-go v0.22.2
+	k8s.io/apimachinery v0.22.5
+	k8s.io/client-go v0.22.5
+	k8s.io/component-base v0.22.5 // indirect
+	k8s.io/klog/v2 v2.30.0 // indirect
 	sigs.k8s.io/cluster-api v1.0.4
 	sigs.k8s.io/controller-runtime v0.10.3
 )
