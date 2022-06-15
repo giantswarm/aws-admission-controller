@@ -4,3 +4,6 @@ CVE-2022-24687 until=2022-08-01
 
 # vault - updating breaks dependencies
 sonatype-2021-3619 until=2022-08-21
+
+# Negroni - no fix yet
+sonatype-2021-1485 until=2022-08-01

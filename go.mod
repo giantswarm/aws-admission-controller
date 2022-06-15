@@ -35,6 +35,7 @@ replace (
 	// v3.3.10 is required by spf13/viper. Can remove this replace when updated.
 	github.com/coreos/etcd v3.3.13+incompatible => github.com/coreos/etcd v3.3.25+incompatible
 	github.com/dgrijalva/jwt-go => github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
+	github.com/getsentry/sentry-go => github.com/getsentry/sentry-go v0.13.0
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.1
 	github.com/go-ldap/ldap/v3 => github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
