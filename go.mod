@@ -43,6 +43,7 @@ replace (
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.7.2
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.4
+	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.16.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/sftp => github.com/pkg/sftp v1.13.5
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.37.0
