@@ -86,6 +86,11 @@ func IsProviderTagLabel(label string) bool {
 	return strings.Contains(label, ProviderTagLabelPart)
 }
 
+// IsServicePriorityLabel returns whether a label is the service priority label
+func IsServicePriorityLabel(l string) bool {
+	return l == label.ServicePriority
+}
+
 // IsHAVersion returns whether a given releaseVersion supports HA Masters
 func IsHAVersion(releaseVersion *semver.Version) bool {
 	HAVersion, _ := semver.New(FirstHARelease)
