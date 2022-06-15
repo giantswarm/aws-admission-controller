@@ -12,5 +12,6 @@ func DefaultLabels() map[string]string {
 		label.Organization:           "example-organization",
 		"example-key":                "example-value",
 		DefaultProviderTagKey:        DefaultProviderTagValue,
+		label.ServicePriority:        "highest",
 	}
 }

@@ -10,4 +10,5 @@ const (
 	AWSOperatorVersion     = "aws-operator.giantswarm.io/version"
 	Organization           = "giantswarm.io/organization"
 	Release                = "release.giantswarm.io/version"
+	ServicePriority        = "giantswarm.io/service-priority"
 )

@@ -24,7 +24,7 @@ func ValidateLabelKeys(m *Handler, old metav1.Object, new metav1.Object) error {
 	oldLabels := old.GetLabels()
 	newLabels := new.GetLabels()
 	for key := range oldLabels {
-		if !IsGiantSwarmLabel(key) || IsProviderTagLabel(key) {
+		if !IsGiantSwarmLabel(key) || IsProviderTagLabel(key) || IsServicePriorityLabel(key) {
 			continue
 		}
 		if _, ok := newLabels[key]; !ok {
@@ -42,7 +42,7 @@ func ValidateLabelValues(m *Handler, old metav1.Object, new metav1.Object) error
 	oldLabels := old.GetLabels()
 	newLabels := new.GetLabels()
 	for key, value := range oldLabels {
-		if IsVersionLabel(key) || IsProviderTagLabel(key) || !IsGiantSwarmLabel(key) {
+		if IsVersionLabel(key) || IsProviderTagLabel(key) || !IsGiantSwarmLabel(key) || IsServicePriorityLabel(key) {
 			continue
 		}
 		if value != newLabels[key] {
