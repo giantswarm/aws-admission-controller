@@ -88,6 +88,10 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
+	err = v.AZUnique(awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
 	err = v.InstanceTypeValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -140,6 +144,10 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsControlPlane)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+	err = v.AZUnique(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -222,6 +230,26 @@ func (v *Validator) AZOrder(awsControlPlane infrastructurev1alpha3.AWSControlPla
 		)
 	}
 	return nil
+}
+func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
+	// We always want to select as many distinct AZs as possible
+	if ignoreAZUnique(awsControlPlane.Spec.AvailabilityZones) {
+		return nil
+	}
+	distinctAZs := countUniqueValues(awsControlPlane.Spec.AvailabilityZones)
+	if distinctAZs == len(v.validAvailabilityZones) || distinctAZs == len(awsControlPlane.Spec.AvailabilityZones) {
+		return nil
+	}
+	v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
+		key.ControlPlane(&awsControlPlane),
+		awsControlPlane.Spec.AvailabilityZones,
+		v.validAvailabilityZones),
+	)
+	return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
+		key.ControlPlane(&awsControlPlane),
+		awsControlPlane.Spec.AvailabilityZones,
+		v.validAvailabilityZones),
+	)
 }
 
 func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
@@ -316,6 +344,25 @@ func (v *Validator) AnnotationValid(awsControlPlane infrastructurev1alpha3.AWSCo
 	return nil
 }
 
+func ignoreAZUnique(azs []string) bool {
+	ignoredRegions := [2]string{"cn-north", "cn-northwest"}
+	for _, az := range azs {
+		for _, region := range ignoredRegions {
+			if strings.Contains(az, region) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func countUniqueValues(s []string) int {
+	counter := make(map[string]int)
+	for _, a := range s {
+		counter[a]++
+	}
+	return len(counter)
+}
 func orderChanged(old []string, new []string) bool {
 	if len(old) <= len(new) {
 		for i, o := range old {
