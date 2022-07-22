@@ -316,13 +316,6 @@ func (v *Validator) AnnotationValid(awsControlPlane infrastructurev1alpha3.AWSCo
 	return nil
 }
 
-func countUniqueValues(s []string) int {
-	counter := make(map[string]int)
-	for _, a := range s {
-		counter[a]++
-	}
-	return len(counter)
-}
 func orderChanged(old []string, new []string) bool {
 	if len(old) <= len(new) {
 		for i, o := range old {
