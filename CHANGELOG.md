@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.3] - 2022-06-15
 
+### Changed
+
+- Ignore repeated AZs in China even if there are 3 available.
+
 ### Added
 
 - Skip validation for `service-priority` label.

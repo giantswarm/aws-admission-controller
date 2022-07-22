@@ -233,6 +233,9 @@ func (v *Validator) AZOrder(awsControlPlane infrastructurev1alpha3.AWSControlPla
 }
 func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
 	// We always want to select as many distinct AZs as possible
+	if ignoreAZUnique(awsControlPlane.Spec.AvailabilityZones) {
+		return nil
+	}
 	distinctAZs := countUniqueValues(awsControlPlane.Spec.AvailabilityZones)
 	if distinctAZs == len(v.validAvailabilityZones) || distinctAZs == len(awsControlPlane.Spec.AvailabilityZones) {
 		return nil
@@ -339,6 +342,18 @@ func (v *Validator) AnnotationValid(awsControlPlane infrastructurev1alpha3.AWSCo
 	}
 
 	return nil
+}
+
+func ignoreAZUnique(azs []string) bool {
+	ignoredRegions := [2]string{"cn-north", "cn-northwest"}
+	for _, az := range azs {
+		for _, region := range ignoredRegions {
+			if strings.Contains(az, region) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func countUniqueValues(s []string) int {

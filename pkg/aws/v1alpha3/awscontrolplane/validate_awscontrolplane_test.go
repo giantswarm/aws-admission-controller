@@ -263,6 +263,14 @@ func TestAZUnique(t *testing.T) {
 			chosenAZs: []string{"eu-central-1a", "eu-central-1b", "eu-central-1b"},
 			validAZs:  []string{"eu-central-1a", "eu-central-1b", "eu-central-1c"},
 		},
+		{
+			ctx:  context.Background(),
+			name: "case 5",
+
+			allowed:   true,
+			chosenAZs: []string{"cn-north-1a", "cn-north-1b", "cn-north-1b"},
+			validAZs:  []string{"cn-north-1a", "cn-north-1b", "cn-north-1d"},
+		},
 	}
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
