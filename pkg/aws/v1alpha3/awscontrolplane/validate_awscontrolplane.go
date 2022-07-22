@@ -88,10 +88,6 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
-	err = v.AZUnique(awsControlPlane)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
 	err = v.InstanceTypeValid(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -144,10 +140,6 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsControlPlane)
-	if err != nil {
-		return false, microerror.Mask(err)
-	}
-	err = v.AZUnique(awsControlPlane)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -230,23 +222,6 @@ func (v *Validator) AZOrder(awsControlPlane infrastructurev1alpha3.AWSControlPla
 		)
 	}
 	return nil
-}
-func (v *Validator) AZUnique(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
-	// We always want to select as many distinct AZs as possible
-	distinctAZs := countUniqueValues(awsControlPlane.Spec.AvailabilityZones)
-	if distinctAZs == len(v.validAvailabilityZones) || distinctAZs == len(awsControlPlane.Spec.AvailabilityZones) {
-		return nil
-	}
-	v.logger.Log("level", "debug", "message", fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
-		key.ControlPlane(&awsControlPlane),
-		awsControlPlane.Spec.AvailabilityZones,
-		v.validAvailabilityZones),
-	)
-	return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSControlPlane %s availability zones %v do not contain maximum amount of distinct AZs. Valid AZs are: %v",
-		key.ControlPlane(&awsControlPlane),
-		awsControlPlane.Spec.AvailabilityZones,
-		v.validAvailabilityZones),
-	)
 }
 
 func (v *Validator) AZValid(awsControlPlane infrastructurev1alpha3.AWSControlPlane) error {
