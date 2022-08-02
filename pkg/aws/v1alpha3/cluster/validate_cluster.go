@@ -106,6 +106,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
+	err = v.Cilium(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -136,6 +141,31 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) Cilium(cluster *capi.Cluster) error {
+	release, err := semver.New(key.Release(cluster))
+	if err != nil {
+		return err
+	}
+
+	if !aws.IsCiliumRelease(release) {
+		return nil
+	}
+
+	// Retrieve the `AWSCluster` CR.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, cluster)
+	if err != nil {
+		return err
+	}
+	_, ok := awsCluster.Annotations["cilium.giantswarm.io/pod-cidr"]
+	if !ok {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprint("The annotation `cilium.giantswarm.io/pod-cidr` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher."),
+		)
+	}
+
+	return nil
 }
 
 func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capi.Cluster, oldCluster *capi.Cluster) error {
