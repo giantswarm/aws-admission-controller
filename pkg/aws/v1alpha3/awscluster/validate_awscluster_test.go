@@ -106,7 +106,7 @@ func TestCilium(t *testing.T) {
 
 			// set CNI prefix annotation
 			awsCluster.SetAnnotations(map[string]string{
-				"cilium.giantswarm.io/pod-cidr": tc.cidr,
+				annotation.CiliumPodCidr: tc.cidr,
 			})
 
 			err = validate.Cilium(*awsCluster)

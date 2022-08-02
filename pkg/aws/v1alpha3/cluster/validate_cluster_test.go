@@ -536,7 +536,7 @@ func Test_CiliumReleaseIsValid(t *testing.T) {
 		{
 			name:       "case 1: upgrade to cilium with pod cidr annotation",
 			release:    "18.0.0",
-			annotation: map[string]string{"cilium.giantswarm.io/pod-cidr": "10.0.0.0/8"},
+			annotation: map[string]string{annotation.CiliumPodCidr: "10.0.0.0/8"},
 
 			valid: true,
 		},

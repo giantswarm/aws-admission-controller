@@ -158,10 +158,10 @@ func (v *Validator) Cilium(cluster *capi.Cluster) error {
 	if err != nil {
 		return err
 	}
-	_, ok := awsCluster.Annotations["cilium.giantswarm.io/pod-cidr"]
+	_, ok := awsCluster.Annotations[annotation.CiliumPodCidr]
 	if !ok {
 		return microerror.Maskf(notAllowedError,
-			"The annotation `cilium.giantswarm.io/pod-cidr` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.",
+			fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
 		)
 	}
 
