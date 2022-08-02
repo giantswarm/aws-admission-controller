@@ -154,7 +154,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 }
 
 func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
-	podCidr, ok := awsCluster.Annotations["cilium.giantswarm.io/pod-cidr"]
+	podCidr, ok := awsCluster.GetAnnotations()[annotation.CiliumPodCidr]
 	if !ok {
 		return nil
 	}
@@ -166,7 +166,7 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 	prefix, _ := ipNet.Mask.Size()
 	if prefix > 18 {
 		return microerror.Maskf(notAllowedError,
-			fmt.Sprint("The CIDR from annotation `cilium.giantswarm.io/pod-cidr` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`"),
+			fmt.Sprintf("The CIDR from annotation `%s` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`", annotation.CiliumPodCidr),
 		)
 	}
 
