@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
@@ -164,11 +163,8 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 	if err != nil {
 		return err
 	}
-	mask, err := strconv.Atoi(ipNet.Mask.String())
-	if err != nil {
-		return err
-	}
-	if mask > 18 {
+	prefix, _ := ipNet.Mask.Size()
+	if prefix > 18 {
 		return microerror.Maskf(notAllowedError,
 			fmt.Sprint("The CIDR from annotation `cilium.giantswarm.io/pod-cidr` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`"),
 		)
