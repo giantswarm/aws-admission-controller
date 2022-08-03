@@ -33,7 +33,7 @@ const (
 	FirstV1Alpha3Release = "16.0.0"
 
 	// FirstCiliumRelease is the first Cilium CNI GS release
-	FirstCiliumRelease = "18.0.0"
+	FirstCiliumRelease = "18.0.0-alpha1"
 
 	// FirstOrgNamespaceRelease is the first GS release that creates Clusters in Org Namespaces by default
 	FirstOrgNamespaceRelease = "16.0.0"
