@@ -117,7 +117,6 @@ func TestCilium(t *testing.T) {
 				logger:    microloggertest.New(),
 
 				ipamCidrBlock: tc.ipamCidrBlock,
-				podCIDRBlock:  tc.podCidrBlock,
 			}
 
 			// run admission request to default AWSCluster Pod CIDR
@@ -127,6 +126,7 @@ func TestCilium(t *testing.T) {
 			awsCluster.SetAnnotations(map[string]string{
 				annotation.CiliumPodCidr: tc.ciliumCidr,
 			})
+			awsCluster.Spec.Provider.Pods.CIDRBlock = tc.podCidrBlock
 
 			err = validate.Cilium(*awsCluster)
 			if microerror.Cause(err) != tc.err {
