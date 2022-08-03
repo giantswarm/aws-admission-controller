@@ -65,3 +65,54 @@ func TestAWSCNIPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestCilium(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		cidr string
+		err  error
+	}{
+		{
+			// CNI CIDR is not allowed.
+			name: "case 0",
+			ctx:  context.Background(),
+
+			cidr: "10.0.0.0/25",
+			err:  notAllowedError,
+		},
+		{
+			// CNI CIDR is allowed.
+			name: "case 1",
+			ctx:  context.Background(),
+
+			cidr: "10.0.0.0/8",
+			err:  nil,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			validate := &Validator{
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+
+			// run admission request to default AWSCluster Pod CIDR
+			awsCluster := unittest.DefaultAWSCluster()
+
+			// set CNI prefix annotation
+			awsCluster.SetAnnotations(map[string]string{
+				annotation.CiliumPodCidr: tc.cidr,
+			})
+
+			err = validate.Cilium(*awsCluster)
+			if microerror.Cause(err) != tc.err {
+				t.Fatal(err)
+			}
+		})
+	}
+}

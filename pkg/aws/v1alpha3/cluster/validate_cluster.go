@@ -106,6 +106,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
+	err = v.Cilium(oldCluster, cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ClusterAnnotationUpgradeTimeIsValid(cluster, oldCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -136,6 +141,35 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) Cilium(oldCluster, cluster *capi.Cluster) error {
+	targetRelease, err := semver.New(key.Release(cluster))
+	if err != nil {
+		return err
+	}
+
+	currentRelease, err := semver.New(key.Release(oldCluster))
+	if err != nil {
+		return err
+	}
+	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+		return nil
+	}
+
+	// Retrieve the `AWSCluster` CR.
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, cluster)
+	if err != nil {
+		return err
+	}
+	_, ok := awsCluster.Annotations[annotation.CiliumPodCidr]
+	if !ok {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
+		)
+	}
+
+	return nil
 }
 
 func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capi.Cluster, oldCluster *capi.Cluster) error {

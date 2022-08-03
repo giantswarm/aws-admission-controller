@@ -3,6 +3,7 @@ package awscluster
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
@@ -111,6 +112,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Maskf(parsingFailedError, "unable to parse awscluster: %v", err)
 	}
 
+	err = v.Cilium(awsCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrganizationLabelContainsExistingOrganization(context.Background(), v.k8sClient.CtrlClient(), &awsCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -145,6 +151,26 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
+}
+
+func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
+	podCidr, ok := awsCluster.GetAnnotations()[annotation.CiliumPodCidr]
+	if !ok {
+		return nil
+	}
+
+	_, ipNet, err := net.ParseCIDR(podCidr)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	prefix, _ := ipNet.Mask.Size()
+	if prefix > 18 {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprintf("The CIDR from annotation `%s` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`", annotation.CiliumPodCidr),
+		)
+	}
+
+	return nil
 }
 
 func (v *Validator) AWSClusterAnnotationCNIMinimumIPTarget(awsCluster infrastructurev1alpha3.AWSCluster) error {

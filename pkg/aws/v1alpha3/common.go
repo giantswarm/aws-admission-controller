@@ -32,6 +32,9 @@ const (
 	// FirstV1Alpha3Release is the first GS release for v1alpha3 GiantSwarm AWS CR's
 	FirstV1Alpha3Release = "16.0.0"
 
+	// FirstCiliumRelease is the first Cilium CNI GS release
+	FirstCiliumRelease = "18.0.0-alpha1"
+
 	// FirstOrgNamespaceRelease is the first GS release that creates Clusters in Org Namespaces by default
 	FirstOrgNamespaceRelease = "16.0.0"
 
@@ -101,6 +104,18 @@ func IsHAVersion(releaseVersion *semver.Version) bool {
 func IsV1Alpha3Ready(releaseVersion *semver.Version) bool {
 	V1Alpha3Version, _ := semver.New(FirstV1Alpha3Release)
 	return releaseVersion.GE(*V1Alpha3Version)
+}
+
+// IsCiliumRelease returns whether a given releaseVersion is release with Cilium CNI
+func IsCiliumRelease(releaseVersion *semver.Version) bool {
+	V18Version, _ := semver.New(FirstCiliumRelease)
+	return releaseVersion.GE(*V18Version)
+}
+
+// IsPreCiliumRelease returns whether a given releaseVersion is a prerelease of Cilium CNI integration
+func IsPreCiliumRelease(releaseVersion *semver.Version) bool {
+	V18Version, _ := semver.New(FirstCiliumRelease)
+	return releaseVersion.LT(*V18Version)
 }
 
 // IsOrgNamespaceVersion returns whether a given releaseVersion creates clusters in org namespaces by default
