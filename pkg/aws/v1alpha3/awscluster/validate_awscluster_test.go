@@ -97,7 +97,7 @@ func TestCilium(t *testing.T) {
 			err:           notAllowedError,
 		},
 		{
-			// CNI CIDR is not allowed, overlapping CIDR's.
+			// CNI CIDR is allowed, no overlapping CIDR's.
 			name: "case 1",
 			ctx:  context.Background(),
 
