@@ -21,6 +21,8 @@ import (
 type Validator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
+
+	ipamCidrBlock string
 }
 
 func NewValidator(config config.Config) (*Validator, error) {
@@ -34,6 +36,8 @@ func NewValidator(config config.Config) (*Validator, error) {
 	v := &Validator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
+
+		ipamCidrBlock: config.IPAMNetworkCIDR,
 	}
 
 	return v, nil
@@ -159,15 +163,32 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 		return nil
 	}
 
-	_, ipNet, err := net.ParseCIDR(podCidr)
+	_, ciliumIPNet, err := net.ParseCIDR(podCidr)
 	if err != nil {
 		return microerror.Mask(err)
 	}
-	prefix, _ := ipNet.Mask.Size()
+	prefix, _ := ciliumIPNet.Mask.Size()
 	if prefix > 18 {
 		return microerror.Maskf(notAllowedError,
 			fmt.Sprintf("The CIDR from annotation `%s` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`", annotation.CiliumPodCidr),
 		)
+	}
+
+	_, awsPodIPNet, err := net.ParseCIDR(awsCluster.Spec.Provider.Pods.CIDRBlock)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	_, ipamIPNet, err := net.ParseCIDR(v.ipamCidrBlock)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if intersect(ciliumIPNet, awsPodIPNet) || intersect(ciliumIPNet, ipamIPNet) {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, v.ipamCidrBlock),
+		)
+
 	}
 
 	return nil
@@ -270,4 +291,8 @@ func (v *Validator) Log(keyVals ...interface{}) {
 
 func (v *Validator) Resource() string {
 	return "awscluster"
+}
+
+func intersect(n1, n2 *net.IPNet) bool {
+	return n2.Contains(n1.IP) || n1.Contains(n2.IP)
 }
