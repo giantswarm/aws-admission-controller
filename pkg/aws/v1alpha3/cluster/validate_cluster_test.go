@@ -522,29 +522,40 @@ func TestValidClusterStatus(t *testing.T) {
 
 func Test_CiliumReleaseIsValid(t *testing.T) {
 	testCases := []struct {
-		name       string
-		release    string
-		annotation map[string]string
+		name           string
+		currentRelease string
+		targetRelease  string
+		annotation     map[string]string
 
 		valid bool
 	}{
 		{
-			name:    "case 0: no cilium",
-			release: "17.4.0",
-			valid:   true,
+			name:           "case 0: no cilium",
+			currentRelease: "17.4.0",
+			targetRelease:  "17.4.1",
+			valid:          true,
 		},
 		{
-			name:       "case 1: upgrade to cilium with pod cidr annotation",
-			release:    "18.0.0",
-			annotation: map[string]string{annotation.CiliumPodCidr: "10.0.0.0/8"},
+			name:           "case 1: upgrade to cilium with pod cidr annotation",
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			annotation:     map[string]string{annotation.CiliumPodCidr: "10.0.0.0/8"},
 
 			valid: true,
 		},
 		{
-			name:    "case 2: upgrade to cilium without pod cidr annotation",
-			release: "18.0.0",
+			name:           "case 2: upgrade to cilium without pod cidr annotation",
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
 
 			valid: false,
+		},
+		{
+			name:           "case 3: upgrade to cilium without pod cidr annotation",
+			currentRelease: "18.0.0",
+			targetRelease:  "18.1.0",
+
+			valid: true,
 		},
 	}
 
@@ -557,7 +568,13 @@ func Test_CiliumReleaseIsValid(t *testing.T) {
 			cluster := unittest.DefaultCluster()
 			cluster.SetLabels(map[string]string{
 				label.Cluster:        unittest.DefaultClusterID,
-				label.ReleaseVersion: tc.release,
+				label.ReleaseVersion: tc.targetRelease,
+			})
+
+			oldCluster := unittest.DefaultCluster()
+			oldCluster.SetLabels(map[string]string{
+				label.Cluster:        unittest.DefaultClusterID,
+				label.ReleaseVersion: tc.currentRelease,
 			})
 
 			// create releases for testing
@@ -566,7 +583,13 @@ func Test_CiliumReleaseIsValid(t *testing.T) {
 					Name: "v17.4.0",
 				},
 				{
+					Name: "v17.4.1",
+				},
+				{
 					Name: "v18.0.0",
+				},
+				{
+					Name: "v18.1.0",
 				},
 			}
 			for _, r := range releases {
@@ -580,7 +603,7 @@ func Test_CiliumReleaseIsValid(t *testing.T) {
 			awsCluster := unittest.DefaultAWSCluster()
 			awsCluster.SetAnnotations(tc.annotation)
 			awsCluster.SetLabels(map[string]string{
-				label.ReleaseVersion: "v" + tc.release,
+				label.ReleaseVersion: "v" + tc.currentRelease,
 				label.Cluster:        unittest.DefaultClusterID,
 			})
 			err := v.k8sClient.CtrlClient().Create(context.Background(), awsCluster)
@@ -588,7 +611,7 @@ func Test_CiliumReleaseIsValid(t *testing.T) {
 				t.Fatal(err)
 			}
 			// check if the result is as expected
-			err = v.Cilium(cluster)
+			err = v.Cilium(oldCluster, cluster)
 			if tc.valid && err != nil {
 				t.Fatalf("unexpected error %v", err)
 			}

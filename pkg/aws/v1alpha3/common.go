@@ -112,6 +112,12 @@ func IsCiliumRelease(releaseVersion *semver.Version) bool {
 	return releaseVersion.GE(*V18Version)
 }
 
+// IsPreCiliumRelease returns whether a given releaseVersion is a prerelease of Cilium CNI integration
+func IsPreCiliumRelease(releaseVersion *semver.Version) bool {
+	V18Version, _ := semver.New(FirstCiliumRelease)
+	return releaseVersion.LT(*V18Version)
+}
+
 // IsOrgNamespaceVersion returns whether a given releaseVersion creates clusters in org namespaces by default
 func IsOrgNamespaceVersion(releaseVersion *semver.Version) bool {
 	OrgNamespaceVersion, _ := semver.New(FirstOrgNamespaceRelease)

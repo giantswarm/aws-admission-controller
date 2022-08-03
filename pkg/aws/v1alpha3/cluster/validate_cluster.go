@@ -106,7 +106,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
-	err = v.Cilium(cluster)
+	err = v.Cilium(oldCluster, cluster)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -143,13 +143,17 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	return true, nil
 }
 
-func (v *Validator) Cilium(cluster *capi.Cluster) error {
-	release, err := semver.New(key.Release(cluster))
+func (v *Validator) Cilium(oldCluster, cluster *capi.Cluster) error {
+	targetRelease, err := semver.New(key.Release(cluster))
 	if err != nil {
 		return err
 	}
 
-	if !aws.IsCiliumRelease(release) {
+	currentRelease, err := semver.New(key.Release(oldCluster))
+	if err != nil {
+		return err
+	}
+	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
 		return nil
 	}
 
