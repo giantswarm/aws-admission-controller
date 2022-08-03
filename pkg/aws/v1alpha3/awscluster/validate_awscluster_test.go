@@ -71,24 +71,40 @@ func TestCilium(t *testing.T) {
 		ctx  context.Context
 		name string
 
-		cidr string
-		err  error
+		ciliumCidr    string
+		ipamCidrBlock string
+		podCidrBlock  string
+		err           error
 	}{
 		{
-			// CNI CIDR is not allowed.
+			// CNI CIDR is not allowed too small.
 			name: "case 0",
 			ctx:  context.Background(),
 
-			cidr: "10.0.0.0/25",
-			err:  notAllowedError,
+			ciliumCidr:    "10.0.0.0/25",
+			ipamCidrBlock: "10.5.0.0/16",
+			podCidrBlock:  "10.4.0.0/16",
+			err:           notAllowedError,
 		},
 		{
-			// CNI CIDR is allowed.
+			// CNI CIDR is not allowed, overlapping CIDR's.
 			name: "case 1",
 			ctx:  context.Background(),
 
-			cidr: "10.0.0.0/8",
-			err:  nil,
+			ciliumCidr:    "10.0.0.0/8",
+			ipamCidrBlock: "10.5.0.0/16",
+			podCidrBlock:  "10.0.0.0/16",
+			err:           notAllowedError,
+		},
+		{
+			// CNI CIDR is not allowed, overlapping CIDR's.
+			name: "case 1",
+			ctx:  context.Background(),
+
+			ciliumCidr:    "10.0.0.0/16",
+			ipamCidrBlock: "10.1.0.0/16",
+			podCidrBlock:  "10.2.0.0/16",
+			err:           nil,
 		},
 	}
 	for i, tc := range testCases {
@@ -99,6 +115,9 @@ func TestCilium(t *testing.T) {
 			validate := &Validator{
 				k8sClient: fakeK8sClient,
 				logger:    microloggertest.New(),
+
+				ipamCidrBlock: tc.ipamCidrBlock,
+				podCIDRBlock:  tc.podCidrBlock,
 			}
 
 			// run admission request to default AWSCluster Pod CIDR
@@ -106,7 +125,7 @@ func TestCilium(t *testing.T) {
 
 			// set CNI prefix annotation
 			awsCluster.SetAnnotations(map[string]string{
-				annotation.CiliumPodCidr: tc.cidr,
+				annotation.CiliumPodCidr: tc.ciliumCidr,
 			})
 
 			err = validate.Cilium(*awsCluster)
