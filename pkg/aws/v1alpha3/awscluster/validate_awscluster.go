@@ -161,7 +161,7 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 
 	_, ipNet, err := net.ParseCIDR(podCidr)
 	if err != nil {
-		return err
+		return microerror.Mask(err)
 	}
 	prefix, _ := ipNet.Mask.Size()
 	if prefix > 18 {
