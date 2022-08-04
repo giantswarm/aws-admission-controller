@@ -13,9 +13,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v4/config"
@@ -220,12 +218,6 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		}
 		result = append(result, patch...)
 	}
-
-	patch, err = m.MutateCopyCiliumCidrAnnotation(*awsCluster)
-	if err != nil {
-		return nil, microerror.Mask(err)
-	}
-	result = append(result, patch...)
 
 	return result, nil
 }
@@ -491,40 +483,6 @@ func (m *Mutator) MutateAnnotationNodeTerminateUnhealthy(awsCluster infrastructu
 		}
 	}
 	return result, nil
-}
-
-func (m *Mutator) MutateCopyCiliumCidrAnnotation(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
-	if _, ok := awsCluster.Annotations[annotation.CiliumPodCidr]; ok {
-		// Annotation exists, nothing to do.
-		return nil, nil
-	}
-
-	// Try to get the Cluster CR
-	cluster := capi.Cluster{}
-
-	err := m.k8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Namespace: awsCluster.Namespace, Name: awsCluster.Name}, &cluster)
-	if apierrors.IsNotFound(err) {
-		// Cluster not found. We can't copy the annotation but it's not an error.
-		return nil, nil
-	} else if err != nil {
-		return nil, microerror.Mask(err)
-	}
-
-	if cidr, ok := cluster.Annotations[annotation.CiliumPodCidr]; ok {
-		annotations := awsCluster.Annotations
-		if annotations == nil {
-			annotations = map[string]string{}
-		}
-		annotations[annotation.CiliumPodCidr] = cidr
-
-		var result []mutator.PatchOperation
-		patch := mutator.PatchAdd("/metadata/annotations", awsCluster.Annotations)
-		result = append(result, patch)
-
-		return result, nil
-	}
-
-	return nil, nil
 }
 
 func (m *Mutator) Log(keyVals ...interface{}) {
