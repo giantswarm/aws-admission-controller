@@ -154,10 +154,10 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
 
-	//oldReleaseVersion, err := aws.ReleaseVersion(oldCluster, patch)
-	//if err != nil {
-	//	return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from old Cluster")
-	//}
+	oldReleaseVersion, err := aws.ReleaseVersion(oldCluster, patch)
+	if err != nil {
+		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from old Cluster")
+	}
 
 	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, cluster)
 	result = append(result, patch...)
@@ -168,11 +168,11 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
-	//patch, err = m.DefaultCiliumCidrOnV18Upgrade(*cluster, oldReleaseVersion, releaseVersion)
-	//if err != nil {
-	//	return nil, microerror.Mask(err)
-	//}
-	//result = append(result, patch...)
+	patch, err = m.DefaultCiliumCidrOnV18Upgrade(*cluster, oldReleaseVersion, releaseVersion)
+	if err != nil {
+		return nil, microerror.Mask(err)
+	}
+	result = append(result, patch...)
 
 	return result, nil
 }
