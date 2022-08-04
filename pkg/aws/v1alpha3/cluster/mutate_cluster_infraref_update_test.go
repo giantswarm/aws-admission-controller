@@ -64,6 +64,7 @@ func TestMutateInfraRefUpdate(t *testing.T) {
 
 			// try to create the cluster
 			cluster := unittest.DefaultCluster()
+			cluster.Spec.InfrastructureRef.Namespace = ""
 			err = fakeK8sClient.CtrlClient().Create(tc.ctx, cluster)
 			if err != nil {
 				t.Fatal(err)

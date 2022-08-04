@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Default `cilium.giantswarm.io/pod-cidr` annotation on AWSCluster CR when upgrading from v17 to v18.
+
 ## [4.2.0] - 2022-08-04
 
 ### Added

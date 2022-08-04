@@ -2,15 +2,20 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/blang/semver/v4"
+	"github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
+	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v4/config"
 	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
@@ -28,6 +33,8 @@ type Config struct {
 type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
+
+	podCIDRBlock string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -41,6 +48,8 @@ func NewMutator(config config.Config) (*Mutator, error) {
 	mutator := &Mutator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
+
+		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
 	}
 
 	return mutator, nil
@@ -145,6 +154,11 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from Cluster")
 	}
 
+	//oldReleaseVersion, err := aws.ReleaseVersion(oldCluster, patch)
+	//if err != nil {
+	//	return nil, microerror.Maskf(parsingFailedError, "unable to parse release version from old Cluster")
+	//}
+
 	patch = aws.MutateCAPILabel(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, cluster)
 	result = append(result, patch...)
 
@@ -153,6 +167,12 @@ func (m *Mutator) MutateUpdate(request *admissionv1.AdmissionRequest) ([]mutator
 		return nil, microerror.Mask(err)
 	}
 	result = append(result, patch...)
+
+	//patch, err = m.DefaultCiliumCidrOnV18Upgrade(*cluster, oldReleaseVersion, releaseVersion)
+	//if err != nil {
+	//	return nil, microerror.Mask(err)
+	//}
+	//result = append(result, patch...)
 
 	return result, nil
 }
@@ -264,4 +284,45 @@ func (m *Mutator) MutateInfraRef(cluster capi.Cluster, releaseVersion *semver.Ve
 		return result, nil
 	}
 	return nil, nil
+}
+
+func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRelease *semver.Version, targetRelease *semver.Version) ([]mutator.PatchOperation, error) {
+	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+		return nil, nil
+	}
+
+	// We only default the cilium CIDR if this cluster:
+	// - is not using networkpools
+	// - is using the default pod cidr
+
+	awscluster := v1alpha3.AWSCluster{}
+	err := m.k8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Namespace: cluster.Spec.InfrastructureRef.Namespace, Name: cluster.Spec.InfrastructureRef.Name}, &awscluster)
+	if apierrors.IsNotFound(err) {
+		// No AWS cluster exists, can't provide a default.
+		return nil, nil
+	} else if err != nil {
+		return nil, microerror.Mask(err)
+	}
+
+	if awscluster.Spec.Provider.Nodes.NetworkPool != "" {
+		// Networkpool in use, can't provide a sane default.
+		fmt.Println("quasd")
+		return nil, nil
+	}
+
+	if awscluster.Spec.Provider.Pods.CIDRBlock != m.podCIDRBlock {
+		// Non default pod cidr, can't provide a sane default.
+		return nil, nil
+	}
+
+	annotations := awscluster.Annotations
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+	annotations[annotation.CiliumPodCidr] = "192.168.0.0/16"
+
+	var result []mutator.PatchOperation
+	patch := mutator.PatchAdd("/metadata/annotations", annotations)
+	result = append(result, patch)
+	return result, nil
 }

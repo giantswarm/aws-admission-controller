@@ -116,7 +116,8 @@ func DefaultCluster() *capi.Cluster {
 		Spec: capi.ClusterSpec{
 			InfrastructureRef: &v1.ObjectReference{
 				Kind:       "AWSCluster",
-				Name:       DefaultMachineDeploymentID,
+				Name:       DefaultClusterID,
+				Namespace:  v1.NamespaceDefault,
 				APIVersion: "infrastructure.giantswarm.io/v1alpha2",
 			},
 		},
