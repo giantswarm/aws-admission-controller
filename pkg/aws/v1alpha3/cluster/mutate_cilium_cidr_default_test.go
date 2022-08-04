@@ -113,8 +113,8 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 			// create old and new objects
 			cluster := unittest.DefaultCluster()
 			oldCluster := unittest.DefaultCluster()
-			cluster.SetLabels(map[string]string{label.Release: tc.newVersion})
-			oldCluster.SetLabels(map[string]string{label.Release: tc.oldVersion})
+			cluster.SetLabels(map[string]string{label.Cluster: cluster.Labels[label.Cluster], label.Release: tc.newVersion})
+			oldCluster.SetLabels(map[string]string{label.Cluster: cluster.Labels[label.Cluster], label.Release: tc.oldVersion})
 
 			// run mutate function to default cluster operator label
 			var patch []mutator.PatchOperation
