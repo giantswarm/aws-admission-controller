@@ -12,6 +12,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v4/config"
 	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
@@ -179,14 +180,30 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 		return microerror.Mask(err)
 	}
 
-	_, ipamIPNet, err := net.ParseCIDR(v.ipamCidrBlock)
+	var ipamCidr string
+	{
+		if awsCluster.Spec.Provider.Nodes.NetworkPool != "" {
+			// Cluster is using a custom network CIDR for nodes, we need to retrieve the NetworkPool CR to know it.
+			np := infrastructurev1alpha3.NetworkPool{}
+			err = v.k8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Namespace: awsCluster.Namespace, Name: awsCluster.Spec.Provider.Nodes.NetworkPool}, &np)
+			if err != nil {
+				return microerror.Mask(err)
+			}
+
+			ipamCidr = np.Spec.CIDRBlock
+		} else {
+			ipamCidr = v.ipamCidrBlock
+		}
+	}
+
+	_, ipamIPNet, err := net.ParseCIDR(ipamCidr)
 	if err != nil {
 		return microerror.Mask(err)
 	}
 
 	if intersect(ciliumIPNet, awsPodIPNet) || intersect(ciliumIPNet, ipamIPNet) {
 		return microerror.Maskf(notAllowedError,
-			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, v.ipamCidrBlock),
+			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, ipamCidr),
 		)
 
 	}
