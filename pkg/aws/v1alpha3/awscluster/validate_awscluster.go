@@ -203,7 +203,7 @@ func (v *Validator) Cilium(awsCluster infrastructurev1alpha3.AWSCluster) error {
 
 	if intersect(ciliumIPNet, awsPodIPNet) || intersect(ciliumIPNet, ipamIPNet) {
 		return microerror.Maskf(notAllowedError,
-			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, v.ipamCidrBlock),
+			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, ipamCidr),
 		)
 
 	}
