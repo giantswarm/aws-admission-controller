@@ -164,9 +164,13 @@ func (v *Validator) Cilium(oldCluster, cluster *capi.Cluster) error {
 	}
 	_, ok := awsCluster.Annotations[annotation.CiliumPodCidr]
 	if !ok {
-		return microerror.Maskf(notAllowedError,
-			fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
-		)
+		// If Cluster CR has the annotation set we're good as another webhook will copy the annotation from the Cluster to the AWSCluster CR.
+		_, ok := cluster.Annotations[annotation.CiliumPodCidr]
+		if !ok {
+			return microerror.Maskf(notAllowedError,
+				fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
+			)
+		}
 	}
 
 	return nil
