@@ -2,7 +2,6 @@
 package cluster
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/blang/semver/v4"
@@ -286,12 +285,12 @@ func (m *Mutator) MutateInfraRef(cluster capi.Cluster, releaseVersion *semver.Ve
 
 func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRelease *semver.Version, targetRelease *semver.Version) ([]mutator.PatchOperation, error) {
 	if _, ok := cluster.Annotations[annotation.CiliumPodCidr]; ok {
-		m.logger.Debugf(context.Background(), "Cilium CIDR annotation already set")
+		m.Log("level", "debug", "message", "Cilium CIDR annotation already set")
 		return nil, nil
 	}
 
 	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
-		m.logger.Debugf(context.Background(), "Not a v17 to v18 upgrade, won't default cilium cidr")
+		m.Log("level", "debug", "message", "Not a v17 to v18 upgrade, won't default cilium cidr")
 		return nil, nil
 	}
 
@@ -303,7 +302,7 @@ func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRel
 	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &cluster)
 	if apierrors.IsNotFound(err) {
 		// No AWS cluster exists, can't provide a default.
-		m.logger.Debugf(context.Background(), "AWSCluster not found, can't default cilium cidr")
+		m.Log("level", "debug", "message", "AWSCluster not found, can't default cilium cidr")
 		return nil, nil
 	} else if err != nil {
 		return nil, microerror.Mask(err)
@@ -311,13 +310,13 @@ func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRel
 
 	if awsCluster.Spec.Provider.Nodes.NetworkPool != "" {
 		// Networkpool in use, can't provide a sane default.
-		m.logger.Debugf(context.Background(), "Networkpool is set, can't default cilium cidr")
+		m.Log("level", "debug", "message", "Networkpool is set, can't default cilium cidr")
 		return nil, nil
 	}
 
 	if awsCluster.Spec.Provider.Pods.CIDRBlock != m.podCIDRBlock {
 		// Non default pod cidr, can't provide a sane default.
-		m.logger.Debugf(context.Background(), "Using not default cidr block, can't default cilium cidr")
+		m.Log("level", "debug", "message", "Using not default cidr block, can't default cilium cidr")
 		return nil, nil
 	}
 
