@@ -92,7 +92,7 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 				unittest.NamedRelease("v18.0.0"),
 			}
 			for _, release := range releases {
-				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &release)
+				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &release) // nolint:gosec
 				if err != nil {
 					t.Fatal(err)
 				}
