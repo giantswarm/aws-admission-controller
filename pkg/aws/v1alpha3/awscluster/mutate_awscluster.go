@@ -512,6 +512,9 @@ func (m *Mutator) MutateCopyCiliumCidrAnnotation(awsCluster infrastructurev1alph
 
 	if cidr, ok := cluster.Annotations[annotation.CiliumPodCidr]; ok {
 		annotations := awsCluster.Annotations
+		if annotations == nil {
+			annotations = map[string]string{}
+		}
 		annotations[annotation.CiliumPodCidr] = cidr
 
 		var result []mutator.PatchOperation
