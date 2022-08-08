@@ -287,12 +287,10 @@ func (m *Mutator) MutateInfraRef(cluster capi.Cluster, releaseVersion *semver.Ve
 
 func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRelease *semver.Version, targetRelease *semver.Version) ([]mutator.PatchOperation, error) {
 	if _, ok := cluster.Annotations[annotation.CiliumPodCidr]; ok {
-		m.Log("level", "debug", "message", "Cilium CIDR annotation already set")
 		return nil, nil
 	}
 
 	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
-		m.Log("level", "debug", "message", "Not a v17 to v18 upgrade, won't default cilium cidr")
 		return nil, nil
 	}
 
