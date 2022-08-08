@@ -559,7 +559,7 @@ func TestCilium(t *testing.T) {
 		},
 		{
 			// CNI CIDR is allowed, no overlapping CIDR's.
-			name: "case 1",
+			name: "case 2",
 			ctx:  context.Background(),
 
 			currentRelease: "17.4.1",
@@ -571,24 +571,24 @@ func TestCilium(t *testing.T) {
 		},
 		{
 			// Not an upgrade
-			name: "case 2",
+			name: "case 3",
 			ctx:  context.Background(),
 
 			currentRelease: "17.4.1",
 			targetRelease:  "17.5.0",
-			ciliumCidr:     "10.0.0.0/8",
+			ciliumCidr:     "",
 			ipamCidrBlock:  "10.5.0.0/16",
 			podCidrBlock:   "10.0.0.0/16",
 			err:            nil,
 		},
 		{
 			// Not an upgrade
-			name: "case 3",
+			name: "case 4",
 			ctx:  context.Background(),
 
 			currentRelease: "18.4.1",
 			targetRelease:  "18.4.1",
-			ciliumCidr:     "10.0.0.0/8",
+			ciliumCidr:     "",
 			ipamCidrBlock:  "10.5.0.0/16",
 			podCidrBlock:   "10.0.0.0/16",
 			err:            nil,
@@ -619,9 +619,11 @@ func TestCilium(t *testing.T) {
 
 			cluster := unittest.DefaultCluster()
 			// set CNI prefix annotation
-			cluster.SetAnnotations(map[string]string{
-				annotation.CiliumPodCidr: tc.ciliumCidr,
-			})
+			if tc.ciliumCidr != "" {
+				cluster.SetAnnotations(map[string]string{
+					annotation.CiliumPodCidr: tc.ciliumCidr,
+				})
+			}
 			cluster.Labels[label.ReleaseVersion] = tc.targetRelease
 
 			err = validate.Cilium(cluster, oldCluster)

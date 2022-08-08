@@ -234,26 +234,33 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 		return nil
 	}
 
-	targetRelease, err := semver.New(key.Release(cluster))
-	if err != nil {
-		return err
+	podCidr, ciliumCidrAnnotationExists := cluster.GetAnnotations()[annotation.CiliumPodCidr]
+	ciliumCidrAnnotationExists = ciliumCidrAnnotationExists && podCidr != ""
+
+	// Validate annotation is present during an upgrade from v17 to v18.
+	{
+		targetRelease, err := semver.New(key.Release(cluster))
+		if err != nil {
+			return err
+		}
+
+		currentRelease, err := semver.New(key.Release(oldCluster))
+		if err != nil {
+			return err
+		}
+		if !ciliumCidrAnnotationExists && aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+			return microerror.Maskf(notAllowedError,
+				fmt.Sprintf("The annotation `%s` has to be set on Cluster CR before upgrading to AWS release v18 or higher. %s %s", annotation.CiliumPodCidr, currentRelease, targetRelease),
+			)
+		}
 	}
 
-	currentRelease, err := semver.New(key.Release(oldCluster))
-	if err != nil {
-		return err
-	}
-	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+	if !ciliumCidrAnnotationExists {
+		// Annotation is missing, but this is not an upgrade so that's fine.
 		return nil
 	}
 
-	podCidr, ok := cluster.GetAnnotations()[annotation.CiliumPodCidr]
-	if !ok {
-		return microerror.Maskf(notAllowedError,
-			fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
-		)
-	}
-
+	// Annotation exists, validate it.
 	_, ciliumIPNet, err := net.ParseCIDR(podCidr)
 	if err != nil {
 		return microerror.Mask(err)
