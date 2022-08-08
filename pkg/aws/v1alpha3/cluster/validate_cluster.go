@@ -230,6 +230,10 @@ func (v *Validator) UpgradeScheduleReleaseIsValid(targetRelease string, currentR
 }
 
 func (v *Validator) Cilium(cluster *capi.Cluster) error {
+	if cluster.DeletionTimestamp != nil {
+		return nil
+	}
+
 	podCidr, ok := cluster.GetAnnotations()[annotation.CiliumPodCidr]
 	if !ok {
 		return nil
