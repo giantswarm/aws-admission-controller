@@ -83,8 +83,10 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 
 			fakeK8sClient := unittest.FakeK8sClient()
 			mutate := &Mutator{
-				k8sClient: fakeK8sClient,
-				logger:    microloggertest.New(),
+				k8sClient:            fakeK8sClient,
+				logger:               microloggertest.New(),
+				defaultAWSCNIPodCidr: "10.10.0.0/16",
+				defaultCiliumPodCidr: "192.168.0.0/16",
 			}
 			// create releases
 			releases := []releasev1alpha1.Release{
@@ -136,7 +138,7 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 			}
 			// check if the release label is as expected
 			if tc.expectedCidr != cidr {
-				t.Fatalf("expected %#q to be equal to %#q", tc.expectedCidr, cidr)
+				t.Fatalf("%s: expected %#q, got %#q", tc.name, tc.expectedCidr, cidr)
 			}
 		})
 	}

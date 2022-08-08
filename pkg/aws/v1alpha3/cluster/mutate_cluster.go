@@ -31,7 +31,8 @@ type Mutator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 
-	podCIDRBlock string
+	defaultAWSCNIPodCidr string
+	defaultCiliumPodCidr string
 }
 
 func NewMutator(config config.Config) (*Mutator, error) {
@@ -41,12 +42,16 @@ func NewMutator(config config.Config) (*Mutator, error) {
 	if config.Logger == nil {
 		return nil, microerror.Maskf(invalidConfigError, "%T.Logger must not be empty", config)
 	}
+	if config.CiliumDefaultPodCidr == "" {
+		return nil, microerror.Maskf(invalidConfigError, "%T.CiliumDefaultPodCidr must not be empty", config)
+	}
 
 	mutator := &Mutator{
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
-		podCIDRBlock: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
+		defaultAWSCNIPodCidr: fmt.Sprintf("%s/%s", config.PodSubnet, config.PodCIDR),
+		defaultCiliumPodCidr: config.CiliumDefaultPodCidr,
 	}
 
 	return mutator, nil
@@ -311,17 +316,17 @@ func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRel
 		return nil, nil
 	}
 
-	if awsCluster.Spec.Provider.Pods.CIDRBlock != m.podCIDRBlock {
+	if awsCluster.Spec.Provider.Pods.CIDRBlock != m.defaultAWSCNIPodCidr {
 		// Non default pod cidr, can't provide a sane default.
 		m.Log("level", "debug", "message", "Using not default cidr block, can't default cilium cidr")
 		return nil, nil
 	}
 
-	annotations := awsCluster.Annotations
+	annotations := cluster.Annotations
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
-	annotations[annotation.CiliumPodCidr] = "192.168.0.0/16"
+	annotations[annotation.CiliumPodCidr] = m.defaultCiliumPodCidr
 
 	var result []mutator.PatchOperation
 	patch := mutator.PatchAdd("/metadata/annotations", annotations)

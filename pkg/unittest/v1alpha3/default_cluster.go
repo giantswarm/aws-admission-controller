@@ -68,6 +68,9 @@ func DefaultAWSCluster() *infrastructurev1alpha3.AWSCluster {
 					AvailabilityZone: "eu-central-1b",
 					InstanceType:     "m5.xlarge",
 				},
+				Pods: infrastructurev1alpha3.AWSClusterSpecProviderPods{
+					CIDRBlock: "10.10.0.0/16",
+				},
 				Region: "eu-central-1",
 			},
 		},
