@@ -526,40 +526,72 @@ func TestCilium(t *testing.T) {
 		ctx  context.Context
 		name string
 
-		ciliumCidr    string
-		ipamCidrBlock string
-		podCidrBlock  string
-		err           error
+		currentRelease string
+		targetRelease  string
+		ciliumCidr     string
+		ipamCidrBlock  string
+		podCidrBlock   string
+		err            error
 	}{
 		{
 			// CNI CIDR is not allowed too small.
 			name: "case 0",
 			ctx:  context.Background(),
 
-			ciliumCidr:    "10.0.0.0/25",
-			ipamCidrBlock: "10.5.0.0/16",
-			podCidrBlock:  "10.4.0.0/16",
-			err:           notAllowedError,
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			ciliumCidr:     "10.0.0.0/25",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.4.0.0/16",
+			err:            notAllowedError,
 		},
 		{
 			// CNI CIDR is not allowed, overlapping CIDR's.
 			name: "case 1",
 			ctx:  context.Background(),
 
-			ciliumCidr:    "10.0.0.0/8",
-			ipamCidrBlock: "10.5.0.0/16",
-			podCidrBlock:  "10.0.0.0/16",
-			err:           notAllowedError,
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			ciliumCidr:     "10.0.0.0/8",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            notAllowedError,
 		},
 		{
 			// CNI CIDR is allowed, no overlapping CIDR's.
 			name: "case 1",
 			ctx:  context.Background(),
 
-			ciliumCidr:    "10.0.0.0/16",
-			ipamCidrBlock: "10.1.0.0/16",
-			podCidrBlock:  "10.2.0.0/16",
-			err:           nil,
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			ciliumCidr:     "10.0.0.0/16",
+			ipamCidrBlock:  "10.1.0.0/16",
+			podCidrBlock:   "10.2.0.0/16",
+			err:            nil,
+		},
+		{
+			// Not an upgrade
+			name: "case 2",
+			ctx:  context.Background(),
+
+			currentRelease: "17.4.1",
+			targetRelease:  "17.5.0",
+			ciliumCidr:     "10.0.0.0/8",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            nil,
+		},
+		{
+			// Not an upgrade
+			name: "case 3",
+			ctx:  context.Background(),
+
+			currentRelease: "18.4.1",
+			targetRelease:  "18.4.1",
+			ciliumCidr:     "10.0.0.0/8",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            nil,
 		},
 	}
 	for i, tc := range testCases {
@@ -582,13 +614,17 @@ func TestCilium(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			oldCluster := unittest.DefaultCluster()
+			oldCluster.Labels[label.ReleaseVersion] = tc.currentRelease
+
 			cluster := unittest.DefaultCluster()
 			// set CNI prefix annotation
 			cluster.SetAnnotations(map[string]string{
 				annotation.CiliumPodCidr: tc.ciliumCidr,
 			})
+			cluster.Labels[label.ReleaseVersion] = tc.targetRelease
 
-			err = validate.Cilium(cluster)
+			err = validate.Cilium(cluster, oldCluster)
 			if microerror.Cause(err) != tc.err {
 				t.Fatal(err)
 			}
