@@ -10,6 +10,7 @@ import (
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/apiextensions/v6/pkg/label"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
+	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger/microloggertest"
 	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -520,103 +521,114 @@ func TestValidClusterStatus(t *testing.T) {
 	}
 }
 
-func Test_CiliumReleaseIsValid(t *testing.T) {
+func TestCilium(t *testing.T) {
 	testCases := []struct {
-		name           string
+		ctx  context.Context
+		name string
+
 		currentRelease string
 		targetRelease  string
-		annotation     map[string]string
-
-		valid bool
+		ciliumCidr     string
+		ipamCidrBlock  string
+		podCidrBlock   string
+		err            error
 	}{
 		{
-			name:           "case 0: no cilium",
-			currentRelease: "17.4.0",
-			targetRelease:  "17.4.1",
-			valid:          true,
-		},
-		{
-			name:           "case 1: upgrade to cilium with pod cidr annotation",
+			// CNI CIDR is not allowed too small.
+			name: "case 0",
+			ctx:  context.Background(),
+
 			currentRelease: "17.4.1",
 			targetRelease:  "18.0.0",
-			annotation:     map[string]string{annotation.CiliumPodCidr: "10.0.0.0/8"},
-
-			valid: true,
+			ciliumCidr:     "10.0.0.0/25",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.4.0.0/16",
+			err:            notAllowedError,
 		},
 		{
-			name:           "case 2: upgrade to cilium without pod cidr annotation",
+			// CNI CIDR is not allowed, overlapping CIDR's.
+			name: "case 1",
+			ctx:  context.Background(),
+
 			currentRelease: "17.4.1",
 			targetRelease:  "18.0.0",
-
-			valid: false,
+			ciliumCidr:     "10.0.0.0/8",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            notAllowedError,
 		},
 		{
-			name:           "case 3: upgrade to cilium without pod cidr annotation",
-			currentRelease: "18.0.0",
-			targetRelease:  "18.1.0",
+			// CNI CIDR is allowed, no overlapping CIDR's.
+			name: "case 2",
+			ctx:  context.Background(),
 
-			valid: true,
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			ciliumCidr:     "10.0.0.0/16",
+			ipamCidrBlock:  "10.1.0.0/16",
+			podCidrBlock:   "10.2.0.0/16",
+			err:            nil,
+		},
+		{
+			// Not an upgrade
+			name: "case 3",
+			ctx:  context.Background(),
+
+			currentRelease: "17.4.1",
+			targetRelease:  "17.5.0",
+			ciliumCidr:     "",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            nil,
+		},
+		{
+			// Not an upgrade
+			name: "case 4",
+			ctx:  context.Background(),
+
+			currentRelease: "18.4.1",
+			targetRelease:  "18.4.1",
+			ciliumCidr:     "",
+			ipamCidrBlock:  "10.5.0.0/16",
+			podCidrBlock:   "10.0.0.0/16",
+			err:            nil,
 		},
 	}
-
 	for i, tc := range testCases {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			v := &Validator{
-				k8sClient: unittest.FakeK8sClient(),
+			var err error
+
+			fakeK8sClient := unittest.FakeK8sClient()
+			validate := &Validator{
+				k8sClient: fakeK8sClient,
 				logger:    microloggertest.New(),
-			}
-			cluster := unittest.DefaultCluster()
-			cluster.SetLabels(map[string]string{
-				label.Cluster:        unittest.DefaultClusterID,
-				label.ReleaseVersion: tc.targetRelease,
-			})
 
-			oldCluster := unittest.DefaultCluster()
-			oldCluster.SetLabels(map[string]string{
-				label.Cluster:        unittest.DefaultClusterID,
-				label.ReleaseVersion: tc.currentRelease,
-			})
+				ipamCidrBlock: tc.ipamCidrBlock,
+			}
 
-			// create releases for testing
-			releases := []unittest.ReleaseData{
-				{
-					Name: "v17.4.0",
-				},
-				{
-					Name: "v17.4.1",
-				},
-				{
-					Name: "v18.0.0",
-				},
-				{
-					Name: "v18.1.0",
-				},
-			}
-			for _, r := range releases {
-				release := unittest.DefaultRelease()
-				release.SetName(r.Name)
-				err := v.k8sClient.CtrlClient().Create(context.Background(), &release)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
+			// run admission request to default AWSCluster Pod CIDR
 			awsCluster := unittest.DefaultAWSCluster()
-			awsCluster.SetAnnotations(tc.annotation)
-			awsCluster.SetLabels(map[string]string{
-				label.ReleaseVersion: "v" + tc.currentRelease,
-				label.Cluster:        unittest.DefaultClusterID,
-			})
-			err := v.k8sClient.CtrlClient().Create(context.Background(), awsCluster)
+			awsCluster.Spec.Provider.Pods.CIDRBlock = tc.podCidrBlock
+			err = fakeK8sClient.CtrlClient().Create(context.Background(), awsCluster)
 			if err != nil {
 				t.Fatal(err)
 			}
-			// check if the result is as expected
-			err = v.Cilium(oldCluster, cluster)
-			if tc.valid && err != nil {
-				t.Fatalf("unexpected error %v", err)
+
+			oldCluster := unittest.DefaultCluster()
+			oldCluster.Labels[label.ReleaseVersion] = tc.currentRelease
+
+			cluster := unittest.DefaultCluster()
+			// set CNI prefix annotation
+			if tc.ciliumCidr != "" {
+				cluster.SetAnnotations(map[string]string{
+					annotation.CiliumPodCidr: tc.ciliumCidr,
+				})
 			}
-			if !tc.valid && err == nil {
-				t.Fatalf("expected error but returned %v", err)
+			cluster.Labels[label.ReleaseVersion] = tc.targetRelease
+
+			err = validate.Cilium(cluster, oldCluster)
+			if microerror.Cause(err) != tc.err {
+				t.Fatal(err)
 			}
 		})
 	}

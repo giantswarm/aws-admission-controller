@@ -15,9 +15,13 @@ type ReleaseData struct {
 }
 
 func DefaultRelease() releasev1alpha1.Release {
+	return NamedRelease(DefaultReleaseName)
+}
+
+func NamedRelease(name string) releasev1alpha1.Release {
 	cr := releasev1alpha1.Release{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      DefaultReleaseName,
+			Name:      name,
 			Namespace: metav1.NamespaceDefault,
 		},
 		Spec: releasev1alpha1.ReleaseSpec{

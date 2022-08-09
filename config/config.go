@@ -14,6 +14,7 @@ import (
 
 const (
 	defaultAddress        = ":8443"
+	defaultCiliumCidr     = "192.168.0.0/16"
 	defaultMetricsAddress = ":8080"
 )
 
@@ -23,6 +24,7 @@ type Config struct {
 	MetricsAddress           string
 	AvailabilityZones        string
 	CertFile                 string
+	CiliumDefaultPodCidr     string
 	DockerCIDR               string
 	Endpoint                 string
 	IPAMNetworkCIDR          string
@@ -80,6 +82,7 @@ func Parse() (Config, error) {
 	kingpin.Flag("address", "The address to listen on").Default(defaultAddress).StringVar(&config.Address)
 	kingpin.Flag("admin-group", "Tenant Admin Target Group").Required().StringVar(&config.AdminGroup)
 	kingpin.Flag("availability-zones", "List of AWS availability zones").Required().StringVar(&config.AvailabilityZones)
+	kingpin.Flag("default-cilium-pod-cidr", "Default CIDR to use for Pods with Cilium").Default(defaultCiliumCidr).StringVar(&config.CiliumDefaultPodCidr)
 	kingpin.Flag("docker-cidr", "Default CIDR from Docker").Required().StringVar(&config.DockerCIDR)
 	kingpin.Flag("endpoint", "Default kubernetes endpoint").Required().StringVar(&config.Endpoint)
 	kingpin.Flag("ipam-network-cidr", "Default CIDR from tenant cluster").Required().StringVar(&config.IPAMNetworkCIDR)

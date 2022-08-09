@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -14,6 +15,7 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/giantswarm/aws-admission-controller/v4/config"
 	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
@@ -26,6 +28,7 @@ type Validator struct {
 	k8sClient k8sclient.Interface
 	logger    micrologger.Logger
 
+	ipamCidrBlock    string
 	restrictedGroups []string
 }
 
@@ -41,6 +44,7 @@ func NewValidator(config config.Config) (*Validator, error) {
 		k8sClient: config.K8sClient,
 		logger:    config.Logger,
 
+		ipamCidrBlock: config.IPAMNetworkCIDR,
 		restrictedGroups: []string{
 			config.AdminGroup,
 		},
@@ -106,7 +110,7 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		return true, nil
 	}
 
-	err = v.Cilium(oldCluster, cluster)
+	err = v.Cilium(cluster, oldCluster)
 	if err != nil {
 		return false, microerror.Mask(err)
 	}
@@ -141,35 +145,6 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 
 	return true, nil
-}
-
-func (v *Validator) Cilium(oldCluster, cluster *capi.Cluster) error {
-	targetRelease, err := semver.New(key.Release(cluster))
-	if err != nil {
-		return err
-	}
-
-	currentRelease, err := semver.New(key.Release(oldCluster))
-	if err != nil {
-		return err
-	}
-	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
-		return nil
-	}
-
-	// Retrieve the `AWSCluster` CR.
-	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, cluster)
-	if err != nil {
-		return err
-	}
-	_, ok := awsCluster.Annotations[annotation.CiliumPodCidr]
-	if !ok {
-		return microerror.Maskf(notAllowedError,
-			fmt.Sprintf("The annotation `%s` has to be set on AWSCluster CR before upgrading to AWS release v18 or higher.", annotation.CiliumPodCidr),
-		)
-	}
-
-	return nil
 }
 
 func (v *Validator) ClusterAnnotationUpgradeTimeIsValid(cluster *capi.Cluster, oldCluster *capi.Cluster) error {
@@ -254,6 +229,90 @@ func (v *Validator) UpgradeScheduleReleaseIsValid(targetRelease string, currentR
 	return nil
 }
 
+func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) error {
+	if cluster.DeletionTimestamp != nil {
+		return nil
+	}
+
+	podCidr, ciliumCidrAnnotationExists := cluster.GetAnnotations()[annotation.CiliumPodCidr]
+	ciliumCidrAnnotationExists = ciliumCidrAnnotationExists && podCidr != ""
+
+	// Validate annotation is present during an upgrade from v17 to v18.
+	{
+		targetRelease, err := semver.New(key.Release(cluster))
+		if err != nil {
+			return err
+		}
+
+		currentRelease, err := semver.New(key.Release(oldCluster))
+		if err != nil {
+			return err
+		}
+		if !ciliumCidrAnnotationExists && aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+			return microerror.Maskf(notAllowedError,
+				fmt.Sprintf("The annotation `%s` has to be set on Cluster CR before upgrading to AWS release v18 or higher. %s %s", annotation.CiliumPodCidr, currentRelease, targetRelease),
+			)
+		}
+	}
+
+	if !ciliumCidrAnnotationExists {
+		// Annotation is missing, but this is not an upgrade so that's fine.
+		return nil
+	}
+
+	// Annotation exists, validate it.
+	_, ciliumIPNet, err := net.ParseCIDR(podCidr)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+	prefix, _ := ciliumIPNet.Mask.Size()
+	if prefix > 18 {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprintf("The CIDR from annotation `%s` is not valid, please specify a network mask which is at least `/18` or bigger, e.g. `10.0.0.0/15`", annotation.CiliumPodCidr),
+		)
+	}
+
+	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, cluster)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	_, awsPodIPNet, err := net.ParseCIDR(awsCluster.Spec.Provider.Pods.CIDRBlock)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	var ipamCidr string
+	{
+		if awsCluster.Spec.Provider.Nodes.NetworkPool != "" {
+			// Cluster is using a custom network CIDR for nodes, we need to retrieve the NetworkPool CR to know it.
+			np := infrastructurev1alpha3.NetworkPool{}
+			err = v.k8sClient.CtrlClient().Get(context.Background(), client.ObjectKey{Namespace: awsCluster.Namespace, Name: awsCluster.Spec.Provider.Nodes.NetworkPool}, &np)
+			if err != nil {
+				return microerror.Mask(err)
+			}
+
+			ipamCidr = np.Spec.CIDRBlock
+		} else {
+			ipamCidr = v.ipamCidrBlock
+		}
+	}
+
+	_, ipamIPNet, err := net.ParseCIDR(ipamCidr)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if intersect(ciliumIPNet, awsPodIPNet) || intersect(ciliumIPNet, ipamIPNet) {
+		return microerror.Maskf(notAllowedError,
+			fmt.Sprintf("The CIDR from annotation `%s` intersects with the current CIDRs `%s`, `%s`, please specify a different CIDR", annotation.CiliumPodCidr, awsCluster.Spec.Provider.Pods.CIDRBlock, ipamCidr),
+		)
+
+	}
+
+	return nil
+}
+
 func (v *Validator) ClusterLabelKeysValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
 	return aws.ValidateLabelKeys(&aws.Handler{K8sClient: v.k8sClient, Logger: v.logger}, oldCluster, newCluster)
 }
@@ -316,6 +375,10 @@ func (v *Validator) ReleaseVersionValid(oldCluster *capi.Cluster, newCluster *ca
 	}
 
 	return nil
+}
+
+func intersect(n1, n2 *net.IPNet) bool {
+	return n2.Contains(n1.IP) || n1.Contains(n2.IP)
 }
 
 func (v *Validator) isAdmin(userInfo authenticationv1.UserInfo) bool {
