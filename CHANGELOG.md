@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.3.0] - 2022-08-09
+
 ### Added
 
 - Default `cilium.giantswarm.io/pod-cidr` annotation on Cluster CR when upgrading from v17 to v18.
@@ -357,7 +359,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.2.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.3.0...HEAD
+[4.3.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.3...v4.1.0
 [4.0.3]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.2...v4.0.3
