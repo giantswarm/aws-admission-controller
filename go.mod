@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/dyson/certman v0.2.1
-	github.com/giantswarm/apiextensions/v6 v6.0.0
+	github.com/giantswarm/apiextensions/v6 v6.4.0
 	github.com/giantswarm/backoff v1.0.0
 	github.com/giantswarm/k8sclient/v7 v7.0.1
 	github.com/giantswarm/k8smetadata v0.12.0
