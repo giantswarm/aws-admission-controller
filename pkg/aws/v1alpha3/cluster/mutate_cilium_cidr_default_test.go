@@ -35,7 +35,7 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 			expectedCidr: "",
 		},
 		{
-			name: "case 1: upgrade to v18",
+			name: "case 1: upgrade to v17",
 			ctx:  context.Background(),
 
 			newVersion:   "16.0.0",
@@ -51,19 +51,19 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 			expectedCidr: "",
 		},
 		{
-			name: "case 3: upgrade from v17 to v18",
+			name: "case 3: upgrade from v18 to v19",
 			ctx:  context.Background(),
 
-			newVersion:   "17.0.0",
-			oldVersion:   "18.0.0",
+			newVersion:   "18.0.0",
+			oldVersion:   "19.0.0",
 			expectedCidr: "192.168.0.0/16",
 		},
 		{
-			name: "case 4: upgrade from v17 to v18 with networkpool set",
+			name: "case 4: upgrade from v18 to v19 with networkpool set",
 			ctx:  context.Background(),
 
-			newVersion:   "17.0.0",
-			oldVersion:   "18.0.0",
+			newVersion:   "18.0.0",
+			oldVersion:   "19.0.0",
 			networkPool:  true,
 			expectedCidr: "",
 		},
@@ -92,6 +92,7 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 			releases := []releasev1alpha1.Release{
 				unittest.NamedRelease("v17.0.0"),
 				unittest.NamedRelease("v18.0.0"),
+				unittest.NamedRelease("v19.0.0"),
 			}
 			for _, release := range releases {
 				err = fakeK8sClient.CtrlClient().Create(tc.ctx, &release) // nolint:gosec
