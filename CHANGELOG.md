@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.4.0] - 2022-08-24
+
 #### Changed
 
 - Move cilium to `v19.x.x` AWS release.
@@ -363,7 +365,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.3.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.4.0...HEAD
+[4.4.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.3.0...v4.4.0
 [4.3.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.1.0...v4.2.0
 [4.1.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.0.3...v4.1.0
