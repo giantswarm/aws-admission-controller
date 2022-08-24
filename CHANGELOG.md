@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+#### Changed
+
+- Move cilium to `v19.x.x` AWS release.
+
 ## [4.3.0] - 2022-08-09
 
 ### Added
