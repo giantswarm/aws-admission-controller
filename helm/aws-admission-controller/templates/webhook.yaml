@@ -11,7 +11,7 @@ webhooks:
   - name: awsclusters.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -30,7 +30,7 @@ webhooks:
   - name: awsmachinedeployments.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -68,7 +68,7 @@ webhooks:
   - name: clusters.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -106,7 +106,7 @@ webhooks:
   - name: machinedeployments.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -136,7 +136,7 @@ webhooks:
   - name: awsclusters.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -155,7 +155,7 @@ webhooks:
   - name: awsmachinedeployments.v1alpha3.{{ include "resource.default.name" . }}.giantswarm.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -193,7 +193,7 @@ webhooks:
   - name: clusters.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
@@ -231,7 +231,7 @@ webhooks:
   - name: machinedeployments.v1beta1.{{ include "resource.default.name" . }}.cluster.x-k8s.io
     admissionReviewVersions: [v1]
     failurePolicy: Ignore
-    sideEffects: None
+    sideEffects: NoneOnDryRun
     clientConfig:
       service:
         name: {{ include "resource.default.name" . }}
