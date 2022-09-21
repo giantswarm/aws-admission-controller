@@ -54,6 +54,9 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.DryRun != nil && *request.DryRun {
+		return true, nil
+	}
 	if request.Operation == admissionv1.Create {
 		return v.ValidateCreate(request)
 	}
