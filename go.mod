@@ -11,7 +11,7 @@ require (
 	github.com/giantswarm/k8sclient/v7 v7.0.1
 	github.com/giantswarm/k8smetadata v0.12.0
 	github.com/giantswarm/microerror v0.4.0
-	github.com/giantswarm/micrologger v0.6.0
+	github.com/giantswarm/micrologger v1.0.0
 	github.com/giantswarm/release-operator/v3 v3.2.0
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.4.0
@@ -41,7 +41,7 @@ replace (
 	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.0 => github.com/gorilla/websocket v1.4.2
 	github.com/kataras/iris/v12 => github.com/kataras/iris/v12 v12.2.0-beta3
-	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.9.0
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.4
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.16.0
