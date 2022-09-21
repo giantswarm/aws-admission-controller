@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Making mutation and validation `dryRun`-aware.
+
 ## [4.4.0] - 2022-08-24
 
 #### Changed
