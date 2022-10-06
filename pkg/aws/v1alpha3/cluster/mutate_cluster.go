@@ -326,6 +326,11 @@ func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRel
 	}
 	annotations[annotation.CiliumPodCidr] = m.defaultCiliumPodCidr
 
+	// When moving to cilium, we don't want to have cilium be kube-proxy implementation from the beginning as
+	// this will cause a downtime in the customer workloads. This annotation disables the feature.
+	// AWS-operator will enable the feature again once all nodes are rolled.
+	annotations["cilium-force-disable-kube-proxy-replacement"] = "true"
+
 	var result []mutator.PatchOperation
 	patch := mutator.PatchAdd("/metadata/annotations", annotations)
 	result = append(result, patch)
