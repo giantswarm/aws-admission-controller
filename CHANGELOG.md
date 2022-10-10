@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add annotation to disable kube-proxy feature in cilium during migration from AWS-cni to cilium.
+
 ## [4.5.0] - 2022-09-21
 
 ### Changed
