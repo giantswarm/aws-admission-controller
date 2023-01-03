@@ -633,3 +633,47 @@ func TestCilium(t *testing.T) {
 		})
 	}
 }
+
+func Test_ClusterAlreadyExists(t *testing.T) {
+	testCases := []struct {
+		name  string
+		valid bool
+	}{
+		{
+			name:  "case 0: cluster does not exists",
+			valid: true,
+		},
+		{
+			name:  "case 1: cluster already exists",
+			valid: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			cluster := unittest.DefaultCluster()
+
+			if !tc.valid {
+				// create a cluster in giantswarm namespace
+				cluster.Namespace = "giantswarm"
+				err := v.k8sClient.CtrlClient().Create(context.TODO(), cluster)
+				if err != nil {
+					t.Fatalf("unexpected error %v", err)
+				}
+			}
+
+			// check if the result is as expected
+			err := v.ClusterExists(cluster)
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}

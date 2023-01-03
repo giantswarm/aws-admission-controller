@@ -14,6 +14,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -74,6 +75,12 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse cluster: %v", err)
 	}
+
+	err = v.ClusterExists(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrgNamespace(cluster)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -402,6 +409,24 @@ func (v *Validator) isInRestrictedGroup(userInfo authenticationv1.UserInfo) bool
 		}
 	}
 	return false
+}
+
+func (v *Validator) ClusterExists(obj metav1.Object) error {
+	// Parse existing clusters
+	clusters := &capi.ClusterList{}
+	err := v.k8sClient.CtrlClient().List(context.Background(), clusters)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if len(clusters.Items) > 0 {
+		for _, cluster := range clusters.Items {
+			if obj.GetName() == cluster.Name {
+				return microerror.Maskf(notAllowedError, fmt.Sprintf("Cluster %s/%s already exists", cluster.Namespace, cluster.Name))
+			}
+		}
+	}
+	return nil
 }
 
 func (v *Validator) isTransitioned(status infrastructurev1alpha3.CommonClusterStatus) bool {
