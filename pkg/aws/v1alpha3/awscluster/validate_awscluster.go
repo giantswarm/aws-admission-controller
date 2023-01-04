@@ -11,6 +11,7 @@ import (
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/giantswarm/aws-admission-controller/v4/config"
 	aws "github.com/giantswarm/aws-admission-controller/v4/pkg/aws/v1alpha3"
@@ -233,6 +234,24 @@ func (v *Validator) AWSClusterAnnotationCNIPrefix(awsCluster infrastructurev1alp
 			return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster annotation '%s' is not allowed in region 'China'.",
 				annotation.AWSCNIPrefixDelegation),
 			)
+		}
+	}
+	return nil
+}
+
+func (v *Validator) AWSClusterExists(obj metav1.Object) error {
+	// Parse existing AWS clusters
+	awsClusters := &infrastructurev1alpha3.AWSClusterList{}
+	err := v.k8sClient.CtrlClient().List(context.Background(), awsClusters)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if len(awsClusters.Items) > 0 {
+		for _, cluster := range awsClusters.Items {
+			if obj.GetName() == cluster.Name {
+				return microerror.Maskf(notAllowedError, fmt.Sprintf("AWSCluster %s/%s already exists", cluster.Namespace, cluster.Name))
+			}
 		}
 	}
 	return nil

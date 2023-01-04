@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Validate if cluster already exists.
+
 ## [4.6.0] - 2022-10-10
 
 ### Added

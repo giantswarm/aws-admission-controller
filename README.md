@@ -57,6 +57,7 @@ Validating Webhook:
 - In an `G8sControlPlane` resource, it validates that the CR is created in the org-namespace from `v16.0.0`.
 
 - In an `AWSCluster` resource, it validates that the CR is created in the org-namespace from `v16.0.0`.
+- In an `AWSCluster` resource, it validates if the cluster already exists in other namespaces.
 
 - In an `AWSControlPlane` resource, it validates the Master Instance Type is a valid Instance Type for the installation.
 - In an `AWSControlPlane` resource, it validates that the order of Master Node Availability Zones does not change on update.
@@ -83,6 +84,7 @@ Validating Webhook:
 - In an `Cluster` resource, it validates that the CR is created in the org-namespace from `v16.0.0`.
 - In a `Cluster` resource, it validates the `alpha.giantswarm.io/update-schedule-target-release` annotation.
 - In a `Cluster` resource, it validates the `alpha.giantswarm.io/update-schedule-target-time` annotation.
+- In a `Cluster` resource, it validates if the cluster already exists in other namespaces.
 
 - In a `MachineDeployment` resource, on creation it validates that the `Cluster` is not deleted.
 - In a `MachineDeployment` resource, on creation it validates that the `Cluster` is in the same namespace.
@@ -93,7 +95,7 @@ The certificates for the webhook are created with CertManager and injected throu
 
 ## Ownership
 
-Firecracker Team
+Team Phoenix
 
 ### Local Development
 
