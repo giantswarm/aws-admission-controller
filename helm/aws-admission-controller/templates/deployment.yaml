@@ -96,9 +96,9 @@ spec:
             initialDelaySeconds: 30
             timeoutSeconds: 10
           securityContext:
-          {{- with .Values.securityContext }}
-            {{- . | toYaml | nindent 10 }}
-          {{- end }}
+            {{- with .Values.securityContext }}
+              {{- . | toYaml | nindent 10 }}
+            {{- end }}
           resources:
             requests:
               cpu: 50m
