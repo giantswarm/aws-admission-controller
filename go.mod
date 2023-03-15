@@ -15,8 +15,12 @@ require (
 	github.com/giantswarm/release-operator/v3 v3.2.0
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.4.0
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/prometheus/client_golang v1.12.1
+	github.com/stretchr/testify v1.8.1 // indirect
+	golang.org/x/net v0.8.0 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	k8s.io/api v0.24.0
 	k8s.io/apiextensions-apiserver v0.24.0
