@@ -8,7 +8,7 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/micrologger/microloggertest"
-	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v4/api/v1alpha1"
 
 	"github.com/giantswarm/aws-admission-controller/v4/pkg/label"
 	"github.com/giantswarm/aws-admission-controller/v4/pkg/mutator"

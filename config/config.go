@@ -6,7 +6,7 @@ import (
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v4/api/v1alpha1"
 	"gopkg.in/alecthomas/kingpin.v2"
 	restclient "k8s.io/client-go/rest"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
