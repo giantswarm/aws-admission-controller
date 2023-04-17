@@ -1,6 +1,7 @@
 package unittest
 
 import (
+	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8scrdclient"
@@ -42,6 +43,10 @@ func FakeK8sClient() k8sclient.Interface {
 			panic(err)
 		}
 		err = securityv1alpha1.AddToScheme(scheme)
+		if err != nil {
+			panic(err)
+		}
+		err = v1beta2.AddToScheme(scheme)
 		if err != nil {
 			panic(err)
 		}

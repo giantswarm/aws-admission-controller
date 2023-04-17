@@ -15,6 +15,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -453,7 +454,10 @@ func (v *Validator) EnsureGitopsPaused(cluster *capi.Cluster, oldCluster *capi.C
 		if ok != nil {
 			kust := kustomizev1beta2.Kustomization{}
 			err = v.k8sClient.CtrlClient().Get(context.Background(), *ok, &kust)
-			if err != nil {
+			if errors.IsNotFound(err) {
+				// Labels are present but Kustomization was not found. Might be running on customer infra. Don't want to block upgrade.
+				return nil
+			} else if err != nil {
 				return err
 			}
 
