@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
+	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
@@ -118,6 +119,12 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 	}
 	if capi {
 		return true, nil
+	}
+
+	// Block v18 to v19 upgrades for gitops-managed clusters.
+	err = v.EnsureGitopsPaused(cluster, oldCluster)
+	if err != nil {
+		return false, microerror.Mask(err)
 	}
 
 	err = v.Cilium(cluster, oldCluster)
@@ -425,6 +432,36 @@ func (v *Validator) ClusterExists(obj metav1.Object) error {
 				return microerror.Maskf(notAllowedError, fmt.Sprintf("Cluster %s/%s already exists", cluster.Namespace, cluster.Name))
 			}
 		}
+	}
+	return nil
+}
+
+func (v *Validator) EnsureGitopsPaused(cluster *capi.Cluster, oldCluster *capi.Cluster) error {
+	targetRelease, err := semver.New(key.Release(cluster))
+	if err != nil {
+		return err
+	}
+
+	currentRelease, err := semver.New(key.Release(oldCluster))
+	if err != nil {
+		return err
+	}
+	if aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+		// We are trying to upgrade from v18 to v19.
+
+		ok := key.FluxKustomizationObjectKey(cluster)
+		if ok != nil {
+			kust := kustomizev1beta2.Kustomization{}
+			err = v.k8sClient.CtrlClient().Get(context.Background(), *ok, &kust)
+			if err != nil {
+				return err
+			}
+
+			if !kust.Spec.Suspend {
+				return microerror.Maskf(notAllowedError, fmt.Sprintf("Cluster %s/%s is managed by gitops but Kustomization %s/%s is not suspended", cluster.Namespace, cluster.Name, ok.Namespace, ok.Name))
+			}
+		}
+
 	}
 	return nil
 }
