@@ -14,6 +14,7 @@ import (
 	"github.com/giantswarm/micrologger"
 	admissionv1 "k8s.io/api/admission/v1"
 	authenticationv1 "k8s.io/api/authentication/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -54,6 +55,9 @@ func NewValidator(config config.Config) (*Validator, error) {
 }
 
 func (v *Validator) Validate(request *admissionv1.AdmissionRequest) (bool, error) {
+	if request.DryRun != nil && *request.DryRun {
+		return true, nil
+	}
 	if request.Operation == admissionv1.Create {
 		return v.ValidateCreate(request)
 	}
@@ -71,6 +75,12 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 	if _, _, err := validator.Deserializer.Decode(request.Object.Raw, nil, cluster); err != nil {
 		return false, microerror.Maskf(parsingFailedError, "unable to parse cluster: %v", err)
 	}
+
+	err = v.ClusterExists(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = aws.ValidateOrgNamespace(cluster)
 	if err != nil {
 		return false, microerror.Mask(err)
@@ -237,7 +247,7 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 	podCidr, ciliumCidrAnnotationExists := cluster.GetAnnotations()[annotation.CiliumPodCidr]
 	ciliumCidrAnnotationExists = ciliumCidrAnnotationExists && podCidr != ""
 
-	// Validate annotation is present during an upgrade from v17 to v18.
+	// Validate annotation is present during an upgrade from v18 to v19.
 	{
 		targetRelease, err := semver.New(key.Release(cluster))
 		if err != nil {
@@ -250,7 +260,7 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 		}
 		if !ciliumCidrAnnotationExists && aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
 			return microerror.Maskf(notAllowedError,
-				fmt.Sprintf("The annotation `%s` has to be set on Cluster CR before upgrading to AWS release v18 or higher. %s %s", annotation.CiliumPodCidr, currentRelease, targetRelease),
+				fmt.Sprintf("The annotation `%s` has to be set on Cluster CR before upgrading to AWS release v19 or higher. %s %s", annotation.CiliumPodCidr, currentRelease, targetRelease),
 			)
 		}
 	}
@@ -399,6 +409,24 @@ func (v *Validator) isInRestrictedGroup(userInfo authenticationv1.UserInfo) bool
 		}
 	}
 	return false
+}
+
+func (v *Validator) ClusterExists(obj metav1.Object) error {
+	// Parse existing clusters
+	clusters := &capi.ClusterList{}
+	err := v.k8sClient.CtrlClient().List(context.Background(), clusters)
+	if err != nil {
+		return microerror.Mask(err)
+	}
+
+	if len(clusters.Items) > 0 {
+		for _, cluster := range clusters.Items {
+			if obj.GetName() == cluster.Name {
+				return microerror.Maskf(notAllowedError, fmt.Sprintf("Cluster %s/%s already exists", cluster.Namespace, cluster.Name))
+			}
+		}
+	}
+	return nil
 }
 
 func (v *Validator) isTransitioned(status infrastructurev1alpha3.CommonClusterStatus) bool {

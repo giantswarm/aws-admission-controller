@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Added the use of the runtime default seccomp profile
+
+## [4.7.0] - 2023-01-04
+
+### Added
+
+- Validate if cluster already exists.
+
+## [4.6.0] - 2022-10-10
+
+### Added
+
+- Add annotation to disable kube-proxy feature in cilium during migration from AWS-cni to cilium.
+
+## [4.5.0] - 2022-09-21
+
+### Changed
+
+- Making mutation and validation `dryRun`-aware.
+
 ## [4.4.0] - 2022-08-24
 
 #### Changed
@@ -365,7 +385,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.4.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.7.0...HEAD
+[4.7.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.6.0...v4.7.0
+[4.6.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.5.0...v4.6.0
+[4.5.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.4.0...v4.5.0
 [4.4.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.3.0...v4.4.0
 [4.3.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.2.0...v4.3.0
 [4.2.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.1.0...v4.2.0

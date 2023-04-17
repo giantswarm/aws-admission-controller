@@ -9,21 +9,24 @@ require (
 	github.com/giantswarm/apiextensions/v6 v6.4.0
 	github.com/giantswarm/backoff v1.0.0
 	github.com/giantswarm/k8sclient/v7 v7.0.1
-	github.com/giantswarm/k8smetadata v0.12.0
+	github.com/giantswarm/k8smetadata v0.19.0
 	github.com/giantswarm/microerror v0.4.0
 	github.com/giantswarm/micrologger v1.0.0
-	github.com/giantswarm/release-operator/v3 v3.2.0
+	github.com/giantswarm/release-operator/v4 v4.0.0
 	github.com/giantswarm/ruleengine v0.2.0
 	github.com/giantswarm/to v0.4.0
-	github.com/google/go-cmp v0.5.8
-	github.com/prometheus/client_golang v1.12.1
+	github.com/google/go-cmp v0.5.9
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/prometheus/client_golang v1.14.0
+	golang.org/x/net v0.8.0 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	k8s.io/api v0.24.0
-	k8s.io/apiextensions-apiserver v0.24.0
-	k8s.io/apimachinery v0.24.0
-	k8s.io/client-go v0.24.0
+	k8s.io/api v0.24.3
+	k8s.io/apiextensions-apiserver v0.24.3
+	k8s.io/apimachinery v0.24.3
+	k8s.io/client-go v0.24.3
 	sigs.k8s.io/cluster-api v1.0.4
-	sigs.k8s.io/controller-runtime v0.12.1
+	sigs.k8s.io/controller-runtime v0.12.3
 )
 
 replace (

@@ -12,7 +12,7 @@ import (
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger/microloggertest"
-	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v4/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
@@ -629,6 +629,50 @@ func TestCilium(t *testing.T) {
 			err = validate.Cilium(cluster, oldCluster)
 			if microerror.Cause(err) != tc.err {
 				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func Test_ClusterAlreadyExists(t *testing.T) {
+	testCases := []struct {
+		name  string
+		valid bool
+	}{
+		{
+			name:  "case 0: cluster does not exists",
+			valid: true,
+		},
+		{
+			name:  "case 1: cluster already exists",
+			valid: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			cluster := unittest.DefaultCluster()
+
+			if !tc.valid {
+				// create a cluster in giantswarm namespace
+				cluster.Namespace = "giantswarm"
+				err := v.k8sClient.CtrlClient().Create(context.TODO(), cluster)
+				if err != nil {
+					t.Fatalf("unexpected error %v", err)
+				}
+			}
+
+			// check if the result is as expected
+			err := v.ClusterExists(cluster)
+			if tc.valid && err != nil {
+				t.Fatalf("unexpected error %v", err)
+			}
+			if !tc.valid && err == nil {
+				t.Fatalf("expected error but returned %v", err)
 			}
 		})
 	}
