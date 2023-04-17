@@ -141,7 +141,7 @@ func serveTLS(config config.Config, handler http.Handler) {
 		panic(microerror.JSON(err))
 	}
 
-	server := &http.Server{
+	server := &http.Server{ // nolint:gosec
 		Addr:    config.Address,
 		Handler: handler,
 		TLSConfig: &tls.Config{
@@ -169,7 +169,7 @@ func serveTLS(config config.Config, handler http.Handler) {
 }
 
 func serveMetrics(config config.Config, handler http.Handler) {
-	server := &http.Server{
+	server := &http.Server{ // nolint:gosec
 		Addr:    config.MetricsAddress,
 		Handler: handler,
 	}
