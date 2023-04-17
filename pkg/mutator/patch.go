@@ -22,13 +22,12 @@ func PatchReplace(path string, value interface{}) PatchOperation {
 // The "add" operation performs one of the following functions,
 // depending upon what the target location references:
 //
-//  -  If the target location specifies an array index, a new value is
+//   - If the target location specifies an array index, a new value is
 //     inserted into the array at the specified index.
-//  -  If the target location specifies an object member that does not
+//   - If the target location specifies an object member that does not
 //     already exist, a new member is added to the object.
-//  -  If the target location specifies an object member that does exist,
+//   - If the target location specifies an object member that does exist,
 //     that member's value is replaced.
-//
 func PatchAdd(path string, value interface{}) PatchOperation {
 	return PatchOperation{
 		Operation: "add",

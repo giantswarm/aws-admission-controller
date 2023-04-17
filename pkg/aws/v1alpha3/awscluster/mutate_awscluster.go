@@ -294,7 +294,7 @@ func (m *Mutator) MutateMasterPreHA(awsCluster infrastructurev1alpha3.AWSCluster
 	return result, nil
 }
 
-//  MutateCredential defaults the cluster credential if it is not set.
+// MutateCredential defaults the cluster credential if it is not set.
 func (m *Mutator) MutateCredential(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if awsCluster.Spec.Provider.CredentialSecret.Name != "" && awsCluster.Spec.Provider.CredentialSecret.Namespace != "" {
@@ -355,7 +355,7 @@ func (m *Mutator) fetchCredentialSecret(organization string) (corev1.Secret, err
 	return secrets.Items[0], nil
 }
 
-//  MutateDescription defaults the cluster description if it is not set.
+// MutateDescription defaults the cluster description if it is not set.
 func (m *Mutator) MutateDescription(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if awsCluster.Spec.Cluster.Description == "" {
@@ -370,7 +370,7 @@ func (m *Mutator) MutateDescription(awsCluster infrastructurev1alpha3.AWSCluster
 	return result, nil
 }
 
-//  MutateDomain defaults the cluster dns domain if it is not set.
+// MutateDomain defaults the cluster dns domain if it is not set.
 func (m *Mutator) MutateDomain(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if awsCluster.Spec.Cluster.DNS.Domain == "" {
@@ -433,7 +433,7 @@ func (m *Mutator) MutateReleaseVersion(awsCluster infrastructurev1alpha3.AWSClus
 	return result, nil
 }
 
-//  MutateRegion defaults the cluster region if it is not set.
+// MutateRegion defaults the cluster region if it is not set.
 func (m *Mutator) MutateRegion(awsCluster infrastructurev1alpha3.AWSCluster) ([]mutator.PatchOperation, error) {
 	var result []mutator.PatchOperation
 	if awsCluster.Spec.Provider.Region == "" {
