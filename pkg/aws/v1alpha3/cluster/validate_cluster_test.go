@@ -12,7 +12,7 @@ import (
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger/microloggertest"
-	releasev1alpha1 "github.com/giantswarm/release-operator/v3/api/v1alpha1"
+	releasev1alpha1 "github.com/giantswarm/release-operator/v4/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
