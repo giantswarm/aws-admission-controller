@@ -3,7 +3,7 @@ package validator
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -42,7 +42,7 @@ func Handler(validator Validator) http.HandlerFunc {
 			return
 		}
 
-		data, err := ioutil.ReadAll(request.Body)
+		data, err := io.ReadAll(request.Body)
 		if err != nil {
 			validator.Log("level", "error", "message", "unable to read request")
 			metrics.InternalError.WithLabelValues("validating", validator.Resource()).Inc()

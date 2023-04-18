@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/apiextensions/v6/pkg/label"
 	"github.com/giantswarm/k8smetadata/pkg/annotation"
@@ -673,6 +674,139 @@ func Test_ClusterAlreadyExists(t *testing.T) {
 			}
 			if !tc.valid && err == nil {
 				t.Fatalf("expected error but returned %v", err)
+			}
+		})
+	}
+}
+
+func TestValidator_EnsureGitopsPaused(t *testing.T) {
+	testCases := []struct {
+		ctx  context.Context
+		name string
+
+		currentRelease string
+		targetRelease  string
+		kustomization  *v1beta2.Kustomization
+		labels         map[string]string
+		err            error
+	}{
+		{
+			name: "case 0: no upgrade to v19",
+			ctx:  context.Background(),
+
+			currentRelease: "17.4.1",
+			targetRelease:  "18.0.0",
+			kustomization:  nil,
+			labels:         nil,
+			err:            nil,
+		},
+		{
+			name: "case 1: already in v19",
+			ctx:  context.Background(),
+
+			currentRelease: "19.0.0",
+			targetRelease:  "19.0.1",
+			kustomization:  nil,
+			labels:         nil,
+			err:            nil,
+		},
+		{
+			name: "case 2: upgrade to v19, no flux",
+			ctx:  context.Background(),
+
+			currentRelease: "18.3.0",
+			targetRelease:  "19.0.0-beta1",
+			kustomization:  nil,
+			labels:         nil,
+			err:            nil,
+		},
+		{
+			name: "case 3: upgrade to v19, flux but suspended",
+			ctx:  context.Background(),
+
+			currentRelease: "18.3.0",
+			targetRelease:  "19.0.0-beta1",
+			kustomization: &v1beta2.Kustomization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kust1",
+					Namespace: "default",
+				},
+				Spec: v1beta2.KustomizationSpec{
+					Suspend: true,
+				},
+			},
+			labels: map[string]string{
+				"kustomize.toolkit.fluxcd.io/name":      "kust1",
+				"kustomize.toolkit.fluxcd.io/namespace": "default",
+			},
+			err: nil,
+		},
+		{
+			name: "case 4: upgrade to v19, flux not suspended",
+			ctx:  context.Background(),
+
+			currentRelease: "18.3.0",
+			targetRelease:  "19.0.0-beta1",
+			kustomization: &v1beta2.Kustomization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "kust1",
+					Namespace: "default",
+				},
+				Spec: v1beta2.KustomizationSpec{
+					Suspend: false,
+				},
+			},
+			labels: map[string]string{
+				"kustomize.toolkit.fluxcd.io/name":      "kust1",
+				"kustomize.toolkit.fluxcd.io/namespace": "default",
+			},
+			err: notAllowedError,
+		},
+		{
+			name: "case 5: upgrade to v19, flux labels present but no kustomization exists",
+			ctx:  context.Background(),
+
+			currentRelease: "18.3.0",
+			targetRelease:  "19.0.0-beta1",
+			kustomization:  nil,
+			labels: map[string]string{
+				"kustomize.toolkit.fluxcd.io/name":      "kust1",
+				"kustomize.toolkit.fluxcd.io/namespace": "default",
+			},
+			err: nil,
+		},
+	}
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var err error
+
+			fakeK8sClient := unittest.FakeK8sClient()
+
+			// Create kustomization CR
+			if tc.kustomization != nil {
+				err = fakeK8sClient.CtrlClient().Create(context.Background(), tc.kustomization)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			oldCluster := unittest.DefaultCluster()
+			oldCluster.Labels[label.ReleaseVersion] = tc.currentRelease
+
+			cluster := unittest.DefaultCluster()
+			cluster.Labels[label.ReleaseVersion] = tc.targetRelease
+			for k, v := range tc.labels {
+				cluster.Labels[k] = v
+			}
+
+			validate := &Validator{
+				k8sClient: fakeK8sClient,
+				logger:    microloggertest.New(),
+			}
+
+			err = validate.EnsureGitopsPaused(cluster, oldCluster)
+			if microerror.Cause(err) != tc.err {
+				t.Fatal(err)
 			}
 		})
 	}

@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
 - Added the use of the runtime default seccomp profile
+- Block upgrade from v18 to v19 if cluster is gitops managed and Kustomization is not suspended.
 
 ## [4.7.0] - 2023-01-04
 

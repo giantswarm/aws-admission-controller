@@ -1,6 +1,7 @@
 package config
 
 import (
+	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	infrastructurev1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/k8sclient/v7/pkg/k8sclient"
 	"github.com/giantswarm/microerror"
@@ -66,6 +67,7 @@ func Parse() (Config, error) {
 				infrastructurev1alpha3.AddToScheme,
 				releasev1alpha1.AddToScheme,
 				securityv1alpha1.AddToScheme,
+				kustomizev1beta2.AddToScheme,
 			},
 			Logger: config.Logger,
 
