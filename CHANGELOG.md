@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add service monitor to be scraped by Prometheus Agent.
+
 ## [4.8.0] - 2023-04-18
 
 ### Added
