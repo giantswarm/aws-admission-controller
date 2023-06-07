@@ -286,45 +286,45 @@ func (m *Mutator) MutateInfraRef(cluster capi.Cluster, releaseVersion *semver.Ve
 }
 
 func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRelease *semver.Version, targetRelease *semver.Version) ([]mutator.PatchOperation, error) {
-	if _, ok := cluster.Annotations[annotation.CiliumPodCidr]; ok {
-		return nil, nil
-	}
-
 	if aws.IsPreCiliumRelease(currentRelease) && aws.IsPreCiliumRelease(targetRelease) || aws.IsCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
 		return nil, nil
 	}
 
-	// We only default the cilium CIDR if this cluster:
-	// - is not using networkpools
-	// - is using the default pod cidr
-
-	// Retrieve the `AWSCluster` CR related to this object.
-	awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &cluster)
-	if apierrors.IsNotFound(err) {
-		// No AWS cluster exists, can't provide a default.
-		m.Log("level", "debug", "message", "AWSCluster not found, can't default cilium cidr")
-		return nil, nil
-	} else if err != nil {
-		return nil, microerror.Mask(err)
-	}
-
-	if awsCluster.Spec.Provider.Nodes.NetworkPool != "" {
-		// Networkpool in use, can't provide a sane default.
-		m.Log("level", "debug", "message", "Networkpool is set, can't default cilium cidr")
-		return nil, nil
-	}
-
-	if awsCluster.Spec.Provider.Pods.CIDRBlock != m.defaultAWSCNIPodCidr {
-		// Non default pod cidr, can't provide a sane default.
-		m.Log("level", "debug", "message", "Using not default cidr block, can't default cilium cidr")
-		return nil, nil
-	}
-
 	annotations := cluster.Annotations
-	if annotations == nil {
-		annotations = map[string]string{}
+
+	// Default the cilium pod cidr annotation if it's not set already.
+	if _, ok := cluster.Annotations[annotation.CiliumPodCidr]; !ok {
+		// We only default the cilium CIDR if this cluster:
+		// - is not using networkpools
+		// - is using the default pod cidr
+
+		// Retrieve the `AWSCluster` CR related to this object.
+		awsCluster, err := aws.FetchAWSCluster(&aws.Handler{K8sClient: m.k8sClient, Logger: m.logger}, &cluster)
+		if apierrors.IsNotFound(err) {
+			// No AWS cluster exists, can't provide a default.
+			m.Log("level", "debug", "message", "AWSCluster not found, can't default cilium cidr")
+			return nil, nil
+		} else if err != nil {
+			return nil, microerror.Mask(err)
+		}
+
+		if awsCluster.Spec.Provider.Nodes.NetworkPool != "" {
+			// Networkpool in use, can't provide a sane default.
+			m.Log("level", "debug", "message", "Networkpool is set, can't default cilium cidr")
+			return nil, nil
+		}
+
+		if awsCluster.Spec.Provider.Pods.CIDRBlock != m.defaultAWSCNIPodCidr {
+			// Non default pod cidr, can't provide a sane default.
+			m.Log("level", "debug", "message", "Using not default cidr block, can't default cilium cidr")
+			return nil, nil
+		}
+
+		if annotations == nil {
+			annotations = map[string]string{}
+		}
+		annotations[annotation.CiliumPodCidr] = m.defaultCiliumPodCidr
 	}
-	annotations[annotation.CiliumPodCidr] = m.defaultCiliumPodCidr
 
 	// When moving to cilium, we don't want to have cilium be kube-proxy implementation from the beginning as
 	// this will cause a downtime in the customer workloads. This annotation disables the feature.
