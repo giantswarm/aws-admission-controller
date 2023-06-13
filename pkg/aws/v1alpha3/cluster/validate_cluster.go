@@ -167,6 +167,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		}
 	}
 
+	err = v.ValidateCiliumIpamModeUnchanged(oldCluster, cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -489,6 +494,41 @@ func (v *Validator) EnsureGitopsPaused(cluster *capi.Cluster, oldCluster *capi.C
 		}
 
 	}
+	return nil
+}
+
+func (v *Validator) ValidateCiliumIpamModeUnchanged(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
+	currentRelease, err := semver.New(key.Release(oldCluster))
+	if err != nil {
+		return err
+	}
+	if !aws.IsCiliumRelease(currentRelease) {
+		// before the update, cluster was not using cilium. After this upgrade it might be using cilium, but the point is that
+		// we can still change the IPAM mode as it was not applied yet.
+		return nil
+	}
+
+	// Cluster is already using cilium, we can't change the IPAM mode any more.
+	oldIpamMode, oldFound := oldCluster.Annotations[annotation.CiliumIpamModeAnnotation]
+	if !oldFound {
+		// Annotation might be missing, meaning we use the default value 'kubernetes'.
+		oldIpamMode = annotation.CiliumIpamModeKubernetes
+	}
+
+	newIpamMode, newFound := newCluster.Annotations[annotation.CiliumIpamModeAnnotation]
+	if !newFound {
+		// Annotation might be missing, meaning we use the default value 'kubernetes'.
+		newIpamMode = annotation.CiliumIpamModeKubernetes
+	}
+
+	if oldFound && !newFound {
+		return microerror.Maskf(notAllowedError, "Deleting %s annotation is not allowed.", annotation.CiliumIpamModeAnnotation)
+	}
+
+	if oldIpamMode != newIpamMode {
+		return microerror.Maskf(notAllowedError, "Changing %s annotation value is not allowed. Attempted to change from %q to %q", annotation.CiliumIpamModeAnnotation, oldIpamMode, newIpamMode)
+	}
+
 	return nil
 }
 
