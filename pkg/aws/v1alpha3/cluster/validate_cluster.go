@@ -98,6 +98,11 @@ func (v *Validator) ValidateCreate(request *admissionv1.AdmissionRequest) (bool,
 		return false, microerror.Mask(err)
 	}
 
+	err = v.ValidateCiliumIpamMode(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	return true, nil
 }
 
@@ -329,6 +334,23 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 	}
 
 	return nil
+}
+
+func (v *Validator) ValidateCiliumIpamMode(cluster *capi.Cluster) error {
+	value, found := cluster.Annotations[annotation.CiliumIpamModeAnnotation]
+	if !found {
+		// There is no annotation at all, good.
+		return nil
+	}
+
+	if value == annotation.CiliumIpamModeENI || value == annotation.CiliumIpamModeKubernetes {
+		// Valid value
+		return nil
+	}
+
+	return microerror.Maskf(notAllowedError,
+		fmt.Sprintf("Value %q for annotation %q is invalid. Valid values are %q and %q", value, annotation.CiliumIpamModeAnnotation, annotation.CiliumIpamModeENI, annotation.CiliumIpamModeKubernetes),
+	)
 }
 
 func (v *Validator) ClusterLabelKeysValid(oldCluster *capi.Cluster, newCluster *capi.Cluster) error {
