@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add validation for `cilium.giantswarm.io/ipam-mode` annotation on `Cluster` CR creation.
+
 ## [4.8.1] - 2023-06-07
 
 ### Fixed

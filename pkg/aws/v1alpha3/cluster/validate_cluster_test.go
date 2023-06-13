@@ -811,3 +811,67 @@ func TestValidator_EnsureGitopsPaused(t *testing.T) {
 		})
 	}
 }
+
+func Test_CiliumIpamMode(t *testing.T) {
+	testCases := []struct {
+		name        string
+		annotations map[string]string
+		err         error
+	}{
+		{
+			name:        "case 0: nil annotations",
+			annotations: nil,
+			err:         nil,
+		},
+		{
+			name:        "case 1: empty map of annotations",
+			annotations: map[string]string{},
+			err:         nil,
+		},
+		{
+			name: "case 2: some annotations but not the one we care about",
+			annotations: map[string]string{
+				"giantswarm.io/test": "test",
+			},
+			err: nil,
+		},
+		{
+			name: "case 3: annotation with valid value 'eni'",
+			annotations: map[string]string{
+				"cilium.giantswarm.io/ipam-mode": "eni",
+			},
+			err: nil,
+		},
+		{
+			name: "case 4: annotation with valid value 'kubernetes'",
+			annotations: map[string]string{
+				"cilium.giantswarm.io/ipam-mode": "kubernetes",
+			},
+			err: nil,
+		},
+		{
+			name: "case 5: annotation with invalid value",
+			annotations: map[string]string{
+				"cilium.giantswarm.io/ipam-mode": "wrong",
+			},
+			err: notAllowedError,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			cluster := unittest.DefaultCluster()
+			cluster.Annotations = tc.annotations
+
+			// check if the result is as expected
+			err := v.ValidateCiliumIpamMode(cluster)
+			if microerror.Cause(err) != tc.err {
+				t.Fatalf("Expected error to be %q, got %q", microerror.Cause(tc.err), err)
+			}
+		})
+	}
+}
