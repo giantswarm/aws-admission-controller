@@ -118,6 +118,9 @@ func (m *Mutator) MutateCreate(request *admissionv1.AdmissionRequest) ([]mutator
 	}
 	result = append(result, patch...)
 
+	patch = m.DefaultCiliumIpamMode(*cluster, releaseVersion)
+	result = append(result, patch...)
+
 	return result, nil
 }
 
@@ -335,4 +338,29 @@ func (m *Mutator) DefaultCiliumCidrOnV18Upgrade(cluster capi.Cluster, currentRel
 	patch := mutator.PatchAdd("/metadata/annotations", annotations)
 	result = append(result, patch)
 	return result, nil
+}
+
+func (m *Mutator) DefaultCiliumIpamMode(cluster capi.Cluster, release *semver.Version) []mutator.PatchOperation {
+	if aws.IsPreCiliumRelease(release) {
+		// No need for the annotation before cilium.
+		return nil
+	}
+
+	annotations := cluster.Annotations
+	if annotations == nil {
+		annotations = make(map[string]string, 0)
+	}
+
+	_, found := annotations[annotation.CiliumIpamModeAnnotation]
+	if found {
+		// Annotation already present.
+		return nil
+	}
+
+	annotations[annotation.CiliumIpamModeAnnotation] = annotation.CiliumIpamModeKubernetes
+
+	var result []mutator.PatchOperation
+	patch := mutator.PatchAdd("/metadata/annotations", annotations)
+	result = append(result, patch)
+	return result
 }
