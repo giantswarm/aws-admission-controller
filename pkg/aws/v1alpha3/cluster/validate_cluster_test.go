@@ -875,3 +875,117 @@ func Test_CiliumIpamMode(t *testing.T) {
 		})
 	}
 }
+
+func Test_ValidateCiliumIpamModeUnchanged(t *testing.T) {
+	testCases := []struct {
+		name           string
+		oldAnnotations map[string]string
+		oldRelease     string
+		newAnnotations map[string]string
+		newRelease     string
+		err            error
+	}{
+		{
+			name:           "case 0: old release not using cilium, no annotation set",
+			oldAnnotations: nil,
+			oldRelease:     "18.0.0",
+			newAnnotations: nil,
+			newRelease:     "18.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 1: old release using cilium, no annotation set",
+			oldAnnotations: nil,
+			oldRelease:     "19.0.0",
+			newAnnotations: nil,
+			newRelease:     "19.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 2: old release not using cilium, version unchanged and annotation unchanged",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "18.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			newRelease:     "18.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 3: old release not using cilium, version unchanged and annotation changed",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "18.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "eni"},
+			newRelease:     "18.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 4: old release not using cilium, version changed and annotation changed",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "18.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "eni"},
+			newRelease:     "19.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 5: old release using cilium, version unchanged and annotation changed",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "19.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "eni"},
+			newRelease:     "19.0.0",
+			err:            notAllowedError,
+		},
+		{
+			name:           "case 6: old release using cilium, version unchanged and annotation unchanged",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "19.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			newRelease:     "19.0.0",
+			err:            nil,
+		},
+		{
+			name:           "case 7: old release using cilium, version unchanged and annotation removed",
+			oldAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			oldRelease:     "19.0.0",
+			newAnnotations: nil,
+			newRelease:     "19.0.0",
+			err:            notAllowedError,
+		},
+		{
+			name:           "case 8: old release using cilium, version unchanged and annotation added with non-default value",
+			oldAnnotations: nil,
+			oldRelease:     "19.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "eni"},
+			newRelease:     "19.0.0",
+			err:            notAllowedError,
+		},
+		{
+			name:           "case 9: old release using cilium, version unchanged and annotation added with default value",
+			oldAnnotations: nil,
+			oldRelease:     "19.0.0",
+			newAnnotations: map[string]string{"cilium.giantswarm.io/ipam-mode": "kubernetes"},
+			newRelease:     "19.0.0",
+			err:            nil,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			v := &Validator{
+				k8sClient: unittest.FakeK8sClient(),
+				logger:    microloggertest.New(),
+			}
+			oldCluster := unittest.DefaultCluster()
+			oldCluster.Annotations = tc.oldAnnotations
+			oldCluster.Labels[label.ReleaseVersion] = tc.oldRelease
+
+			newCluster := unittest.DefaultCluster()
+			newCluster.Annotations = tc.newAnnotations
+			newCluster.Labels[label.ReleaseVersion] = tc.newRelease
+
+			// check if the result is as expected
+			err := v.ValidateCiliumIpamModeUnchanged(oldCluster, newCluster)
+			if microerror.Cause(err) != tc.err {
+				t.Fatalf("Expected error to be %q, got %q", microerror.Cause(tc.err), err)
+			}
+		})
+	}
+}
