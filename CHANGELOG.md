@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Check validity of `cilium.giantswarm.io/ipam-mode` on `Cluster` CR update as well.
+
 ## [4.9.0] - 2023-06-28
 
 ### Added
