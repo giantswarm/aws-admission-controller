@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.9.1] - 2023-06-28
+
 ### Fixed
 
 - Check validity of `cilium.giantswarm.io/ipam-mode` on `Cluster` CR update as well.
@@ -410,7 +412,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.1...HEAD
+[4.9.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.0...v4.9.1
 [4.9.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.8.1...v4.9.0
 [4.8.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.8.0...v4.8.1
 [4.8.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.7.0...v4.8.0
