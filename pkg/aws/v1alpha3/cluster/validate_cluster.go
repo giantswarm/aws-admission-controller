@@ -167,6 +167,11 @@ func (v *Validator) ValidateUpdate(request *admissionv1.AdmissionRequest) (bool,
 		}
 	}
 
+	err = v.ValidateCiliumIpamMode(cluster)
+	if err != nil {
+		return false, microerror.Mask(err)
+	}
+
 	err = v.ValidateCiliumIpamModeUnchanged(oldCluster, cluster)
 	if err != nil {
 		return false, microerror.Mask(err)
