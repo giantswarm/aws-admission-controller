@@ -90,6 +90,10 @@
                             "type": "string"
                         }
                     }
+                },
+                "runAsNonRoot": {
+                    "type": "boolean",
+                    "default": true
                 }
             }
         },
@@ -122,7 +126,24 @@
                             "type": "string"
                         }
                     }
+                },
+                "allowPrivilegeEscalation": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "capabilities":{
+                    "type": "object",
+                    "properties": {
+                        "drop": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "default": ["ALL"]
+                        }
+                    }
                 }
+
             }
         },
         "verticalPodAutoscaler": {
