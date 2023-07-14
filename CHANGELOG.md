@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.11.0] - 2023-07-14
+
 ## [4.10.0] - 2023-07-13
 
 ### Fixed
@@ -418,7 +420,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.10.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.11.0...HEAD
+[4.11.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.10.0...v4.11.0
 [4.10.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.1...v4.10.0
 [4.9.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.0...v4.9.1
 [4.9.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.8.1...v4.9.0
