@@ -97,7 +97,7 @@ spec:
             timeoutSeconds: 10
           securityContext:
             {{- with .Values.securityContext }}
-              {{- . | toYaml | nindent 10 }}
+              {{- . | toYaml | nindent 12 }}
             {{- end }}
           resources:
             requests:
