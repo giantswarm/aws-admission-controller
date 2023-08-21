@@ -15,76 +15,77 @@ import (
 	unittest "github.com/giantswarm/aws-admission-controller/v4/pkg/unittest/v1alpha3"
 )
 
-func TestCiliumCIDRDefaulting(t *testing.T) {
+func TestCiliumKubeProxyDisabled(t *testing.T) {
 	testCases := []struct {
 		ctx  context.Context
 		name string
 
-		newVersion     string
-		oldVersion     string
-		customPodCidr  bool
-		networkPool    bool
-		eniModeEnabled bool
-		expectedCidr   string
+		newVersion                string
+		oldVersion                string
+		customPodCidr             bool
+		networkPool               bool
+		eniModeEnabled            bool
+		expectedAnnotationPresent bool
+		expectedAnnotationValue   string
 	}{
 		{
 			name: "case 0: no upgrade",
 			ctx:  context.Background(),
 
-			newVersion:   "17.0.0",
-			oldVersion:   "17.0.0",
-			expectedCidr: "",
+			newVersion:                "17.0.0",
+			oldVersion:                "17.0.0",
+			expectedAnnotationPresent: false,
 		},
 		{
 			name: "case 1: upgrade to v17",
 			ctx:  context.Background(),
 
-			newVersion:   "16.0.0",
-			oldVersion:   "17.0.0",
-			expectedCidr: "",
+			newVersion:                "16.0.0",
+			oldVersion:                "17.0.0",
+			expectedAnnotationPresent: false,
 		},
 		{
 			name: "case 2: minor upgrade within v18",
 			ctx:  context.Background(),
 
-			newVersion:   "18.0.0",
-			oldVersion:   "18.0.1",
-			expectedCidr: "",
+			newVersion:                "18.0.0",
+			oldVersion:                "18.0.1",
+			expectedAnnotationPresent: false,
 		},
 		{
 			name: "case 3: upgrade from v18 to v19",
 			ctx:  context.Background(),
 
-			newVersion:   "18.0.0",
-			oldVersion:   "19.0.0",
-			expectedCidr: "192.168.0.0/16",
+			newVersion:                "18.0.0",
+			oldVersion:                "19.0.0",
+			expectedAnnotationPresent: true,
 		},
 		{
 			name: "case 4: upgrade from v18 to v19 with networkpool set",
 			ctx:  context.Background(),
 
-			newVersion:   "18.0.0",
-			oldVersion:   "19.0.0",
-			networkPool:  true,
-			expectedCidr: "",
+			newVersion:                "18.0.0",
+			oldVersion:                "19.0.0",
+			networkPool:               true,
+			expectedAnnotationPresent: true,
 		},
 		{
 			name: "case 5: upgrade from v17 to v18 with custom pod cidr",
 			ctx:  context.Background(),
 
-			newVersion:    "17.0.0",
-			oldVersion:    "18.0.0",
-			customPodCidr: true,
-			expectedCidr:  "",
+			newVersion:                "17.0.0",
+			oldVersion:                "18.0.0",
+			customPodCidr:             true,
+			expectedAnnotationPresent: false,
 		},
 		{
 			name: "case 6: upgrade from v18 to v19 with ENI mode set",
 			ctx:  context.Background(),
 
-			newVersion:     "18.0.0",
-			oldVersion:     "19.0.0",
-			eniModeEnabled: true,
-			expectedCidr:   "",
+			newVersion:                "18.0.0",
+			oldVersion:                "19.0.0",
+			eniModeEnabled:            true,
+			expectedAnnotationPresent: true,
 		},
 	}
 	for i, tc := range testCases {
@@ -148,17 +149,25 @@ func TestCiliumCIDRDefaulting(t *testing.T) {
 				t.Fatal(err)
 			}
 			// parse patches
-			var cidr string
+			var found bool
 			for _, p := range patch {
 				if p.Path == "/metadata/annotations" {
 					annotations := p.Value.(map[string]string)
 
-					cidr = annotations[annotation.CiliumPodCidr]
+					_, found = annotations[annotation.CiliumForceDisableKubeProxyAnnotation]
 				}
 			}
 			// check if the release label is as expected
-			if tc.expectedCidr != cidr {
-				t.Fatalf("%s: expected %#q, got %#q", tc.name, tc.expectedCidr, cidr)
+			if tc.expectedAnnotationPresent != found {
+				exp := "present"
+				if !tc.expectedAnnotationPresent {
+					exp = "absent"
+				}
+				fnd := "present"
+				if !found {
+					fnd = "absent"
+				}
+				t.Fatalf("%s: expected annotation %#q to be %s, was %s", tc.name, annotation.CiliumForceDisableKubeProxyAnnotation, exp, fnd)
 			}
 		})
 	}
