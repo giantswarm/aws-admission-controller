@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Don't change pod CIDR during upgrade from v18 to v19 if eni ipam mode is enabled. 
+
 ## [4.11.0] - 2023-07-14
 
 ### Fixed

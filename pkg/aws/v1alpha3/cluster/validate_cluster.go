@@ -270,6 +270,8 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 	podCidr, ciliumCidrAnnotationExists := cluster.GetAnnotations()[annotation.CiliumPodCidr]
 	ciliumCidrAnnotationExists = ciliumCidrAnnotationExists && podCidr != ""
 
+	eniMode := key.IsCiliumEniModeEnabled(*cluster)
+
 	// Validate annotation is present during an upgrade from v18 to v19.
 	{
 		targetRelease, err := semver.New(key.Release(cluster))
@@ -281,7 +283,7 @@ func (v *Validator) Cilium(cluster *capi.Cluster, oldCluster *capi.Cluster) erro
 		if err != nil {
 			return err
 		}
-		if !ciliumCidrAnnotationExists && aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
+		if !ciliumCidrAnnotationExists && !eniMode && aws.IsPreCiliumRelease(currentRelease) && aws.IsCiliumRelease(targetRelease) {
 			return microerror.Maskf(notAllowedError,
 				fmt.Sprintf("The annotation `%s` has to be set on Cluster CR before upgrading to AWS release v19 or higher. %s %s", annotation.CiliumPodCidr, currentRelease, targetRelease),
 			)
