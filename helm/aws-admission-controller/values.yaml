@@ -22,7 +22,7 @@ workloadCluster:
       clusterIPRange: ""
 
 registry:
-  domain: docker.io
+  domain: quay.io
 
 image:
   name: "giantswarm/aws-admission-controller"

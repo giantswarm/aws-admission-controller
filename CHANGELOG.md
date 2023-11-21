@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `global.podSecurityStandards.enforced` value for PSS migration.
 
+### Changed
+
+- Use quay.io instead of docker.io in helm chart
+
 ## [4.12.0] - 2023-08-23
 
 ### Changed
