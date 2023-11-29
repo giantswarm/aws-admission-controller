@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix the requests duration metrics exposed by the controller, as the duration was always 0. 
+
 ### Added
 
 - Add `global.podSecurityStandards.enforced` value for PSS migration.
