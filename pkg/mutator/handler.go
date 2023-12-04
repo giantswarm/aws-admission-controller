@@ -35,7 +35,9 @@ var (
 func Handler(mutator Mutator) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		start := time.Now()
-		defer metrics.DurationRequests.WithLabelValues("mutating", mutator.Resource()).Observe(float64(time.Since(start)) / float64(time.Second))
+		defer func() {
+			metrics.DurationRequests.WithLabelValues("mutating", mutator.Resource()).Observe(float64(time.Since(start)) / float64(time.Second))
+		}()
 
 		metrics.TotalRequests.WithLabelValues("mutating", mutator.Resource()).Inc()
 		if request.Header.Get("Content-Type") != "application/json" {
