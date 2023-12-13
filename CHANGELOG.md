@@ -8,18 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-
 - Fix the requests duration metrics exposed by the controller, as the duration was always 0. 
-
 ### Added
-
 - Add `global.podSecurityStandards.enforced` value for PSS migration.
+### Changed
+
+- Configure `gsoci.azurecr.io` as the default container image registry.
 
 ## [4.12.0] - 2023-08-23
 
 ### Changed
 
-- Don't change pod CIDR during upgrade from v18 to v19 if eni ipam mode is enabled. 
+- Don't change pod CIDR during upgrade from v18 to v19 if eni ipam mode is enabled.
 
 ## [4.11.0] - 2023-07-14
 

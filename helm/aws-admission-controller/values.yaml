@@ -22,7 +22,7 @@ workloadCluster:
       clusterIPRange: ""
 
 registry:
-  domain: docker.io
+  domain: gsoci.azurecr.io
 
 image:
   name: "giantswarm/aws-admission-controller"
@@ -58,7 +58,7 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-    - ALL
+      - ALL
 
 serviceMonitor:
   enabled: true
