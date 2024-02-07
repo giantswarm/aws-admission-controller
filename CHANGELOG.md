@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.12.1] - 2024-01-08
+
 ### Fixed
+
 - Fix the requests duration metrics exposed by the controller, as the duration was always 0. 
+
 ### Added
+
 - Add `global.podSecurityStandards.enforced` value for PSS migration.
+
 ### Changed
 
 - Configure `gsoci.azurecr.io` as the default container image registry.
@@ -438,7 +444,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.1...HEAD
+[4.12.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.0...v4.12.1
 [4.12.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.11.0...v4.12.0
 [4.11.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.10.0...v4.11.0
 [4.10.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.1...v4.10.0
