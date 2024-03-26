@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.13.0] - 2024-03-26
+
 ### Fixed
 - Fix the requests duration metrics exposed by the controller, as the duration was always 0. 
 ### Added
@@ -438,7 +440,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.0...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.13.0...HEAD
+[4.13.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.0...v4.13.0
 [4.12.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.11.0...v4.12.0
 [4.11.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.10.0...v4.11.0
 [4.10.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.9.1...v4.10.0
