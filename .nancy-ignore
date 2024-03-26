@@ -8,3 +8,4 @@ CVE-2023-32731
 
 # pkg:golang/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc@v0.20.0
 CVE-2023-47108
+CVE-2024-24786
