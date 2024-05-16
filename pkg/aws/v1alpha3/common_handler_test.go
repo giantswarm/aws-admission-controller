@@ -30,7 +30,7 @@ func TestCAPIReleaseLabel(t *testing.T) {
 			name: "case 1",
 			ctx:  context.Background(),
 
-			currentRelease: "20.0.0-v1alpha3",
+			currentRelease: "25.0.0-v1alpha3",
 			expectedResult: true,
 		},
 		{
@@ -38,7 +38,7 @@ func TestCAPIReleaseLabel(t *testing.T) {
 			name: "case 2",
 			ctx:  context.Background(),
 
-			currentRelease: "20.0.0",
+			currentRelease: "25.0.0",
 			expectedResult: true,
 		},
 		{
