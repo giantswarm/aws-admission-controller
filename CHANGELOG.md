@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.14.0] - 2024-05-16
+
 ### Changed
 
 - Change first CAPI release to `25.0.0-alpha1`.
@@ -450,7 +452,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.13.1...HEAD
+[Unreleased]: https://github.com/giantswarm/aws-admission-controller/compare/v4.14.0...HEAD
+[4.14.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.13.1...v4.14.0
 [4.13.1]: https://github.com/giantswarm/aws-admission-controller/compare/v4.13.0...v4.13.1
 [4.13.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.12.0...v4.13.0
 [4.12.0]: https://github.com/giantswarm/aws-admission-controller/compare/v4.11.0...v4.12.0
