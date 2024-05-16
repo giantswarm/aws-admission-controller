@@ -89,7 +89,7 @@ func TestNewestReleaseVersion(t *testing.T) {
 					State: releasev1alpha1.StateActive,
 				},
 				{
-					Name:  "v20.0.0-v1alpha3",
+					Name:  "v25.0.0-v1alpha3",
 					State: releasev1alpha1.StateActive,
 				},
 			},

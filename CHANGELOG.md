@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Change first CAPI release to `25.0.0-alpha1`.
+
 ## [4.13.1] - 2024-05-07
 
 ### Fixed
