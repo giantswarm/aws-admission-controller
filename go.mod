@@ -106,7 +106,7 @@ replace (
 	github.com/gorilla/websocket v1.4.0 => github.com/gorilla/websocket v1.4.2
 	github.com/kataras/iris/v12 => github.com/kataras/iris/v12 v12.2.0-beta3
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.9.0
-	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.18
+	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.4
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.16.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
