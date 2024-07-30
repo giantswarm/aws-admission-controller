@@ -93,7 +93,7 @@ require (
 replace (
 	// v0.8.7 requires kubernetes 1.13 that triggers nancy alerts.
 	github.com/Microsoft/hcsshim v0.8.7 => github.com/Microsoft/hcsshim v0.8.10
-	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.44.34
+	github.com/aws/aws-sdk-go => github.com/aws/aws-sdk-go v1.55.5
 	github.com/containerd/containerd => github.com/containerd/containerd v1.6.6
 	github.com/containerd/imgcrypt => github.com/containerd/imgcrypt v1.1.6
 	// v3.3.10 is required by spf13/viper. Can remove this replace when updated.
