@@ -110,7 +110,7 @@ replace (
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.4
 	github.com/nats-io/nats.go => github.com/nats-io/nats.go v1.16.0
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	github.com/pkg/sftp => github.com/pkg/sftp v1.13.5
+	github.com/pkg/sftp => github.com/pkg/sftp v1.13.7
 	github.com/valyala/fasthttp => github.com/valyala/fasthttp v1.37.0
 	sigs.k8s.io/cluster-api => sigs.k8s.io/cluster-api v1.0.4
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.12.1
