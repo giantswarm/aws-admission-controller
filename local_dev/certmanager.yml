@@ -6335,7 +6335,7 @@ metadata:
     helm.sh/chart: cert-manager-v0.15.0
 ---
 # Source: cert-manager/templates/cainjector-rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-cainjector
@@ -6371,7 +6371,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # ClusterIssuer controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-clusterissuers
@@ -6398,7 +6398,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # Issuer controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-issuers
@@ -6425,7 +6425,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # Challenges controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-challenges
@@ -6502,7 +6502,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # Orders controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-orders
@@ -6541,7 +6541,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # ingress-shim controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-ingress-shim
@@ -6574,7 +6574,7 @@ rules:
 ---
 # Source: cert-manager/templates/rbac.yaml
 # Certificates controller role
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: cert-manager-controller-certificates
