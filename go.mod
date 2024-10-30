@@ -104,7 +104,7 @@ replace (
 	github.com/go-ldap/ldap/v3 => github.com/go-ldap/ldap/v3 v3.4.2
 	github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.0 => github.com/gorilla/websocket v1.4.2
-	github.com/kataras/iris/v12 => github.com/kataras/iris/v12 v12.2.0-beta3
+	github.com/kataras/iris/v12 => github.com/kataras/iris/v12 v12.2.11
 	github.com/labstack/echo/v4 => github.com/labstack/echo/v4 v4.9.0
 	github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/nats-io/nats-server/v2 => github.com/nats-io/nats-server/v2 v2.8.4
